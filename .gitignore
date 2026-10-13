@@ -1,0 +1,39 @@
+# >>> template:core (beheerd blok, wordt bijgewerkt door pnpm template:update)
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next
+.next/
+out/
+next-env.d.ts
+
+# environment, nooit committen
+#
+# Alles wat met .env begint, behalve het sjabloon. Een lijst met losse namen lijkt preciezer maar
+# is het niet: die dekt .env.production niet, en dat is precies het bestand waar de
+# productie-connectiestring in belandt als iemand `vercel env pull` draait.
+.env*
+!.env.example
+
+# vercel
+.vercel/
+
+# editors en os
+.DS_Store
+Thumbs.db
+*.swp
+
+# test en coverage
+coverage/
+playwright-report/
+playwright/.cache/
+.playwright/
+test-results/
+
+# tsbuildinfo
+*.tsbuildinfo
+
+# kopieën van bestanden die pnpm template:apply --force overschreef
+.template-backup/
+# <<< template:core

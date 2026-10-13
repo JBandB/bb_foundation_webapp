@@ -1,0 +1,5 @@
+# Een interne tool: niets achter de inlog is te crawlen. Het inlogscherm wel, zodat een crawler
+# ziet wat dit is en het niet aanziet voor iets anders.
+User-agent: *
+Allow: /sign-in
+Disallow: /

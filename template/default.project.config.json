@@ -1,0 +1,44 @@
+{
+  "$schema": "./schema/project.config.schema.json",
+  "configVersion": 1,
+  "project": {
+    "name": "Webapp",
+    "shortName": "Webapp",
+    "slug": "webapp",
+    "description": "Een nieuw project uit het template.",
+    "organisation": { "name": "Organisatie", "mailDomain": null },
+    "uiLanguage": "nl",
+    "timezone": "Europe/Amsterdam",
+    "currency": "EUR",
+    "systemEmail": "systeem@voorbeeld.invalid",
+    "productionUrl": null,
+    "homePath": "/home"
+  },
+  "brand": {
+    "colours": {
+      "primary": "#1f4e79",
+      "accent": "#0f766e",
+      "surface": "#f6f7f9",
+      "ink": "#1b1f24",
+      "success": "#2f7d52",
+      "warning": "#8f6a22",
+      "danger": "#b04a35",
+      "info": "#2f6f79"
+    },
+    "darkMode": "auto",
+    "radius": "sharp",
+    "logo": { "kind": "wordmark" }
+  },
+  "auth": {
+    "provider": "entra",
+    "roles": [
+      { "value": "admin", "label": { "nl": "Beheerder", "en": "Administrator" }, "admin": true },
+      { "value": "member", "label": { "nl": "Lid", "en": "Member" }, "admin": false }
+    ],
+    "devUsers": [{ "email": "dev@voorbeeld.invalid", "displayName": "Dev Beheerder", "roles": ["admin"] }]
+  },
+  "modules": ["auth-entra"],
+  "messaging": { "transport": "smtp", "teams": false },
+  "hosting": { "region": "fra1" },
+  "template": { "skipDependencies": [], "keepCrons": [] }
+}

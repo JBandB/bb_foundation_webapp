@@ -1,0 +1,79 @@
+# template-owned (module core). Wordt overschreven door pnpm template:update; wijzig dit bestand niet.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Typecheck, lint, tests en build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: De projectconfiguratie is geldig
+        run: pnpm template:validate
+
+      - name: Lint, inclusief de huisregels
+        run: pnpm lint
+
+      # De unittests hebben geen database nodig en draaien in seconden.
+      - name: De unittests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  migrations:
+    name: Migraties, drift en contrast
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Elke migratie bestaat, heeft een terugweg en is niet gewijzigd nadat hij op main stond.
+      # Zonder database, dus dit kan op elke pull request.
+      - name: Elke migratie heeft een terugweg
+        run: pnpm check:migrations
+
+      # Het schema en de snapshot in migrations/meta lopen gelijk. drizzle-kit generate leest alleen
+      # bestanden; de connectiestring wijst naar een adres waar niets luistert.
+      - name: Het schema loopt niet voor op de migraties
+        run: pnpm check:drift
+
+      # Het project klopt nog met zijn template.lock.json: geen owned bestand gewijzigd, de gegenereerde
+      # bestanden actueel, de gedeelde bestanden een vast punt van hun patcher.
+      - name: Het template is intact
+        run: pnpm template:verify
+
+      # Rekent de tokens uit app/theme.css en app/project.css na in beide modi. Een donkere
+      # modus ziet er altijd goed uit en is bijna nooit leesbaar; dat verschil zie je niet,
+      # je rekent het.
+      - name: Het contrast haalt de norm in licht en donker
+        run: pnpm check:contrast

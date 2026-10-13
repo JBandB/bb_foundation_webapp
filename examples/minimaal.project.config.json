@@ -1,0 +1,16 @@
+{
+  "$schema": "../template/schema/project.config.schema.json",
+  "configVersion": 1,
+  "project": {
+    "name": "Inventory",
+    "slug": "inventory",
+    "description": "Keeps track of the equipment the team lends out, and who has what.",
+    "organisation": { "name": "Example Org", "mailDomain": null },
+    "uiLanguage": "en"
+  },
+  "brand": {
+    "colours": { "primary": "#333c48", "accent": "#b8860b" },
+    "darkMode": "off"
+  },
+  "auth": { "provider": "entra" }
+}

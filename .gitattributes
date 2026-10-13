@@ -1,0 +1,7 @@
+# template-owned (module core). Wordt overschreven door pnpm template:update; wijzig dit bestand niet.
+# Altijd LF in de repo, ook op Windows. De template-tooling vergelijkt bestanden op inhoud, en een
+# checkout met CRLF zou anders als "gewijzigd" tellen.
+* text=auto eol=lf
+*.woff2 binary
+*.png binary
+*.ico binary

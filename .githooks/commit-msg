@@ -1,0 +1,10 @@
+#!/bin/sh
+# template-owned (module core). Wordt overschreven door pnpm template:update; wijzig dit bestand niet.
+# Geen em-dashes in een commit message. Zie CLAUDE.md.
+# Eenmalig aanzetten met: pnpm setup:hooks
+
+if grep -q "$(printf '\xe2\x80\x94')" "$1"; then
+  echo "Commit geweigerd: de message bevat een em-dash."
+  echo "Gebruik een komma, dubbele punt, haakjes of een nieuwe zin."
+  exit 1
+fi

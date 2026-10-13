@@ -1,0 +1,21 @@
+# template-owned (module core). Wordt overschreven door pnpm template:update; wijzig dit bestand niet.
+#
+# Welke pakketten een install-script mogen draaien. Zie pnpm.io/settings.
+# unrs-resolver is de native module-resolver onder de import-regels van ESLint.
+# esbuild is de bundler onder vitest, tsx en drizzle-kit.
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+
+# Waarom TypeScript en ESLint vastgepind staan (zie ook docs/lessen/toolchain-windows.md):
+# typescript-eslint, dat via eslint-config-next binnenkomt, ondersteunt TypeScript 7 niet
+# (peer range tot 6.1), en ESLint 10 breekt eslint-plugin-react ("getFilename is not a
+# function" bij react/display-name). Upgraden kan alleen allebei tegelijk, en pas als die
+# twee pakketten het toestaan. Controleer dat met `pnpm outdated`, dan typecheck en lint.
+#
+# Beveiligingsadviezen in de ontwikkeltooling, opgelost binnen dezelfde hoofdversie. nanoid
+# komt via postcss, js-yaml via eslint. esbuild onder drizzle-kit staat er niet bij: dat zou
+# een sprong van hoofdversies zijn onder een tool die we niet zelf bouwen.
+overrides:
+  nanoid@<3.3.18: ^3.3.18
+  js-yaml@>=4.0.0 <4.3.2: ^4.3.2

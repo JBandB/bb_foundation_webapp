@@ -1,0 +1,5 @@
+# Wie een beveiligingsprobleem vindt, kan hier terecht. Zie docs/handleiding/30-beveiliging-en-kosten.md.
+# Vernieuw de datum bij Expires elk jaar; een verlopen bestand telt als geen bestand.
+Contact: mailto:{{project.systemEmail}}
+Expires: 2027-12-31T00:00:00.000Z
+Preferred-Languages: nl, en

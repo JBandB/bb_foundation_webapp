@@ -1,0 +1,91 @@
+# Alleen in de repo van het template zelf: staat niet in het manifest en komt dus niet in een project.
+name: Template
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: template-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  golden:
+    name: Gouden project uit ${{ matrix.example }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        example: [default, voorbeeld, minimaal]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Maakt een vers project uit deze werkkopie, past de voorbeeldconfig toe, draait de batterij
+      # zonder database, en bewijst dat een tweede apply niets verandert. Zie template/ci/golden.mjs.
+      - name: Gouden test
+        run: node template/ci/golden.mjs ${{ matrix.example }}
+
+  hygiene:
+    name: Geen projectinhoud en geen em-dashes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Grept het hele template op de namen uit template/ci/forbidden-words.txt en op em-dashes.
+      - name: Hygiëne
+        run: node template/ci/check-template.mjs
+
+  wizard:
+    name: De wizard doorlopen in een browser
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      # Opent wizard/index.html vanaf file://, vult de kinderboerderij-casus in, leest de downloads
+      # en haalt project.config.json door template:validate. Zie template/ci/wizard-smoke.mjs.
+      - name: Wizard-rooktest
+        run: node template/ci/wizard-smoke.mjs
+
+  update:
+    name: Bijwerken van de vorige naar deze versie
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Een project op deze versie, een nieuwere versie met een gewijzigd owned bestand, en dan
+      # template:update --from: owned bijgewerkt, eigen wijzigingen bewaard, verify en adopt kloppen,
+      # een tweede update verandert niets. Zie template/ci/update-test.mjs.
+      - name: Updatetest
+        run: node template/ci/update-test.mjs

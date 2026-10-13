@@ -1,0 +1,14 @@
+/*
+ * Eigen tokens en overrides van dit project.
+ *
+ * Alles wat hier staat wint van theme.css, want dit bestand wordt erna ingelezen. Twee regels:
+ *
+ *   1. Alleen tokens (--naam: #hex;) onder :root of .light en onder .dark, geen componentstijlen.
+ *      Een token dat je in .dark zet, zet je ook in :root, anders erft een genest licht deel de
+ *      donkere waarde.
+ *   2. pnpm check:contrast rekent je overrides mee. Haalt een paar de norm niet, dan zegt de check
+ *      welk paar en met welke waarden.
+ *
+ * Eigen utilities kunnen in een eigen @theme inline {} blok hieronder; Tailwind 4 staat er meer dan
+ * een toe. Een kleur buiten dit bestand en theme.css weigert de huisregel no-hardcoded-colour.
+ */

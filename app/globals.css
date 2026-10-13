@@ -1,0 +1,206 @@
+/* template-owned (module core). Wordt overschreven door pnpm template:update; wijzig dit bestand niet. */
+@import "tailwindcss";
+
+/*
+ * De kleuren staan niet hier maar in twee bestanden ernaast:
+ *
+ *   theme.css    gegenereerd uit project.config.json door pnpm template:generate; nooit bewerken
+ *   project.css  van het project: eigen tokens en overrides
+ *
+ * Dit bestand kent alleen het contract: welke tokens er zijn en hoe Tailwind ze als utility ziet.
+ * De namen volgen het shadcn/ui-contract (--background, --foreground, --card, --muted, --border,
+ * --ring) met een paar uitbreidingen die in de praktijk nodig bleken (--foreground-soft,
+ * --accent-quiet, de statusdrieklanken). Zie docs/THEME.md.
+ */
+@import "./theme.css";
+@import "./project.css";
+
+/*
+ * De `dark:`-variant luistert naar onze class en niet naar de systeeminstelling.
+ *
+ * Zonder deze regel betekent `dark:` in Tailwind `prefers-color-scheme: dark`, en dan zou een
+ * component iets anders denken dan de tokens doen: die volgen de class op <html>, die uit de
+ * voorkeur van de gebruiker komt.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------- 4. Tailwind-utilities, alleen via tokens ---------- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-quiet: var(--accent-quiet);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+  --color-success-fg: var(--success-fg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-fg: var(--warning-fg);
+  --color-destructive: var(--destructive);
+  --color-destructive-bg: var(--destructive-bg);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-info-fg: var(--info-fg);
+  --color-neutral-bg: var(--neutral-bg);
+  --color-neutral-fg: var(--neutral-fg);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  /* Inkt op een vlak dat in beide modi donker is: de rail, de primaire knop op licht. */
+  --color-on-dark: var(--on-dark);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-track: var(--chart-track);
+
+  /* Het waas achter een dialoog. Een kleur, dus hij hoort hier en niet in een component. */
+  --color-overlay: var(--overlay);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --radius-sm: var(--radius-tight);
+  --radius-md: var(--radius);
+  --radius-lg: var(--radius-card);
+
+  /*
+   * Twee schaduwen, allebei voor iets dat zweeft. Er is met opzet geen schaduw voor een kaart in de
+   * pagina: die blijft plat.
+   *   shadow-float  een popover of een keuzelijst, vlak boven de pagina
+   *   shadow-panel  een dialoog, een drawer of een toast, los van de pagina
+   */
+  --shadow-float: var(--shadow-float);
+  --shadow-panel: var(--shadow-panel);
+}
+
+/* ---------- 5. Basis ----------------------------------------- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  /* Zichtbare toetsenbordfocus, overal hetzelfde. */
+  :focus-visible {
+    outline: var(--ring-width) solid var(--ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-tight);
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+}
+
+@layer utilities {
+  /* Elk getal is tabular, zodat kolommen met cijfers uitlijnen. */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* Het bovenschrift: het kleine kapitaaltje boven een kop, een kolomnaam of een getal op een tegel. */
+  .overline {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /*
+   * Het label boven een veld, en de naam van een feit in een lijst. Kleur staat er niet in: een label
+   * in een formulier heeft de gewone tekstkleur, en een label in een feitenlijst is gedempt; dat
+   * verschil hoort bij de plek en niet bij de klasse.
+   */
+  .label {
+    font-size: 12.5px;
+    font-weight: 500;
+  }
+
+  /*
+   * Het laadvlak. Een skelet hoort de vorm van het echte element te hebben, en er hoort er nooit
+   * meer dan een schermdeel tegelijk te bewegen.
+   */
+  .skeleton {
+    border-radius: var(--radius-tight);
+    background: linear-gradient(
+      90deg,
+      var(--skeleton) 25%,
+      var(--skeleton-sheen) 50%,
+      var(--skeleton) 75%
+    );
+    background-size: 200% 100%;
+    animation: tpl-skeleton 1.4s linear infinite;
+  }
+}
+
+@keyframes tpl-skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

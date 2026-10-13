@@ -1,0 +1,56 @@
+{
+  "$schema": "../template/schema/project.config.schema.json",
+  "configVersion": 1,
+  "project": {
+    "name": "Rooster De Weide",
+    "shortName": "Rooster",
+    "slug": "rooster-de-weide",
+    "description": "Het vrijwilligersrooster van kinderboerderij De Weide: wie staat wanneer, en wie valt in.",
+    "organisation": { "name": "Kinderboerderij De Weide", "mailDomain": "deweide.example" },
+    "uiLanguage": "nl",
+    "timezone": "Europe/Amsterdam",
+    "currency": "EUR",
+    "systemEmail": "rooster@deweide.example",
+    "productionUrl": "https://rooster.deweide.example",
+    "homePath": "/schedule"
+  },
+  "brand": {
+    "colours": {
+      "primary": "#e07b00",
+      "accent": "#5b8c3a",
+      "surface": "#fbf8f3",
+      "ink": "#2b2520",
+      "success": "#2f7d52",
+      "warning": "#8f6a22",
+      "danger": "#b04a35",
+      "info": "#2f6f79"
+    },
+    "darkMode": "auto",
+    "radius": "soft",
+    "logo": { "kind": "image", "path": "public/brand/logo.svg", "darkPath": "public/brand/logo-dark.svg" }
+  },
+  "auth": {
+    "provider": "password",
+    "roles": [
+      { "value": "admin", "label": { "nl": "Beheerder", "en": "Administrator" }, "admin": true },
+      { "value": "coordinator", "label": { "nl": "Coördinator", "en": "Coordinator" }, "admin": false },
+      { "value": "volunteer", "label": { "nl": "Vrijwilliger", "en": "Volunteer" }, "admin": false }
+    ],
+    "password": { "mfaRequiredFor": "admins" },
+    "devUsers": [
+      { "email": "admin@dev.invalid", "displayName": "Dev Beheerder", "roles": ["admin"] },
+      { "email": "coordinator@dev.invalid", "displayName": "Dev Coördinator", "roles": ["coordinator"] },
+      { "email": "volunteer@dev.invalid", "displayName": "Dev Vrijwilliger", "roles": ["volunteer"] }
+    ]
+  },
+  "modules": ["auth-password", "jobs", "messaging", "files"],
+  "messaging": { "transport": "smtp", "teams": false },
+  "hosting": { "region": "fra1", "github": "de-weide/rooster", "vercelTeam": null, "neonProject": "rooster-de-weide" },
+  "template": { "source": null, "skipDependencies": [], "keepCrons": [] },
+  "intake": {
+    "phases": [
+      { "title": "Rooster en invallers", "exit": "Elke dienst van de komende maand staat in de tool en invallen gaat via de tool." },
+      { "title": "Herinneringen", "exit": "Elke vrijwilliger krijgt de avond ervoor een mail en niemand hoeft meer gebeld te worden." }
+    ]
+  }
+}

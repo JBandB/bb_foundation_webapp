@@ -1,0 +1,8 @@
+# Woorden die nergens in het template mogen staan: namen van eerdere projecten, van de organisatie
+# achter het template en van klanten. Eén per regel, hoofdletterongevoelig. Alleen gelezen door
+# template/ci/check-template.mjs; dit bestand en template/README.md zijn uitgezonderd.
+flightplan
+bos & brouwer
+bos en brouwer
+bosbrouwer
+psohub

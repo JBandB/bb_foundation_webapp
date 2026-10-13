@@ -1,0 +1,534 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "project.config.json",
+  "description": "De configuratie van een project uit het template BB_foundation_webapp. De wizard schrijft dit bestand, pnpm template:apply leest het en de generatoren leiden er het thema, de rollen en de projectgegevens uit af.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "De verwijzing naar dit schema, zodat de editor live valideert."
+    },
+    "configVersion": {
+      "description": "De versie van dit bestandsformaat. Altijd 1 in deze versie van het template.",
+      "type": "integer",
+      "const": 1
+    },
+    "project": {
+      "description": "Naam, taal en adressen van het project.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "De volledige naam, zoals hij in de titelbalk en op het inlogscherm staat.",
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 60
+        },
+        "shortName": {
+          "description": "De korte naam voor de rail en het tekstmerk, hoogstens 20 tekens.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+        },
+        "slug": {
+          "description": "De technische naam: voor de repo, het Vercel-project, de database en de cookies. Verandert daarna nooit meer.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,30}$"
+        },
+        "description": {
+          "description": "Eén zin die zegt wat het project is. Komt in de metadata van de pagina en in README.md.",
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 200
+        },
+        "organisation": {
+          "description": "De organisatie die het project gebruikt.",
+          "type": "object",
+          "properties": {
+            "name": {
+              "description": "De naam van de organisatie, onderin de rail en in mails.",
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80
+            },
+            "mailDomain": {
+              "description": "Het maildomein van de organisatie. Bepaalt het systeemadres als dat niet is ingevuld.",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)+$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ]
+        },
+        "uiLanguage": {
+          "description": "De taal van de interface. De documentatie is altijd Nederlands.",
+          "type": "string",
+          "enum": [
+            "nl",
+            "en"
+          ],
+          "default": "nl"
+        },
+        "timezone": {
+          "description": "De tijdzone voor datums en voor het rooster van de crons (IANA-naam).",
+          "type": "string",
+          "default": "Europe/Amsterdam"
+        },
+        "currency": {
+          "description": "De standaardvaluta (ISO 4217). Alleen van belang als het project met geld rekent.",
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "default": "EUR"
+        },
+        "systemEmail": {
+          "description": "De afzender in de audit log voor crons en taken. Hoeft geen echte postbus te zijn.",
+          "type": "string",
+          "format": "email"
+        },
+        "productionUrl": {
+          "description": "Het adres van de productieomgeving, zoals https://rooster.voorbeeld.nl. Leeg tot het bekend is.",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^https://",
+              "format": "uri"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "homePath": {
+          "description": "Waar de voorpagina heen stuurt na het inloggen.",
+          "type": "string",
+          "pattern": "^/[a-z0-9/-]*$",
+          "default": "/home"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "slug",
+        "description",
+        "organisation"
+      ]
+    },
+    "brand": {
+      "description": "De huisstijl. De generator leidt hier het hele thema uit af, in licht en donker, en bewaakt het contrast.",
+      "type": "object",
+      "properties": {
+        "colours": {
+          "description": "De merkkleuren als hex. Twee zijn verplicht, de rest heeft een neutrale standaard.",
+          "type": "object",
+          "properties": {
+            "primary": {
+              "description": "De hoofdkleur: knoppen, links, de ring rond het veld met focus.",
+              "type": "string",
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "accent": {
+              "description": "De tweede kleur: accenten, de tekstselectie, de tweede grafiekkleur.",
+              "type": "string",
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+            },
+            "surface": {
+              "description": "De achtergrond van de pagina in de lichte modus.",
+              "type": "string",
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+              "default": "#f6f7f9"
+            },
+            "ink": {
+              "description": "De tekstkleur in de lichte modus.",
+              "type": "string",
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+              "default": "#1b1f24"
+            },
+            "success": {
+              "description": "Gelukt, actief, akkoord.",
+              "type": "string",
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+              "default": "#2f7d52"
+            },
+            "warning": {
+              "description": "Let op, wacht op iets.",
+              "type": "string",
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+              "default": "#8f6a22"
+            },
+            "danger": {
+              "description": "Fout, verwijderen, geweigerd.",
+              "type": "string",
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+              "default": "#b04a35"
+            },
+            "info": {
+              "description": "Neutrale mededeling.",
+              "type": "string",
+              "pattern": "^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+              "default": "#2f6f79"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "primary",
+            "accent"
+          ]
+        },
+        "darkMode": {
+          "description": "auto: elke gebruiker kiest licht of donker. off: alleen licht, de donkere modus wordt niet gegenereerd.",
+          "type": "string",
+          "enum": [
+            "auto",
+            "off"
+          ],
+          "default": "auto"
+        },
+        "radius": {
+          "description": "De afronding van hoeken. sharp: 2 tot 8 px. soft: 4 tot 12 px. round: 8 tot 16 px.",
+          "type": "string",
+          "enum": [
+            "sharp",
+            "soft",
+            "round"
+          ],
+          "default": "sharp"
+        },
+        "logo": {
+          "description": "Het logo in de rail en op het inlogscherm.",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "description": "wordmark: de korte naam als tekstmerk. image: een SVG uit public/brand/.",
+              "type": "string",
+              "enum": [
+                "wordmark",
+                "image"
+              ],
+              "default": "wordmark"
+            },
+            "path": {
+              "description": "Het pad naar het logo. Verplicht bij kind image, leeg bij wordmark.",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^public\\/brand\\/[a-z0-9-]+\\.svg$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "darkPath": {
+              "description": "Een aparte versie voor de donkere modus, als het logo daar niet leesbaar is.",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^public\\/brand\\/[a-z0-9-]+\\.svg$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "colours"
+      ]
+    },
+    "auth": {
+      "description": "Inloggen en rollen.",
+      "type": "object",
+      "properties": {
+        "provider": {
+          "description": "entra: inloggen met het Microsoft-account van de organisatie (module auth-entra). password: eigen accounts met wachtwoord en tweestapsverificatie (module auth-password).",
+          "type": "string",
+          "enum": [
+            "entra",
+            "password"
+          ]
+        },
+        "roles": {
+          "description": "De rollen van het project. Minstens één is beheerder. Bij Entra zijn dit de app roles in de tenant.",
+          "type": "array",
+          "items": {
+            "description": "Een rol: de waarde in code en database, het label in beide talen, en of de rol beheerder is.",
+            "type": "object",
+            "properties": {
+              "value": {
+                "description": "De naam in code en database, zoals admin of coordinator. Bij Entra is dit de waarde van de app role.",
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{1,30}$"
+              },
+              "label": {
+                "description": "Het label in de interface, in beide talen.",
+                "type": "object",
+                "properties": {
+                  "nl": {
+                    "description": "Het Nederlandse label, zoals Beheerder.",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "en": {
+                    "description": "Het Engelse label, zoals Administrator.",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                },
+                "additionalProperties": false,
+                "required": [
+                  "nl",
+                  "en"
+                ]
+              },
+              "admin": {
+                "description": "Een beheerdersrol mag alles, ook Beheer. Minstens één rol heeft dit aan.",
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "label"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 8,
+          "default": [
+            {
+              "value": "admin",
+              "label": {
+                "nl": "Beheerder",
+                "en": "Administrator"
+              },
+              "admin": true
+            },
+            {
+              "value": "member",
+              "label": {
+                "nl": "Lid",
+                "en": "Member"
+              },
+              "admin": false
+            }
+          ]
+        },
+        "password": {
+          "description": "Instellingen van de wachtwoordlogin. Alleen van belang bij provider password.",
+          "type": "object",
+          "properties": {
+            "mfaRequiredFor": {
+              "description": "Voor wie tweestapsverificatie verplicht is. Standaard voor beheerders.",
+              "type": "string",
+              "enum": [
+                "admins",
+                "everyone",
+                "nobody"
+              ],
+              "default": "admins"
+            }
+          },
+          "additionalProperties": false
+        },
+        "devUsers": {
+          "description": "De accounts van de dev-login, alleen lokaal (AUTH_DEV_LOGIN=1). Op Vercel bestaat de dev-login niet.",
+          "type": "array",
+          "items": {
+            "description": "Een account van de dev-login, alleen lokaal.",
+            "type": "object",
+            "properties": {
+              "email": {
+                "description": "Het adres waarmee je lokaal inlogt. Hoeft niet te bestaan; gebruik een .invalid-domein.",
+                "type": "string",
+                "format": "email"
+              },
+              "displayName": {
+                "description": "De naam in de rail.",
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              },
+              "roles": {
+                "description": "De rollen van dit account, uit auth.roles.",
+                "type": "array",
+                "items": {
+                  "description": "Een rolwaarde uit auth.roles.",
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{1,30}$"
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "email",
+              "displayName",
+              "roles"
+            ]
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "provider"
+      ]
+    },
+    "modules": {
+      "description": "De toegepaste modules, zonder core (die is er altijd). Welke er zijn staat in template/manifest.json.",
+      "type": "array",
+      "items": {
+        "description": "Een modulenaam uit template/manifest.json.",
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "uniqueItems": true
+    },
+    "messaging": {
+      "description": "Hoe het project mail en meldingen verstuurt (module messaging).",
+      "type": "object",
+      "properties": {
+        "transport": {
+          "description": "smtp: een gewone mailserver of mailaanbieder. graph: een gedeelde postbus in Microsoft 365, via een app-registratie.",
+          "type": "string",
+          "enum": [
+            "smtp",
+            "graph"
+          ],
+          "default": "smtp"
+        },
+        "teams": {
+          "description": "Ook meldingen naar een Teams-kanaal, via een webhook.",
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "hosting": {
+      "description": "Waar het project draait. Namen, nooit geheimen.",
+      "type": "object",
+      "properties": {
+        "region": {
+          "description": "De Vercel-regio voor serverfuncties. fra1 is Frankfurt, dicht bij een Neon-database in de EU.",
+          "type": "string",
+          "pattern": "^[a-z]{3}[0-9]$",
+          "default": "fra1"
+        },
+        "github": {
+          "description": "De GitHub-repo als organisatie/naam, zodra die bestaat.",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_.-]+\\/[A-Za-z0-9_.-]+$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "vercelTeam": {
+          "description": "Het Vercel-team of -account waar het project onder hangt.",
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "neonProject": {
+          "description": "Het Neon-project van de database.",
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "additionalProperties": false
+    },
+    "template": {
+      "description": "Voorkeuren voor de template-tooling.",
+      "type": "object",
+      "properties": {
+        "source": {
+          "description": "Het git-adres van het template als dat afwijkt van template/manifest.json, bijvoorbeeld een eigen fork.",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "\\.git$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "skipDependencies": {
+          "description": "Pakketten waarvan het project zelf de versie bepaalt; template:update laat die pin met rust.",
+          "type": "array",
+          "items": {
+            "description": "Een pakketnaam.",
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true,
+          "default": []
+        },
+        "keepCrons": {
+          "description": "Cronpaden waarvan het project zelf het rooster bepaalt; template:update laat die met rust.",
+          "type": "array",
+          "items": {
+            "description": "Het pad van een cronroute.",
+            "type": "string",
+            "pattern": "^/[a-z0-9/-]*$"
+          },
+          "uniqueItems": true,
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "intake": {
+      "description": "De antwoorden uit de wizard: accounts, budget, fasen. Alleen voor de wizard en de handleidingen; de tooling leest dit niet.",
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "configVersion",
+    "project",
+    "brand",
+    "auth"
+  ]
+}

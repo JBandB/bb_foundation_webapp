@@ -1,0 +1,148 @@
+/* template-generated (theme) uit project.config.json. Niet bewerken: pnpm template:generate schrijft hem opnieuw. */
+
+/* ---------- 1. Constanten, nooit modusafhankelijk ------------ */
+:root {
+  /* Inkt op een vlak dat in beide modi donker is: de rail, de primaire knop op licht. */
+  --on-dark: #ffffff;
+
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-sans: var(--font-manrope), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --radius: 4px;
+  --radius-tight: 2px;
+  --radius-card: 8px;
+
+  --ring-width: 2px;
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* ---------- 2. Licht, de standaard ---------------------------- */
+:root,
+.light {
+  /* Ook op een geneste .light, zodat een deel van een pagina licht kan blijven. */
+  color-scheme: light;
+
+  --background: #f6f7f9;
+  --foreground: #1b1f24;
+  --foreground-soft: #3e4248;
+  --muted-foreground: #5f646a;
+  --subtle-foreground: #82878d;
+  --card: #ffffff;
+  --card-foreground: #1b1f24;
+  --popover: #ffffff;
+  --popover-foreground: #1b1f24;
+  --muted: #e9eaec;
+  --primary: #1f4e79;
+  --primary-foreground: #ffffff;
+  --primary-hover: #0f406a;
+  --primary-active: #00335b;
+  --secondary: #e2e3e5;
+  --secondary-foreground: #1b1f24;
+  --secondary-hover: #d8d9db;
+  --accent: #0f766e;
+  --accent-foreground: #ffffff;
+  --accent-quiet: #0f766e;
+  --border: #c8c9cb;
+  --border-strong: #7c8187;
+  --input: #ffffff;
+  --ring: #1f4e79;
+  --success: #2f7d52;
+  --success-bg: #d1f6dd;
+  --success-fg: #00502c;
+  --warning: #8f6a22;
+  --warning-bg: #fde8c6;
+  --warning-fg: #583d00;
+  --destructive: #b04a35;
+  --destructive-bg: #ffe4de;
+  --destructive-foreground: #7b1701;
+  --info: #2f6f79;
+  --info-bg: #c5f5fd;
+  --info-fg: #004c55;
+  --neutral-bg: #e9eaec;
+  --neutral-fg: #51565c;
+  --sidebar: #11283e;
+  --sidebar-foreground: #c7d2de;
+  --sidebar-accent: #233a51;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #324457;
+  --chart-1: #1f4e79;
+  --chart-2: #0f766e;
+  --chart-3: #8f6a22;
+  --chart-4: #6e7277;
+  --chart-5: #b04a35;
+  --chart-6: #2f7d52;
+  --chart-grid: #e2e3e5;
+  --chart-track: #e9eaec;
+  --skeleton: #e9eaec;
+  --skeleton-sheen: #f9fafc;
+
+  --shadow-float: 0 4px 14px rgba(27, 31, 36, 0.1);
+  --shadow-panel: 0 18px 48px rgba(27, 31, 36, 0.16);
+  --overlay: rgba(27, 31, 36, 0.38);
+}
+
+/* ---------- 3. Donker, een keuze per gebruiker ---------------- */
+.dark {
+  color-scheme: dark;
+
+  --background: #05080c;
+  --foreground: #eceff2;
+  --foreground-soft: #cdd1d6;
+  --muted-foreground: #a0a5ac;
+  --subtle-foreground: #7c8187;
+  --card: #0b1015;
+  --card-foreground: #eceff2;
+  --popover: #11171c;
+  --popover-foreground: #eceff2;
+  --muted: #151b22;
+  --primary: #85b6e7;
+  --primary-foreground: #020a15;
+  --primary-hover: #94c6f8;
+  --primary-active: #73a3d3;
+  --secondary: #1d252d;
+  --secondary-foreground: #dcdee1;
+  --secondary-hover: #262f38;
+  --accent: #79d0c6;
+  --accent-foreground: #020a15;
+  --accent-quiet: #6cc3ba;
+  --border: #232a31;
+  --border-strong: #70757b;
+  --input: #070c10;
+  --ring: #85b6e7;
+  --success: #72be90;
+  --success-bg: #002713;
+  --success-fg: #98e6b5;
+  --warning: #cba45f;
+  --warning-bg: #2c1c00;
+  --warning-fg: #f3ca85;
+  --destructive: #f58870;
+  --destructive-bg: #37120b;
+  --destructive-foreground: #ffbfb1;
+  --info: #77b7c1;
+  --info-bg: #00252a;
+  --info-fg: #9ddee9;
+  --neutral-bg: #151b22;
+  --neutral-fg: #a0a5ac;
+  --sidebar: #020406;
+  --sidebar-foreground: #c7d2de;
+  --sidebar-accent: #0b1015;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #161b21;
+  --chart-1: #85b6e7;
+  --chart-2: #79d0c6;
+  --chart-3: #cba45f;
+  --chart-4: #a0a5ac;
+  --chart-5: #f58870;
+  --chart-6: #72be90;
+  --chart-grid: #1d252d;
+  --chart-track: #151b22;
+  --skeleton: #151b22;
+  --skeleton-sheen: #232a31;
+
+  --shadow-float: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-panel: 0 18px 48px rgba(0, 0, 0, 0.55);
+  --overlay: rgba(0, 0, 0, 0.66);
+}
