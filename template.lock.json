@@ -1,8 +1,8 @@
 {
   "lockVersion": 1,
   "source": "https://github.com/JBandB/bb_foundation_webapp.git",
-  "version": "0.1.0",
-  "appliedAt": "2026-10-15T08:36:25Z",
+  "version": "1.1.0",
+  "appliedAt": "2026-10-15T16:54:15Z",
   "modules": {
     "core": {
       "schemaVersion": 1,
@@ -298,7 +298,7 @@
     "scripts/lint-house-rules.mjs": {"module":"core","class":"owned","hash":"714deb6d5c2efdf9c4b708ec6ffabdd47528a6357338d7fe56cd68f3b1c81ec3","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "scripts/smoke-prod.ts": {"module":"core","class":"owned","hash":"f0235ca3592bface502c48df80e5728544dacb033701dc6f0edef5654b71445a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "scripts/task-prune.ts": {"module":"core","class":"owned","hash":"d5b9a3d8f771b3ee6238d9acb62b45a1d34cf0cbe83934bb3151bea53bb1a595","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "template/CHANGELOG.md": {"module":"core","class":"owned","hash":"5d1c0dcb21044356c9705988be1e24686d585099b9e22d3219d17bfa7243965d","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "template/CHANGELOG.md": {"module":"core","class":"owned","hash":"6b6734fb7203733368eae40cf7c679a410752b20a8244de5f937b5515ba7aa6a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/README.md": {"module":"core","class":"owned","hash":"ec30845175ac452be163bb7c4d3e1badd52bfdd2096f5c71992eb3c54635789a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/check-template.mjs": {"module":"core","class":"owned","hash":"a666cec3a24c4c41575aaf83ffbe9cd3b9470ce08fbfa6e536affa5d10f928c9","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/controle-laptop.test.ts": {"module":"core","class":"owned","hash":"34896fbb12c5ed6ae21632e2c18be660d27db75b8be37dcd800f4349c29f0b7b","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
@@ -359,7 +359,7 @@
     "template/lib/status.ts": {"module":"core","class":"owned","hash":"5064fcb57efeef0890618d579ed587ec72557c16b03770f1643e36941c3cd1dd","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/lib/update.ts": {"module":"core","class":"owned","hash":"f774d3dc687eb4ad212f8a5c181486e704b2a598243b11fc3b6c4d8dc76874fc","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/lib/verify.ts": {"module":"core","class":"owned","hash":"37d1594aaadf57b72f6e079da035b94dc2f5838d9be9ba224e0943d7e0d72c92","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "template/manifest.json": {"module":"core","class":"owned","hash":"73cb470f4a3dbee16cb050633385803fef470bfd15194cdb37cf5d6658809c88","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "template/manifest.json": {"module":"core","class":"owned","hash":"8e2a32027c2ab346c0b45c389e7a7f536e17101947b678269889d186d0b3c28c","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/modules/auth-entra/claude.md": {"module":"core","class":"owned","hash":"368aad1b141086c6c58cc32363c1fe9f010f41f376e625c3a2e6243b619663d0","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/modules/auth-entra/env.example.txt": {"module":"core","class":"owned","hash":"b55593d2fbcca7fa4fcec73c9a7afd8ee5a231586a4fe7bae7e278b3980610fc","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/modules/auth-password/claude.md": {"module":"core","class":"owned","hash":"f405fb70aeec0520715cd78ce673279324068ddb38b39080393b94dbb0ce076f","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},

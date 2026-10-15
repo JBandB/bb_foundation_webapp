@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "version": "0.1.0",
+  "version": "1.1.0",
   "source": "https://github.com/JBandB/bb_foundation_webapp.git",
   "rootRenderedOn": "2026-10-02",
   "modules": {
