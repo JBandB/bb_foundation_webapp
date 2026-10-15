@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "version": "0.1.0",
-  "source": null,
+  "source": "https://github.com/JBandB/bb_foundation_webapp.git",
   "rootRenderedOn": "2026-10-02",
   "modules": {
     "core": {
@@ -411,6 +411,9 @@
         },
         "claudeMd": "template/modules/auth-password/claude.md"
       },
+      "env": [
+        { "name": "MFA_SECRET_KEY", "secret": true, "where": "vercel", "guide": "docs/handleiding/05b-wachtwoordlogin.md", "description": "De sleutel voor het geheim van tweestapsverificatie; gelijk in Production en Preview, anders werkt tweestap niet op een preview. Leeg valt terug op AUTH_SECRET." }
+      ],
       "migrations": { "1": { "down": "template/modules/auth-password/migrations/1/down.sql" } },
       "manual": [
         "De eerste beheerder: draai na pnpm db:bootstrap en de eerste deploy één keer pnpm invite -- <adres> \"<naam>\" <beheerdersrol> en geef de koppeling aan die persoon. Daarna gaat uitnodigen via Beheer, Accounts.",

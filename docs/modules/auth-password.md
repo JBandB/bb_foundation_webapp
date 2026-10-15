@@ -13,8 +13,8 @@ Vereist `messaging` (voor uitnodigingen en herstelkoppelingen); gaat niet samen 
 - **Wachtwoorden** met scrypt en een eigen zout; minstens twaalf tekens, niet het eigen adres.
 - **Tweestapsverificatie** (TOTP met een authenticator-app), verplicht voor de rollen in
   `auth.password.mfaRequiredFor` (standaard beheerders). Wie het nog niet heeft, stelt het in bij
-  de eerste login via een koppeling per mail. Het geheim staat versleuteld met een sleutel uit
-  `AUTH_SECRET`.
+  de eerste login: na een juist wachtwoord opent meteen de pagina met de QR-code, zonder mail.
+  Het geheim staat versleuteld met een sleutel uit `AUTH_SECRET`.
 - **Vergrendeling** na vijf mislukte pogingen op een account of vanaf één adres, een kwartier lang.
   Eén foutmelding voor alles.
 - **Mijn account** in de rail: wachtwoord wijzigen, tweestapsverificatie aan of uit.

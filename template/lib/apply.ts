@@ -414,7 +414,17 @@ export function applyTemplate(root: string, sourceRoot: string, options: ApplyOp
   const crons: Cron[] = activeModules.flatMap((name) => manifest.modules[name]?.merge.vercelJson.crons ?? []);
   const vercelPath = join(root, "vercel.json");
   const vercelText = fileExists(vercelPath) ? readText(vercelPath) : "";
-  const vercelResult = patchVercelJson(vercelText, { defaults: { regions: [config.hosting.region] }, crons }, previousLock?.merged.vercelCrons ?? shippedMerged.vercelCrons, [...config.template.keepCrons]);
+  /*
+   * De build migreert eerst (SPEC D5, les L-VRC-01): zonder `buildCommand` draait Vercel alleen
+   * `next build`, en dan migreert noch productie noch een preview. Een standaardwaarde, dus een
+   * project dat zelf een buildCommand heeft, houdt het zijne.
+   */
+  const vercelResult = patchVercelJson(
+    vercelText,
+    { defaults: { regions: [config.hosting.region], buildCommand: "pnpm db:deploy && pnpm build" }, crons },
+    previousLock?.merged.vercelCrons ?? shippedMerged.vercelCrons,
+    [...config.template.keepCrons],
+  );
   if (vercelResult.text !== vercelText) writeFile("vercel.json", vercelResult.text);
   merges.push({ file: "vercel.json", changes: vercelResult.changes, warnings: vercelResult.warnings });
   merged.vercelCrons = vercelResult.managedCrons;

@@ -109,6 +109,11 @@ Vuistregels: één bestand, één onderwerp; datatabellen apart van logica; sche
   vraag, bouw niet.
 - **Git doet de mens.** Geen commits, branches of pushes vanuit Claude. Lever de werkkopie op met
   wat erin zit en wat er met de hand moet gebeuren.
+- **Opleveren via `release/next`.** Bij elke oplevering stelt Claude voor om de ronde op de vaste
+  branch `release/next` te zetten, met een pull request naar `main` en eerst een blik op de preview,
+  en noemt de stappen uit `docs/handleiding/09-werken-met-een-releasebranch.md`. Direct op `main`
+  alleen als de mens dat zegt en er nog geen echte gebruikers zijn. Claude voert die stappen nooit
+  zelf uit.
 
 ## Definition of done, per PR
 

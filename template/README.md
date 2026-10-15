@@ -10,8 +10,8 @@ bestand is de samenvatting die in de repo blijft.
 
 - **De root is een werkend project.** Met `project.config.json` als neutrale standaard, de modules
   `core` en `auth-entra` toegepast, en een CI die groen is. "Use this template" op GitHub geeft dus
-  direct iets dat bouwt. Daarna zet een project de uitvoer van de wizard (`wizard/index.html`) over
-  de standaardconfig en draait `pnpm template:apply`.
+  direct iets dat bouwt. Daarna zet Claude, op aanwijzing van de startprompt uit de wizard
+  (`wizard/index.html`), de config en het projectplan over de standaard en draait `pnpm template:apply`.
 - **De input van een project is een projectplan** (`docs/PROJECTPLAN.md`). Het template bevat
   geen regel projectinhoud; de template-CI grept daarop.
 - **Twee lezers.** Claude Code bouwt (CLAUDE.md, `docs/lessen/`, `docs/patronen/`), de mens stuurt
@@ -70,7 +70,7 @@ aan, nooit genest `pnpm`: een `&` in een Windows-gebruikerspad breekt dat, ook d
 
 ## Regels voor wie aan het template werkt
 
-1. Geen projectinhoud, geen namen van eerdere projecten, van de organisatie of van klanten, geen em-dash. `node template/ci/check-template.mjs` grept erop (de woorden staan in `template/ci/forbidden-words.txt`; dit bestand en dat bestand zijn uitgezonderd) en `template-ci.yml` draait het bij elke push.
+1. Geen projectinhoud, geen namen van eerdere projecten, van de organisatie of van klanten, geen em-dash. `node template/ci/check-template.mjs` grept erop (de woorden staan in `template/ci/forbidden-words.txt`; dit bestand en dat bestand zijn uitgezonderd, en de merknamen mogen in de wizard, `wizard/index.html`, `wizard/voorbereiding.html`, `wizard/README.md` en `wizard/brand/`, omdat de wizard het workshopinstrument van de organisatie is; wat hij oplevert blijft neutraal en de rooktest bewijst dat) en `template-ci.yml` draait het bij elke push.
 2. Documentatie Nederlands, code Engels, UI-teksten in `lib/i18n/template/` in beide talen.
 3. Elke owned bestand draagt de kop. Elke wijziging aan een owned bestand komt in
    `template/CHANGELOG.md` onder de volgende versie, met "Let op bij bijwerken" als er iets kan

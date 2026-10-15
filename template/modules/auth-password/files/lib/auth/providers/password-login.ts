@@ -3,7 +3,8 @@
  * De wachtwoordlogin als Auth.js Credentials-provider. Eén foutmelding voor onbekend adres, fout
  * wachtwoord en vergrendeld (`PasswordSigninError`), en twee aparte uitkomsten die het inlogscherm
  * anders laat zien: de code uit de app is nodig (`MfaCodeRequired`), of tweestapsverificatie moet
- * eerst worden ingesteld (`MfaSetupRequired`, met een koppeling per mail).
+ * eerst worden ingesteld (`MfaSetupRequired`). Bij die laatste stuurt het inlogscherm meteen door naar
+ * de instelpagina met de QR-code, zie `issueMfaSetupToken` in accounts.ts; er gaat geen mail meer uit.
  *
  * De rollen komen uit `users.roles` (`rolesFrom: "database"`): een beheerder zet ze op Beheer,
  * Accounts, en `currentActor` leest ze bij elk verzoek.
@@ -12,19 +13,17 @@ import { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { eq } from "drizzle-orm";
 import type { LoginProvider } from "@/lib/auth/login-provider";
-import { accountByEmail, sendMfaSetupLink } from "@/lib/auth/password/accounts";
+import { accountByEmail } from "@/lib/auth/password/accounts";
 import { hashPassword, verifyPassword } from "@/lib/auth/password/hash";
 import { allowAttemptFrom, isLocked, recordFailure, recordSuccess } from "@/lib/auth/password/lockout";
 import { mfaRequiredFor } from "@/lib/auth/password/mfa-policy";
-import { appOrigin } from "@/lib/auth/password/origin";
-import { boxKeyFromEnv, open } from "@/lib/auth/password/secret-box";
+import { boxKeyFromEnv, openFromEnv, seal } from "@/lib/auth/password/secret-box";
 import { verifyTotp } from "@/lib/auth/password/totp";
 import { parseRoles } from "@/lib/auth/roles";
 import { findUserById } from "@/lib/auth/user-sync";
 import { getDb } from "@/lib/db/client";
 import { credentials, organisations } from "@/lib/db/schema";
 import { callerAddress } from "@/lib/domain/rate-limit";
-import { kickOutbox } from "@/lib/messaging/kick";
 
 export const PASSWORD_PROVIDER_ID = "password";
 
@@ -90,14 +89,20 @@ export const passwordLoginProvider: LoginProvider = {
         const roles = parseRoles(account.roles);
         if (stored.mfaEnabled) {
           if (code === "") throw new MfaCodeRequired();
-          const secret = stored.mfaSecret === null ? undefined : open(stored.mfaSecret, boxKeyFromEnv());
-          if (secret === undefined || !verifyTotp(secret, code)) {
+          const opened = stored.mfaSecret === null ? undefined : openFromEnv(stored.mfaSecret);
+          if (opened === undefined || !verifyTotp(opened.plain, code)) {
             await recordFailure(db, account.id);
             throw new PasswordSigninError();
           }
+          /* Versleuteld met de oude sleutel (van voor MFA_SECRET_KEY): meteen omzetten naar de nieuwe. */
+          if (opened.stale) {
+            await db
+              .update(credentials)
+              .set({ mfaSecret: seal(opened.plain, boxKeyFromEnv()) })
+              .where(eq(credentials.userId, account.id));
+          }
         } else if (mfaRequiredFor(roles)) {
-          await sendMfaSetupLink(db, account, await appOrigin());
-          kickOutbox();
+          /* Geen sessie zonder tweede factor. Het token voor de instelpagina geeft de server action uit (signInWithPassword), niet deze provider. */
           throw new MfaSetupRequired();
         }
 

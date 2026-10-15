@@ -32,7 +32,8 @@ en een wegwerpbranch per pull request. **Tijd:** een half uur.
    **Controle:** `dev` staat in de lijst met een eigen compute.
 3. In de instellingen van de Vercel-integratie in Neon: **per preview-deployment een branch**
    aanmaken aan, en **auto-delete** zodra de pull request sluit.
-   **Controle:** de eerstvolgende pull request krijgt een branch `preview/<branch>` in Neon.
+   **Controle:** de eerstvolgende pull request krijgt een branch `preview/<branch>` in Neon. Met de
+   werkwijze uit 09 is dat `preview/release/next`, elke ronde vers gekopieerd van productie.
 4. Zet op het project **autosuspend** op de kortste tijd die het plan toestaat, het **minimum
    compute** op de laagste stand, en **history retention** op een dag (of wat je echt nodig hebt).
    **Controle:** de compute van `dev` slaapt een paar minuten na je laatste query.

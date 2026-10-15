@@ -14,7 +14,8 @@ hieronder (hoofdletters, liggende streepjes), de **Value** zonder aanhalingsteke
 regelovergang erachter (de meest gemaakte fout bij kopiëren uit een terminal), en de
 **Environments** waar hij geldt. Dezelfde key mag meerdere keren bestaan als de omgevingen niet
 overlappen: zo krijgt Development een andere database dan Production. Zet **Sensitive** aan bij elk
-geheim. En: een gewijzigde variabele werkt pas in een **nieuwe** deploy.
+geheim voor Production en Preview; voor Development staat Vercel dat niet toe, want die waarden haal
+je lokaal op met `vercel env pull`. En: een gewijzigde variabele werkt pas in een **nieuwe** deploy.
 
 ## De variabelen van de kern
 
@@ -66,7 +67,8 @@ vergissing kan hem niet in een deploy aanzetten.
 
 ## Beveiliging
 
-- Sensitive aan bij elk geheim: daarna is de waarde niet meer terug te lezen, alleen te vervangen.
+- Sensitive aan bij elk geheim in Production en Preview: daarna is de waarde niet meer terug te
+  lezen, alleen te vervangen. Development kan niet Sensitive; daar staan dan ook geen productiewaarden.
 - Nooit een geheim in de chat met Claude, in een document of in een bericht. Alleen de naam.
 - Wissel `AUTH_SECRET` als je vermoedt dat een sessie is gelekt; iedereen logt dan opnieuw in.
 

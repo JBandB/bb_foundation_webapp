@@ -169,14 +169,70 @@ versie na het bijwerken.
   (inlogmodule, één organisatie, Neon, Vercel, twee modi, versie per PR, git doet de mens, modules,
   UI-taal, kostenplafonds, GitHub zonder branch protection), elk met de prijs erbij; de startprompt
   van de wizard laat projectbesluiten bij D13 beginnen.
+- Na de eerste workshop (14 oktober 2026):
+  - **De build migreert weer.** `vercel.json` krijgt `buildCommand: "pnpm db:deploy && pnpm build"`
+    als standaardwaarde (in `template/lib/apply.ts`). Zonder dat draaide Vercel alleen `next build`,
+    en migreerde noch productie noch een preview, terwijl D5 en de handleidingen 03 en 08 dat
+    beloofden. Een project met een eigen `buildCommand` houdt het zijne.
+  - **Tweestapsverificatie zonder mail.** Moet een beheerder het nog instellen, dan gaat hij na een
+    goed wachtwoord in dezelfde stap door naar de pagina met de QR-code; de koppeling per mail is
+    niet meer nodig. Zonder ingerichte mail sloot een beheerder zichzelf tot nu toe buiten. Elk nieuw
+    instel-token geeft een vers geheim, zodat twee mensen met hetzelfde wachtwoord nooit dezelfde
+    QR-code zien. Het geheim staat versleuteld met een sleutel uit de nieuwe variabele
+    `MFA_SECRET_KEY` (anders `AUTH_SECRET`); gelijk in Production en Preview werkt tweestap ook op een
+    preview. Een geheim onder de oude sleutel wordt bij de volgende inlog omgezet.
+  - **Werken via `release/next`**: nieuwe handleiding 09, WERKWIJZE en het core-blok in CLAUDE.md
+    stellen elke ronde voor op de vaste releasebranch met een preview en eigen database; direct op
+    `main` is de uitzondering.
+  - **De startprompt bevat de configuratie en het projectplan**, en Claude zet ze zelf neer. De
+    downloads blijven als reserve.
+  - **Voorbereiding**: `wizard/voorbereiding.html` (doorklikbaar, met vinkjes) en een controlescript
+    voor de laptop (`wizard/controle-laptop.ps1` en `.sh`, met uitleg in `controle-laptop.md` en een
+    test in `template/ci/controle-laptop.test.ts`). Handleiding 00 en 01 volgen dezelfde stappen.
+  - Handleiding 05b: het eerste beheerdersaccount op productie aanmaken terwijl `.env.local` naar de
+    dev-branch wijst. Handleiding 06: Sensitive kan niet voor Development.
+  - `template/manifest.json` kent nu de bron (`source`), zodat `pnpm template:update` weet waar het
+    template staat.
+- Wizard na de workshop:
+  - **Feedbackpagina** `wizard/feedback.html`: zet een openbaar issue `[Feedback] ...` klaar in de repo
+    van het template, met mailen als alternatief; gelinkt vanaf de voet van de wizard.
+  - **Eén ding mee: de startprompt.** Het eindscherm heeft één grote knop "Kopieer de startprompt",
+    met een bevestiging en een terugval als het klembord niet mag (de tekst geselecteerd in een
+    tekstvak). De persoonlijke checklist zit er nu als derde bestand in; Claude zet hem in
+    `docs/handleiding/00-checklist-<slug>.md`. De vier losse downloads staan ingeklapt onder
+    "Reserve: losse bestanden".
+  - **Alle voorbereiding in de wizard**, één pagina in drie delen met voortgang per deel: A
+    Voorbereiden, B Je tool ontwerpen, C Op de dag: live zetten (de acht stappen van de werkdia, met
+    per stap wat je doet, hoe je ziet dat het gelukt is en wat je doet als het misgaat). De halve
+    pagina uit deel A vult de velden van deel B; stap 3 kreeg daarvoor het veld Gevoelige gegevens,
+    dat in kopje 10 van het plan komt. De opslag van deel B blijft `foundation-wizard:v1`; de vinkjes
+    en de halve pagina van de oude voorbereidingspagina worden overgenomen.
+    `wizard/voorbereiding.html` stuurt door naar `index.html#voorbereiden`.
+  - **Schermafbeeldingen** per stap, beschreven in `wizard/schermen.json` en ingebed in de wizard,
+    met kaders als HTML bovenop het plaatje; zonder plaatje een kader "Waar je klikt" met het klikpad in tekst.
+    Het opnamescript `template/ci/schermen-opnemen.mjs` neemt de openbare pagina's op en, met een
+    eigen browserprofiel buiten de repo, de schermen achter een login.
+  - **De wizard in de huisstijl van de organisatie** (logo's en lettertypes in `wizard/brand/`).
+    `check-template.mjs` staat de merknamen alleen toe in de wizard; de rooktest bewijst dat wat de
+    wizard oplevert neutraal blijft.
 
 ### Let op bij bijwerken
 
-- Nog niets: er is geen eerdere versie.
+- Wachtwoordlogin: een nog niet bevestigd tweestapsgeheim vervalt bij een nieuw instel-token. Wie
+  halverwege het instellen zat, scant opnieuw.
+- `vercel.json` krijgt `buildCommand` als die ontbrak. Staat er in het Vercel-dashboard al een eigen
+  Build Command, controleer dan welke van de twee je wilt houden.
 
 ### Handwerk
 
-- Geen.
+- Projecten die vóór deze versie uit het template zijn gemaakt: zet in `project.config.json` onder
+  `template` de regel `"source": "https://github.com/JBandB/bb_foundation_webapp.git"` en draai
+  `pnpm template:apply`. Daarna werkt `pnpm template:update`.
+- Wachtwoordlogin: zet in Vercel `MFA_SECRET_KEY`, dezelfde waarde in Production en Preview (maak hem
+  zoals `AUTH_SECRET`, handleiding 06). Log daarna één keer in op productie; dan zet de tool je
+  geheim om.
+- Werk je lokaal nog tegen de productiedatabase: maak een dev-branch aan in Neon en zet die in
+  `.env.local` (handleiding 04 en 07).
 
 ### Getest met
 

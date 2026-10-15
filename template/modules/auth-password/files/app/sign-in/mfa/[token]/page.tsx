@@ -7,9 +7,13 @@ import { getDb } from "@/lib/db/client";
 import { labels } from "@/lib/i18n/labels";
 import { confirmMfaByTokenAction } from "../../password-flows-actions";
 
-export const metadata = { title: labels.password.mfaTitle };
+/* Het token staat in het pad: geef het niet mee als Referer aan wat deze pagina verder opent. */
+export const metadata = { title: labels.password.mfaTitle, referrer: "no-referrer" as const };
 
-/** De stap na een login die tweestapsverificatie eist: via de koppeling uit de mail, zonder sessie. */
+/**
+ * De stap na een login die tweestapsverificatie eist, zonder sessie. Het inlogscherm stuurt hierheen
+ * na een juist wachtwoord, met een vers eenmalig token in het pad (zie `signInWithPassword`).
+ */
 export default async function MfaSetupPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const db = getDb();
@@ -27,7 +31,10 @@ export default async function MfaSetupPage({ params }: { params: Promise<{ token
               {labels.password.mfaExpired}
             </p>
           ) : (
-            <MfaCodeForm action={confirmMfaByTokenAction.bind(null, token)} qrSvg={await qrSvg(setup.otpauth)} secret={setup.secret} doneLink={{ href: "/sign-in", label: labels.password.backToSignIn }} />
+            <>
+              <p className="mb-4 text-[14px]">{labels.password.mfaSetupRequired}</p>
+              <MfaCodeForm action={confirmMfaByTokenAction.bind(null, token)} qrSvg={await qrSvg(setup.otpauth)} secret={setup.secret} doneLink={{ href: "/sign-in", label: labels.password.backToSignIn }} />
+            </>
           )}
         </div>
       </div>

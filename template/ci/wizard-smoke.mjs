@@ -1,10 +1,22 @@
 /* template-owned (module core). Wordt overschreven door pnpm template:update; wijzig dit bestand niet. */
 /**
- * De rooktest van de wizard: opent wizard/index.html vanaf file:// in een echte browser, doorloopt
- * de acht stappen met de casus van de kinderboerderij, leest de downloads en bewijst dat de
- * uitvoer klopt: project.config.json haalt pnpm template:validate, het projectplan heeft de twaalf
- * kopjes, de checklist draagt de slug, de startprompt noemt apply, nergens een em-dash, en de
- * browser logde geen fout. Daarna een herlaad: de antwoorden staan er nog.
+ * De rooktest van de wizard: opent wizard/index.html vanaf file:// in een echte browser en loopt de
+ * drie delen door met de casus van de kinderboerderij.
+ *
+ *   Deel A  het welkom met de drie delen, een stap met een schermafbeelding en kaders, en de halve
+ *           pagina, die meteen de velden van deel B vult.
+ *   Deel B  de acht stappen, met de antwoorden uit deel A al ingevuld. Het eindscherm heeft één
+ *           knop die de startprompt kopieert (en een terugval als het klembord niet mag), en de
+ *           losse bestanden onder "Reserve".
+ *   Deel C  de acht stappen van de dag, met de startprompt in stap 3.
+ *
+ * De uitvoer moet kloppen: project.config.json haalt pnpm template:validate, het projectplan heeft
+ * de twaalf kopjes, de checklist draagt de slug, de startprompt bevat alle drie de bestanden
+ * letterlijk in een codeblok met een afbakening die niet in de inhoud voorkomt, nergens een em-dash
+ * en geen woord uit template/ci/forbidden-words.txt: de wizard draagt de huisstijl van de
+ * organisatie achter het template, maar wat hij oplevert is neutraal. Verder: de oude
+ * voorbereidingspagina stuurt door, de oude opslag wordt overgenomen, de ingebedde manifest is gelijk
+ * aan wizard/schermen.json, op telefoonbreedte schuift niets opzij, en de browser logde geen fout.
  *
  *   node template/ci/wizard-smoke.mjs           draait en ruimt op
  *   node template/ci/wizard-smoke.mjs --keep    laat de downloads staan om erin te kijken
@@ -15,7 +27,7 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -27,6 +39,10 @@ const EM_DASH = String.fromCodePoint(0x2014);
 const out = mkdtempSync(join(tmpdir(), "wizard-smoke-"));
 const problems = [];
 const browserErrors = [];
+const FORBIDDEN = readFileSync(join(root, "template", "ci", "forbidden-words.txt"), "utf8")
+  .split("\n")
+  .map((line) => line.trim())
+  .filter((line) => line !== "" && !line.startsWith("#"));
 
 function check(ok, message) {
   if (!ok) problems.push(message);
@@ -41,13 +57,20 @@ const CASE = {
   domain: "deweide.example",
   owner: "Anna, de coördinator van de vrijwilligers",
   slug: "rooster-de-weide",
+  /* De halve pagina uit deel A: deze vijf teksten en het aantal mensen komen vanzelf in deel B. */
+  halfPage: {
+    "hp-why": "Het rooster staat in een spreadsheet die drie mensen tegelijk bewerken. Elke week valt er een dienst uit.",
+    "hp-processes": "Een dienst vullen: 1. de coördinator maakt de diensten aan; 2. vrijwilligers schrijven zich in; 3. wie past krijgt een mail.",
+    "hp-sensitive": "Telefoonnummers van vrijwilligers; een vrijwilliger ziet die van anderen niet.",
+    "hp-success": "De coördinator stuurt geen rooster meer per mail, en elke dienst van de komende maand heeft een naam.",
+    "hp-not": "Geen urenregistratie, geen onkosten, geen app in de winkels.",
+  },
+  /* Wat in deel B, stap 3 nog bij komt. */
   content: {
-    "t-why": "Het rooster staat in een spreadsheet die drie mensen tegelijk bewerken. Elke week valt er een dienst uit.",
-    "t-success": "De coördinator stuurt geen rooster meer per mail, en elke dienst van de komende maand heeft een naam.",
     "t-concepts": "Een dienst is een dagdeel op een locatie met een gewenst aantal mensen. Een inschrijving koppelt een vrijwilliger aan een dienst.",
-    "t-processes": "Een dienst vullen: 1. de coördinator maakt de diensten aan; 2. vrijwilligers schrijven zich in; 3. wie past krijgt een mail.",
     "t-rules": "P1: een vrijwilliger kan niet op twee diensten tegelijk staan. P2: een dienst in het verleden verandert niet meer.",
-    "t-not": "Geen urenregistratie, geen onkosten, geen app in de winkels.",
+    /* Drie backticks op een eigen regel: de startprompt moet het plan dan met een langere afbakening insluiten. */
+    "t-not": "Geen urenregistratie, geen onkosten, geen app in de winkels.\n```\nOok geen codeblok in dit veld.\n```",
   },
 };
 
@@ -55,26 +78,79 @@ const executablePath = process.env.WIZARD_BROWSER;
 let browser;
 try {
   browser = await chromium.launch(executablePath === undefined || executablePath === "" ? {} : { executablePath });
-  const context = await browser.newContext({ acceptDownloads: true, locale: "nl-NL", timezoneId: "Europe/Amsterdam" });
+  const context = await browser.newContext({ acceptDownloads: true, locale: "nl-NL", timezoneId: "Europe/Amsterdam", viewport: { width: 1280, height: 900 } });
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   const page = await context.newPage();
   page.setDefaultTimeout(15_000);
   page.on("pageerror", (error) => browserErrors.push(error.message));
   page.on("console", (message) => {
     if (message.type() === "error") browserErrors.push(message.text());
   });
-  const url = pathToFileURL(join(root, "wizard", "index.html")).href;
-  await page.goto(url);
+  const index = pathToFileURL(join(root, "wizard", "index.html")).href;
+  await page.goto(index);
   const heading = page.locator("#step-heading");
+  const headingIs = async (expected, label) => {
+    await heading.waitFor({ state: "visible" });
+    const text = (await heading.textContent())?.trim() ?? "";
+    check(text.startsWith(expected), `${label ?? `door naar "${expected}"`} (kop: ${text})`);
+  };
   const next = async (expected) => {
     await page.getByRole("button", { name: "Volgende", exact: true }).click();
-    await heading.waitFor({ state: "visible" });
-    const text = await heading.textContent();
-    check(text?.startsWith(expected) === true, `door naar "${expected}" (kop: ${text?.trim()})`);
+    await headingIs(expected);
   };
+  const partMeta = async (letter) => (await page.locator("a.part").filter({ hasText: `Deel ${letter}` }).locator(".part-meta").textContent())?.trim() ?? "";
 
-  // Stap 0.
-  check((await heading.textContent())?.trim() === "Welkom", "het welkomscherm staat open");
+  // De ingebedde manifest is gelijk aan wizard/schermen.json, en elk plaatje bestaat.
+  const manifest = JSON.parse(readFileSync(join(root, "wizard", "schermen.json"), "utf8"));
+  const embedded = JSON.parse((await page.locator("#schermen").textContent()) ?? "{}");
+  check(JSON.stringify(embedded) === JSON.stringify(manifest), "de ingebedde manifest is gelijk aan wizard/schermen.json (anders: node template/ci/schermen-opnemen.mjs inbedden)");
+  const recorded = manifest.schermen.filter((screen) => screen.bestand);
+  check(recorded.every((screen) => existsSync(join(root, "wizard", screen.bestand))), `elk opgenomen scherm heeft zijn plaatje (${recorded.length})`);
+  check(manifest.schermen.every((screen) => screen.kaders.every((k) => [k.x, k.y, k.b, k.h].every((v) => typeof v === "number" && v >= 0 && v <= 100) && k.x + k.b <= 100.5 && k.y + k.h <= 100.5)), "elk kader ligt binnen het beeld");
+
+  // Deel A: het welkom.
+  await headingIs("Welkom", "het welkom van deel A staat open");
+  check((await page.locator("#logo").getAttribute("src")) === "brand/logo-met-bi-wit.svg", "de kop van het welkom toont het logo met Business Intelligence");
+  check((await page.locator("#logo").evaluate((img) => img.naturalWidth)) > 0, "het logo laadt vanaf file://");
+  check((await page.locator("a.part").count()) === 3, "de navigatie heeft drie delen");
+  check((await page.locator("link[rel=icon]").getAttribute("href")) === "brand/sublogo-vierkant-donker.svg", "het favicon is het vierkante sublogo");
+  await page.getByRole("link", { name: "Begin met deel A" }).click();
+  await headingIs("Stap 1 van 7", "deel A begint bij stap 1");
+  check((await page.locator("#logo").getAttribute("src")) === "brand/logo-wit.svg", "na het welkom het logo zonder tagline");
+  check((await page.locator("figure.shot, .shot-todo").count()) >= 2, "stap 1 toont schermafbeeldingen of een rustig kader");
+  check((await page.locator(".shot-todo").count()) === 0 || ((await page.locator(".shot-todo strong").first().textContent()) === "Waar je klikt" && (await page.locator(".shot-todo li").count()) > 0), "een scherm zonder plaatje toont het klikpad in tekst");
+  await page.getByLabel("Deze stap is klaar").check();
+  check((await partMeta("A")).startsWith("1 van 7 klaar"), `het vinkje telt mee in de navigatie (${await partMeta("A")})`);
+
+  // Deel A, stap 2: een plaatje met kaders die meeschalen.
+  await next("Stap 2 van 7");
+  const figure = page.locator("figure.shot").filter({ has: page.locator(".kader") }).first();
+  check((await figure.count()) === 1, "stap 2 heeft een schermafbeelding met een kader");
+  if ((await figure.count()) === 1) {
+    const img = figure.locator("img");
+    await img.evaluate((el) => (el.complete ? null : new Promise((resolve) => el.addEventListener("load", resolve, { once: true }))));
+    check((await img.evaluate((el) => el.naturalWidth)) === 1280, "het plaatje laadt en is 1280 breed");
+    const frame = await img.boundingBox();
+    const box = await figure.locator(".kader").first().boundingBox();
+    const inside = frame !== null && box !== null && box.width > 4 && box.x >= frame.x - 4 && box.x + box.width <= frame.x + frame.width + 4 && box.y >= frame.y - 4 && box.y + box.height <= frame.y + frame.height + 4;
+    check(inside, "het kader ligt op het plaatje");
+    check(((await figure.locator(".kader-label").first().textContent()) ?? "").length > 0, "het kader heeft een label");
+    check(((await figure.locator("figcaption").textContent()) ?? "").includes("Stand van"), "het bijschrift noemt de stand van de opname");
+  }
+
+  // Deel A, stap 6: de halve pagina vult deel B.
+  await page.goto(`${index}#voorbereiden-6`);
+  await headingIs("Stap 6 van 7", "de halve pagina opent via het adres");
+  for (const [id, text] of Object.entries(CASE.halfPage)) await page.fill(`#${id}`, text);
+  await page.fill("#hp-count", "45");
+  await page.check("#hp-audience-0");
+
+  // Deel B.
+  await page.getByRole("link", { name: /Je tool ontwerpen/ }).click();
+  await headingIs("Je tool ontwerpen", "deel B opent via de navigatie");
+  check(await page.getByText("Je halve pagina uit deel A staat al in stap 2 en 3").isVisible(), "deel B ziet de halve pagina");
   await page.getByRole("button", { name: "Begin", exact: true }).click();
+  await headingIs("Stap 1 van 8");
 
   // Stap 1: projectbasis. Geen tenant, dus wachtwoordlogin en SMTP.
   await page.fill("#f-name", CASE.name);
@@ -87,7 +163,8 @@ try {
   await page.check("#f-mfa-0");
   await next("Stap 2");
 
-  // Stap 2: rollen en mensen. Een tweede rol met een afgeleide waarde, een derde met een eigen waarde.
+  // Stap 2: rollen en mensen. Het aantal komt uit de halve pagina.
+  check((await page.inputValue("#f-count")) === "45", "het aantal mensen staat er al, uit deel A");
   await page.fill("#r-1-nl", "Coördinator");
   await page.fill("#r-1-en", "Coordinator");
   check((await page.inputValue("#r-1-value")) === "coordinator", "de rolwaarde volgt het label, zonder trema");
@@ -98,11 +175,12 @@ try {
   await page.fill("#r-2-nl", "Vrijwilliger");
   await page.fill("#r-2-en", "Volunteer");
   await page.fill("#r-2-value", "volunteer");
-  await page.fill("#f-count", "45");
-  await page.check("#f-audience-0");
   await next("Stap 3");
 
-  // Stap 3: de inhoud.
+  // Stap 3: de inhoud, met de halve pagina al ingevuld.
+  check((await page.inputValue("#t-why")) === CASE.halfPage["hp-why"], "het doel staat er al, uit deel A");
+  check((await page.inputValue("#t-sensitive")) === CASE.halfPage["hp-sensitive"], "de gevoelige gegevens staan er al, uit deel A");
+  check((await page.inputValue("#t-success")) === CASE.halfPage["hp-success"], "wanneer geslaagd staat er al, uit deel A");
   for (const [id, text] of Object.entries(CASE.content)) await page.fill(`#${id}`, text);
   await next("Stap 4");
 
@@ -129,7 +207,7 @@ try {
   check((await page.locator("#a-m365-admin").count()) === 0, "Microsoft 365 staat niet tussen de diensten zonder tenant");
   await next("Stap 6");
 
-  // Stap 6: huisstijl, met de standaardkleuren.
+  // Stap 6: huisstijl van het project, met de standaardkleuren.
   check((await page.inputValue("#f-short")) === CASE.name, "de korte naam volgt de naam");
   check((await page.locator("#contrast li.pass").count()) >= 8, "de standaardkleuren halen het contrast");
   await next("Stap 7");
@@ -141,16 +219,41 @@ try {
   await page.fill("#p-0-manual", "De gedeelde postbus en de ledenlijst.");
   await next("Stap 8");
 
-  // Stap 8: controle en downloads.
+  // Stap 8: één knop voor de startprompt, de losse bestanden als reserve.
   check((await page.locator("#review-errors").count()) === 0, "de controle vindt geen open punten");
+  const copy = page.getByRole("button", { name: "Kopieer de startprompt" });
+  check((await copy.count()) === 1 && (await copy.getAttribute("class"))?.includes("big") === true, "het eindscherm heeft één grote knop Kopieer de startprompt");
+  check(!(await page.locator("#reserve").evaluate((el) => el.open)), "de losse bestanden staan ingeklapt onder Reserve");
+  check((await page.getByRole("button", { name: /^Download / }).filter({ visible: true }).count()) === 0, "zonder uitklappen staat er geen downloadknop in beeld");
+  const promptText = await page.inputValue("#prompt");
+  await copy.click();
+  await page.getByRole("button", { name: "Gekopieerd" }).waitFor({ state: "visible" });
+  check(((await page.locator("#copy-status").textContent()) ?? "").startsWith("Gekopieerd"), "de knop bevestigt met Gekopieerd");
+  /* Windows zet op het klembord CRLF; de inhoud telt, niet het regeleinde. */
+  check((await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, "\n") === promptText, "het klembord bevat de startprompt");
+
+  // De terugval: mag het klembord niet, dan staat de tekst geselecteerd in het tekstvak.
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: () => Promise.reject(new Error("geweigerd")) } });
+    document.execCommand = () => false;
+  });
+  await page.getByRole("button", { name: /Kopieer de startprompt|Gekopieerd/ }).click();
+  await page.locator("#copy-status.bad").waitFor({ state: "visible" });
+  const selection = await page.locator("#prompt").evaluate((el) => ({ open: el.closest("details").open, start: el.selectionStart, end: el.selectionEnd, length: el.value.length, focused: document.activeElement === el }));
+  check(selection.open && selection.start === 0 && selection.end === selection.length && selection.focused, "zonder klembord staat de startprompt geselecteerd in een open tekstvak");
+
+  // De reserve: vier losse bestanden.
+  await page.locator("#reserve > summary").click();
   const files = {};
-  for (const name of ["project.config.json", "PROJECTPLAN.md", `00-checklist-${CASE.slug}.md`, "startprompt.md"]) {
+  const checklistName = `00-checklist-${CASE.slug}.md`;
+  for (const name of ["project.config.json", "PROJECTPLAN.md", checklistName, "startprompt.md"]) {
     const [download] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: `Download ${name}` }).click()]);
     const path = join(out, download.suggestedFilename());
     await download.saveAs(path);
     files[name] = readFileSync(path, "utf8");
-    check(download.suggestedFilename() === name, `download ${name}`);
+    check(download.suggestedFilename() === name, `reserve: download ${name}`);
   }
+  check(files["startprompt.md"] === promptText, "de download van de startprompt is gelijk aan wat de knop kopieert");
 
   // De configuratie door de validator van het template.
   const configPath = join(out, "project.config.json");
@@ -163,6 +266,7 @@ try {
   check(config.auth.roles.map((role) => role.value).join(",") === "admin,coordinator,volunteer", "drie rollen in volgorde");
   check(config.project.systemEmail === `system@${CASE.domain}`, "systeemadres uit het maildomein");
   check(config.intake.budget.monthlyEuros === 15 && config.intake.accounts.length === 5, "de intake bewaart budget en accounts");
+  check(config.intake.expectedUsers === 45 && config.intake.content.sensitive === CASE.halfPage["hp-sensitive"], "de intake bewaart de halve pagina");
 
   // Het projectplan, de checklist en de startprompt.
   const plan = files["PROJECTPLAN.md"];
@@ -170,19 +274,121 @@ try {
   check(headings === 12, `het projectplan heeft twaalf kopjes (${headings})`);
   check(plan.includes("| Coördinator (`coordinator`) |") && plan.includes("P1: een vrijwilliger"), "het projectplan bevat de rollen en de regels");
   check(plan.includes("### Fase 1: Rooster en inschrijven"), "het projectplan bevat de fase");
-  const checklist = files[`00-checklist-${CASE.slug}.md`];
+  check(plan.includes(`gevoelig: ${CASE.halfPage["hp-sensitive"]}`), "het projectplan noemt de gevoelige gegevens bij de randvoorwaarden");
+  const checklist = files[checklistName];
   check(checklist.includes(`\`${CASE.slug}\``) && checklist.includes("handleiding 05b") && checklist.includes("Transport SMTP"), "de checklist volgt de keuzes");
   check(!checklist.includes("Inloggen met Microsoft"), "de checklist slaat Entra over");
   const prompt = files["startprompt.md"];
   check(prompt.includes("pnpm template:apply") && prompt.includes("Git doe ik zelf"), "de startprompt noemt apply en laat git bij de mens");
-  for (const [name, text] of Object.entries(files)) check(!text.includes(EM_DASH), `geen em-dash in ${name}`);
+  /** Het codeblok onder een kop "## Bestand n": de inhoud, en of de afbakening langer is dan elke reeks backticks erin. */
+  const block = (n, info) => {
+    const start = prompt.indexOf(`## Bestand ${n}:`);
+    if (start === -1) return null;
+    const match = new RegExp(`^(\`{3,})${info}\\n([\\s\\S]*?)\\n\\1$`, "m").exec(prompt.slice(start));
+    if (match === null) return null;
+    const longest = Math.max(0, ...(match[2].match(/`+/g) ?? []).map((run) => run.length));
+    return { body: match[2], safe: match[1].length > longest };
+  };
+  const configBlock = block(1, "json");
+  const planBlock = block(2, "markdown");
+  const checklistBlock = block(3, "markdown");
+  check(configBlock !== null && configBlock.body === files["project.config.json"].trimEnd(), "de startprompt bevat project.config.json letterlijk");
+  check(planBlock !== null && planBlock.body === plan.trimEnd(), "de startprompt bevat het projectplan letterlijk");
+  check(checklistBlock !== null && checklistBlock.body === checklist.trimEnd(), "de startprompt bevat de checklist letterlijk");
+  check([configBlock, planBlock, checklistBlock].every((b) => b?.safe === true) && plan.includes("\n```\n"), "de afbakening komt niet in de inhoud voor, ook niet bij drie backticks in het plan");
+  const opening = prompt.slice(0, prompt.indexOf("\n## "));
+  check(opening.includes("`project.config.json` in de hoofdmap") && opening.includes("`docs/PROJECTPLAN.md`") && opening.includes(`\`docs/handleiding/${checklistName}\``), "de opening zegt waar alle drie de bestanden heen gaan");
+  check(prompt.includes(`## Bestand 3: \`docs/handleiding/${checklistName}\``), "de checklist is bestand 3, met zijn pad");
+  for (const [name, text] of Object.entries(files)) {
+    check(!text.includes(EM_DASH), `geen em-dash in ${name}`);
+    const hits = FORBIDDEN.filter((word) => text.toLowerCase().includes(word.toLowerCase()));
+    check(hits.length === 0, `${name} is neutraal: geen woord uit forbidden-words.txt${hits.length ? ` (${hits.join(", ")})` : ""}`);
+  }
 
-  // Herladen: de antwoorden staan er nog en de wizard biedt aan verder te gaan.
+  // Deel C.
+  await page.getByRole("button", { name: "Door naar deel C: live zetten" }).click();
+  await headingIs("Stap 1 van 8: GitHub", "deel C begint bij stap 1, Use this template");
+  check((await page.locator("#steps li").count()) === 8, "deel C heeft acht stappen");
+  await page.locator("#steps a").nth(2).click();
+  await headingIs("Stap 3 van 8", "stap 3 opent via de stappen");
+  check((await page.getByRole("button", { name: "Kopieer de startprompt" }).count()) === 1, "deel C, stap 3 biedt de startprompt aan");
+  check(((await page.locator("main").textContent()) ?? "").includes(`docs/handleiding/${checklistName}`), "deel C, stap 3 noemt de drie bestanden");
+  await page.locator("#steps a").nth(6).click();
+  await headingIs("Stap 7 van 8", "stap 7 opent via de stappen");
+  check(((await page.locator("main").textContent()) ?? "").includes(".env.eerste-account"), "stap 7 maakt de eerste beheerder via .env.eerste-account");
+
+  // Herladen: de antwoorden staan er nog en deel B biedt aan verder te gaan.
+  await page.goto(`${index}#ontwerpen`);
   await page.reload();
-  await heading.waitFor({ state: "visible" });
-  check(await page.getByRole("button", { name: "Verder bij stap 8" }).isVisible(), "na herladen gaat de wizard verder bij stap 8");
+  await headingIs("Je tool ontwerpen", "na herladen opent deel B");
+  check(await page.getByRole("button", { name: "Verder bij stap 8" }).isVisible(), "na herladen gaat deel B verder bij stap 8");
   await page.getByRole("button", { name: "Verder bij stap 8" }).click();
-  check((await heading.textContent())?.startsWith("Stap 8") === true, "stap 8 staat na herladen weer open");
+  await headingIs("Stap 8", "stap 8 staat na herladen weer open");
+  check((await partMeta("B")).startsWith("klaar"), `deel B telt als klaar in de navigatie (${await partMeta("B")})`);
+  check((await page.evaluate(() => JSON.parse(window.localStorage.getItem("foundation-wizard:v1") ?? "{}").project?.name)) === CASE.name, "deel B bewaart onder de bestaande sleutel foundation-wizard:v1");
+
+  // Telefoonbreedte: niets schuift opzij.
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const hash of ["#voorbereiden", "#voorbereiden-2", "#ontwerpen", "#live-3"]) {
+    await page.goto(`${index}${hash}`);
+    await heading.waitFor({ state: "visible" });
+    const width = await page.evaluate(() => document.documentElement.scrollWidth);
+    check(width <= 390, `op 390 breed geen horizontale scroll bij ${hash} (${width})`);
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+
+  // De oude voorbereidingspagina stuurt door.
+  await page.goto(pathToFileURL(join(root, "wizard", "voorbereiding.html")).href);
+  await page.waitForURL(/index\.html#voorbereiden(?:-\d)?$/, { timeout: 10_000 }).catch(() => undefined);
+  check(/index\.html#voorbereiden(?:-\d)?$/.test(page.url()), `voorbereiding.html stuurt door naar index.html#voorbereiden (${page.url().split("/").pop()})`);
+
+  // De oude opslag van de voorbereidingspagina: vinkjes en halve pagina komen mee.
+  const fresh = await browser.newContext({ locale: "nl-NL" });
+  const legacy = await fresh.newPage();
+  legacy.on("pageerror", (error) => browserErrors.push(error.message));
+  await legacy.goto(index);
+  await legacy.evaluate(() => {
+    window.localStorage.clear();
+    window.localStorage.setItem("foundation-voorbereiding:v1", JSON.stringify({ version: 1, step: 3, done: { 1: true, 2: true }, answers: { 1: "Een rooster voor de stal.", 2: "Zo'n 30 vrijwilligers.", 6: "Geen app." } }));
+  });
+  await legacy.goto(`${index}#voorbereiden`);
+  await legacy.reload();
+  const legacyMeta = (await legacy.locator("a.part").filter({ hasText: "Deel A" }).locator(".part-meta").textContent())?.trim() ?? "";
+  check(legacyMeta.startsWith("2 van 7 klaar"), `de vinkjes van de oude voorbereidingspagina komen mee (${legacyMeta})`);
+  await legacy.goto(`${index}#voorbereiden-6`);
+  check((await legacy.inputValue("#hp-why")).startsWith("Een rooster voor de stal.") && (await legacy.inputValue("#hp-count")) === "30" && (await legacy.inputValue("#hp-not")) === "Geen app.", "de oude halve pagina komt in de velden van deel B");
+  await fresh.close();
+
+  /*
+   * De feedbackpagina: vanaf de wizard bereikbaar, weigert leeg te versturen, en zet een issue klaar
+   * met titel en tekst. window.open wordt afgevangen, zodat de test GitHub niet echt opent.
+   */
+  check((await page.locator('a[href="feedback.html"]').count()) > 0, "de wizard linkt naar de feedbackpagina");
+  const feedback = await context.newPage();
+  feedback.on("pageerror", (error) => browserErrors.push(`feedback: ${error.message}`));
+  await feedback.addInitScript(() => {
+    window.__opened = [];
+    window.open = (url) => { window.__opened.push(String(url)); return null; };
+  });
+  await feedback.goto(pathToFileURL(join(root, "wizard", "feedback.html")).href);
+  check((await feedback.locator(".warn").textContent())?.includes("openbaar") === true, "de feedbackpagina zegt vooraf dat het openbaar is");
+  await feedback.click("button[type=submit]");
+  check((await feedback.getAttribute("#beter", "aria-invalid")) === "true", "leeg versturen wordt geweigerd");
+  await feedback.check("#o-wizard", { force: true });
+  await feedback.click("label[for=c-8]");
+  check(await feedback.isChecked("#c-8"), "een cijfer kies je door erop te klikken");
+  await feedback.fill("#beter", "Stap 4 & 5 + de kaders: graag groter.");
+  await feedback.click("button[type=submit]");
+  const opened = await feedback.evaluate(() => window.__opened);
+  const issueUrl = opened[0] ?? "";
+  check(issueUrl.startsWith("https://github.com/JBandB/bb_foundation_webapp/issues/new?"), "versturen zet een issue klaar in de repo van het template");
+  const params = new URL(issueUrl || "https://x.invalid").searchParams;
+  check((params.get("title") ?? "").startsWith("[Feedback] De wizard"), "de titel begint met [Feedback] en het onderwerp");
+  check((params.get("body") ?? "").includes("**Cijfer:** 8") && (params.get("body") ?? "").includes("Stap 4 & 5 + de kaders: graag groter."), "de tekst bevat cijfer en feedback, met & en + intact");
+  check(!issueUrl.includes("+"), "spaties staan als %20 in het adres, niet als +");
+  await feedback.reload();
+  check((await feedback.inputValue("#beter")) === "Stap 4 & 5 + de kaders: graag groter.", "het concept blijft bewaard na herladen");
+  await feedback.close();
 
   check(browserErrors.length === 0, `geen fouten in de browser${browserErrors.length === 0 ? "" : `:\n  ${browserErrors.join("\n  ")}`}`);
 } catch (error) {

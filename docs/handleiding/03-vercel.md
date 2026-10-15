@@ -40,6 +40,7 @@ productie vanaf `main`. **Tijd:** een half uur.
    preview wordt gebouwd zonder pull request (de optie "Only build production and pull requests"),
    zodat een losse push geen deploy en geen databasebranch kost.
    **Controle:** een push op een branch zonder pull request bouwt niets; een pull request wel.
+   Elke ronde gaat zo via de vaste branch `release/next` en zijn preview; zie 09.
 6. Noteer het adres onder **Domains** (`<slug>.vercel.app`). Wil je een eigen domein, koppel het dan
    nu: de redirect-URI van de inlog (05) moet erop matchen en dat achteraf wijzigen is een extra
    ronde.
@@ -75,7 +76,8 @@ controleer het Hobby-beleid als je twijfelt.
 
 ## Zo zie je dat het goed staat
 
-- Een pull request krijgt binnen een paar minuten een preview-adres en een groene check.
+- Een pull request krijgt binnen een paar minuten een preview-adres en een groene check. Vanaf
+  `release/next` is dat altijd hetzelfde adres (09).
 - Een merge naar `main` zet een nieuwe deploy op productie, en het inlogscherm toont de nieuwe versie.
 - **Settings, Functions** zegt fra1; **Settings, Cron Jobs** toont de crons uit `vercel.json`.
 

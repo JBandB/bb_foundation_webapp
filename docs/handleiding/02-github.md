@@ -38,12 +38,15 @@ de code hier op. **Tijd:** een half uur.
    push protection als het beschikbaar is).
    **Controle:** beide staan op Enabled.
 5. **Settings, Actions, General**: Workflow permissions op **Read repository contents and packages
-   permissions**. In de organisatie: **Settings, Billing, Spending limits**: de limiet voor Actions op
-   **0** (het gratis quotum is genoeg voor deze CI).
-   **Controle:** een push bouwt nog steeds; het quotum staat onder Billing, Usage.
-6. Zet de uitvoer van de wizard in de repo: `project.config.json` over de bestaande, `docs/PROJECTPLAN.md`
-   over de bestaande, de checklist in `docs/handleiding/`, een logo in `public/brand/`. Commit en push op
-   een branch en open een pull request; na de groene CI merg je naar `main`.
+   permissions**. Op het account of de organisatie die de repo bezit: **Settings, Billing and
+   licensing, Budgets and alerts**: een budget voor Actions van **0**, met "stop usage when budget
+   limit is reached" aan (het gratis quotum is genoeg voor deze CI).
+   **Controle:** een push bouwt nog steeds; het verbruik staat onder Billing and licensing, Usage.
+6. Kopieer de startprompt op het eindscherm van de wizard (deel B, de knop **Kopieer de startprompt**)
+   en plak hem in het Claude-paneel. Claude zet drie bestanden neer, `project.config.json`,
+   `docs/PROJECTPLAN.md` en `docs/handleiding/00-checklist-<slug>.md`, en stopt dan. Alleen een eigen
+   logo zet je zelf in `public/brand/`. Commit en push; op de workshopdag rechtstreeks op `main`, daarna
+   via `release/next` met een pull request (09). Zeg Claude dan "gedaan".
    **Controle:** de CI van de pull request is groen, ook de stap "Het template is intact".
 7. Geef collega's toegang via **Settings, Collaborators and teams**: wie bouwt krijgt Write, wie alleen
    meekijkt Read. Maak een team als het er meer dan twee zijn.

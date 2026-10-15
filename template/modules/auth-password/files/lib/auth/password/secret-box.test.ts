@@ -1,6 +1,6 @@
 /* template-owned (module auth-password). Wordt overschreven door pnpm template:update; wijzig dit bestand niet. */
 import { describe, expect, it } from "vitest";
-import { boxKey, open, seal } from "./secret-box";
+import { boxKey, open, openWithKeys, seal } from "./secret-box";
 
 const key = boxKey("een-lang-genoeg-testgeheim-van-het-project", "test");
 const other = boxKey("een-ander-testgeheim-dat-niet-hetzelfde-is", "test");
@@ -18,6 +18,14 @@ describe("secret-box", () => {
     expect(open(boxed, other)).toBeUndefined();
     expect(open(`${boxed.slice(0, -2)}AA`, key)).toBeUndefined();
     expect(open("v0$a$b$c", key)).toBeUndefined();
+  });
+
+  it("opent met de eerste sleutel die past, en zegt of het een oude was", () => {
+    const viaNieuw = seal("geheim", key);
+    expect(openWithKeys(viaNieuw, [key, other])).toEqual({ plain: "geheim", stale: false });
+    const viaOud = seal("geheim", other);
+    expect(openWithKeys(viaOud, [key, other])).toEqual({ plain: "geheim", stale: true });
+    expect(openWithKeys(viaOud, [key])).toBeUndefined();
   });
 
   it("weigert een te kort geheim als basis voor een sleutel", () => {

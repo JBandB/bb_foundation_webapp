@@ -9,8 +9,11 @@
   het eigen adres erin. Nooit een wachtwoord loggen, mailen of in een foutmelding zetten.
 - **Tweestapsverificatie (TOTP)** is verplicht voor de rollen die `auth.password.mfaRequiredFor` in
   project.config.json noemt (standaard: beheerders). Wie het nog niet heeft, stelt het in bij de
-  eerste login via een eenmalige koppeling; het geheim staat versleuteld met een sleutel uit
-  AUTH_SECRET (`secret-box.ts`). Draait AUTH_SECRET, dan stelt iedereen het opnieuw in.
+  eerste login: na een goed wachtwoord gaat de inlog direct door naar de QR-code, zonder mail. Elk
+  nieuw instel-token geeft een vers geheim. Het geheim staat versleuteld met een sleutel uit
+  MFA_SECRET_KEY, of anders AUTH_SECRET (`secret-box.ts`); zet MFA_SECRET_KEY gelijk in Production
+  en Preview, anders werkt tweestap niet op een preview. Draait die sleutel, dan stelt iedereen het
+  opnieuw in.
 - **Vergrendeling**: vijf mislukte pogingen op een account is een kwartier dicht, vijf vanaf één
   adres ook. Eén foutmelding voor onbekend adres, fout wachtwoord en vergrendeld, zodat het
   inlogscherm niet verraadt welke adressen bestaan.

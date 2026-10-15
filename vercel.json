@@ -8,5 +8,6 @@
       "path": "/api/cron/prune",
       "schedule": "30 3 * * *"
     }
-  ]
+  ],
+  "buildCommand": "pnpm db:deploy && pnpm build"
 }

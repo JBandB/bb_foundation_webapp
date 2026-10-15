@@ -14,26 +14,57 @@ staat in git.
 - [ ] Je hebt een budget per maand afgesproken en weet bij welke dienst het plafond staat
       (handleiding 30).
 
-## GitHub (handleiding 02)
+## Deel 1. Voorbereiding (de wizard, deel A: `wizard/index.html#voorbereiden`)
+
+Dezelfde zeven stappen als in deel A van de wizard, in dezelfde volgorde.
+
+- [ ] 1. Accounts aanmaken: GitHub, Vercel met GitHub als login, Claude met een abonnement dat
+      Claude Code bevat. Overal tweestapsverificatie en het plafond per dienst. Neon komt later via
+      Vercel.
+- [ ] 2. Installeren: Git, Node.js 24, VS Code, Claude Code, pnpm.
+- [ ] 3. Git instellen: naam en e-mail.
+- [ ] 4. Een werkmap buiten OneDrive.
+- [ ] 5. Het controlescript draaien (`wizard/controle-laptop.md`): alles in orde.
+- [ ] 6. Je halve pagina schrijven: de zes vragen.
+- [ ] 7. Klaar: laptop, telefoon met authenticator, inloggegevens, de halve pagina.
+
+## Deel 2. Klaarzetten en live (handleiding 01)
+
+Eerst deel B van de wizard: je tool ontwerpen, met je halve pagina er al in (handleiding 10). Dan deze
+acht stappen, ook in de wizard als deel C.
+
+- [ ] 1. GitHub: Use this template, privérepo (handleiding 02).
+- [ ] 2. VS Code: Clone Repository, in de werkmap uit de voorbereiding, niet in OneDrive.
+- [ ] 3. De startprompt in het Claude-paneel: Claude zet config, plan en checklist neer en stopt. Commit en Sync, zeg "gedaan".
+- [ ] 4. Vercel: Add New Project, Neon onder Storage (handleiding 03 en 04).
+- [ ] 5. De variabelen die Claude noemt, in Vercel: namen van Claude, waarden alleen van jou (handleiding 06).
+- [ ] 6. Commit en Sync: je tool gaat online (handleiding 08).
+- [ ] 7. Je eerste account en tweestapsverificatie (handleiding 05b, stap 1 tot 3; met Microsoft handleiding 05).
+- [ ] 8. Vanaf nu: werken via `release/next` (handleiding 09).
+
+## Deel 3. Daarna, per dienst afmaken
+
+### GitHub (handleiding 02)
 
 - [ ] Een organisatie, geen persoonlijk account: een persoonlijk account is niet overdraagbaar.
 - [ ] Tweestapsverificatie verplicht voor alle leden van de organisatie.
-- [ ] De repo aangemaakt uit het template, **privé**.
 - [ ] Dependabot alerts en secret scanning aan (Settings, Code security).
 - [ ] Actions: workflow permissions op alleen-lezen; de uitgavenlimiet voor Actions op nul.
 - [ ] Het gratis plan heeft geen branch protection op een privé-repo: de CI is advies. Werk daarom
       altijd via een pull request (werkwijze, sectie 10). Wil je het slot, dan is dat GitHub Team.
+- [ ] Zodra er echte gebruikers zijn niet meer rechtstreeks op `main`: wijzigingen gaan via de
+      releasebranch `release/next` (handleiding 09).
 
-## Vercel (handleiding 03)
+### Vercel (handleiding 03)
 
-- [ ] Een team, geen persoonlijk account; het project geïmporteerd uit de repo.
+- [ ] Een team, geen persoonlijk account.
 - [ ] Functieregio Frankfurt (eu-central-1), bij de database.
 - [ ] Hobby tijdens het bouwen; Pro met Spend Management zodra er echte gebruikers zijn (het
       Hobby-plan staat commercieel gebruik niet toe en een cron draait er maar één keer per dag).
 - [ ] Deployment Protection aan voor previews.
 - [ ] De variabelen gezet (handleiding 06), met Sensitive aan bij elk geheim.
 
-## Neon (handleiding 04)
+### Neon (handleiding 04)
 
 - [ ] Een project in Frankfurt, gratis plan tot het niet meer past.
 - [ ] Een dev-branch naast de productiebranch; preview-branches per pull request aan.
@@ -41,7 +72,7 @@ staat in git.
 - [ ] Scale to zero en autosuspend op de kortste tijd; history retention op wat je nodig hebt.
 - [ ] Je weet waar het herstelpunt (PITR) staat en hoe lang het terugkijkt.
 
-## Inloggen
+### Inloggen
 
 **Met Microsoft (handleiding 05 en 11)**
 
@@ -55,7 +86,7 @@ staat in git.
 - [ ] De eerste beheerder uitgenodigd met `pnpm invite` en tweestapsverificatie ingesteld.
 - [ ] Afgesproken wie een account mag uitnodigen en wie bij een vermoeden van misbruik ingrijpt.
 
-## Mail en meldingen, alleen als de module messaging aan staat
+### Mail en meldingen, alleen als de module messaging aan staat
 
 - [ ] Transport gekozen: Graph (handleiding 20, een gedeelde postbus met `Mail.Send` en een
       ApplicationAccessPolicy) of SMTP (handleiding 20b, een aanbieder met SPF en DKIM op het domein).
@@ -63,21 +94,30 @@ staat in git.
 - [ ] Teams, alleen als het aan staat: de webhook van het kanaal, getest met `pnpm teams:test`
       (handleiding 21).
 
-## Bestanden, alleen als de module files aan staat (handleiding 22)
+### Bestanden, alleen als de module files aan staat (handleiding 22)
 
 - [ ] Een storage account in een EU-regio, een privécontainer, een SAS-token met Read, Create en
       Write en een vervaldatum van hoogstens een jaar.
 - [ ] De vervaldatum in `BLOB_SAS_EXPIRES` én in de tabel hieronder.
 - [ ] Een bewaarbeleid op de container als de bestanden onder een bewaarplicht vallen.
 
-## Lokaal werken (handleiding 07)
+### Lokaal werken (handleiding 07)
 
 - [ ] `vercel env pull .env.local`, `AUTH_DEV_LOGIN=1` erbij, `pnpm install`, `pnpm db:status`.
+- [ ] `DATABASE_URL` in `.env.local` wijst naar de branch `dev`, niet naar productie; `SEED_TARGET`
+      is het endpoint-id van `dev` en `pnpm db:status` noemt `dev`.
 - [ ] `.env.local` staat niet in `git status`.
 
-## Eerste deploy en rooktest (handleiding 08)
+### Werken met een releasebranch (handleiding 09)
 
-- [ ] De eerste deploy naar productie slaagt en `pnpm smoke:prod` is groen.
+- [ ] Elke ronde begint op een verse `main` met de branch `release/next`.
+- [ ] Het vaste previewadres van `release/next` staat bij "Vul in" in handleiding 09; bij inloggen
+      met Microsoft ook als redirect-URI.
+- [ ] Een wijziging wordt op die preview getest en gaat daarna via een pull request naar `main`.
+
+### Eerste deploy en rooktest (handleiding 08)
+
+- [ ] De deploy naar productie slaagt en `pnpm smoke:prod` is groen.
 - [ ] Je kunt inloggen en ziet de versie linksonder in de rail.
 
 ## Terugkerende controles

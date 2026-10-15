@@ -24,9 +24,11 @@ buiten de code. Dit document zegt hoe dat samenspel loopt. De regels voor de cod
    heeft, vraagt hij jou of zet hij in de lijst van wat nog moet.
 4. **Claude levert op** met: wat er is veranderd, de versie (`vX.YY` in `lib/version.ts` en de twee
    release-notesbestanden), welke bewijzen groen zijn, en wat jij nog met de hand doet.
-5. **Jij controleert** (zie 4), commit, maakt de pull request en mergt.
-6. **Vercel bouwt en zet live.** Kijk daarna één keer in de tool of de versie linksonder in de rail
-   de nieuwe is.
+5. **Jij commit op `release/next`** en opent een pull request naar `main`. Vercel bouwt een preview
+   met een eigen kopie van de database. Handleiding 09 gaat klik voor klik.
+6. **Jij controleert op de preview** (zie 4) en mergt pas als het klopt.
+7. **Vercel zet live.** Kijk daarna één keer in de tool of de versie linksonder in de rail de nieuwe
+   is, en ruim `release/next` op voor de volgende ronde.
 
 ## 3. Zo geef je een goede opdracht
 
@@ -77,7 +79,7 @@ er, dan zit de reparatie erin.
 
 ## 8. Het ritme
 
-- **Per ronde**: opdracht, oplevering, controle, merge.
+- **Per ronde**: opdracht, oplevering, pull request op `release/next`, controle op de preview, merge.
 - **Wekelijks**: kijk één keer op Beheer, Systeem. Alles groen is alles goed.
 - **Maandelijks**: de kosten van GitHub, Vercel en Neon tegen het plafond uit je checklist, en de
   vervaldata (client secrets, tokens) in dezelfde checklist.
@@ -96,7 +98,11 @@ Handleiding 90 heeft de lijst van bekende storingen en wat eraan te doen is.
 
 ## 10. Git in het kort
 
-- Werk op een branch per ronde: `feature/<wat>` of `fix/<wat>`. Nooit rechtstreeks op `main`.
+- Elke ronde loopt op de vaste branch `release/next`: aanmaken vanaf `main`, pull request naar
+  `main`, testen op de preview, mergen, branch weg. De volgende ronde weer dezelfde naam, zodat de
+  preview steeds hetzelfde adres heeft. Zie handleiding 09.
+- Direct op `main` is de uitzondering: alleen als je alleen werkt en er nog geen echte gebruikers
+  zijn. Daarna nooit meer.
 - Commit met een boodschap die zegt wat en waarom, in de vorm `type: omschrijving`
   (`feat:`, `fix:`, `docs:`, `chore:`). De commit-hook weigert een em-dash.
 - Pull request naar `main`, naam gelijk aan de versie (`v0.07: diensten aanmaken`), mergen als de

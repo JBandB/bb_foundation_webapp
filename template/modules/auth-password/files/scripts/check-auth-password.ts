@@ -2,13 +2,13 @@
 /**
  * `pnpm check:auth-password`: de sloten van de wachtwoordlogin, tegen de dev-branch, alles
  * teruggedraaid. Tokens zijn eenmalig en verlopen, de vergrendeling slaat dicht na vijf pogingen,
- * een uitnodiging leidt tot een account met wachtwoord, en tweestapsverificatie gaat aan en uit met
- * een echte code. Heeft AUTH_SECRET nodig (voor het versleutelde geheim).
+ * een uitnodiging leidt tot een account met wachtwoord, tweestapsverificatie gaat aan en uit met
+ * een echte code, en het token om die in te stellen komt alleen na het juiste wachtwoord. Heeft AUTH_SECRET nodig (voor het versleutelde geheim).
  */
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { Actor } from "../lib/auth/actor";
-import { acceptInvite, beginMfaSetup, confirmMfaSetup, disableMfa, securityState } from "../lib/auth/password/accounts";
+import { acceptInvite, beginMfaSetup, confirmMfaSetup, disableMfa, issueMfaSetupToken, securityState } from "../lib/auth/password/accounts";
 import { createInviteLink, inviteUser, listAccounts, setActive, setRoles } from "../lib/auth/password/admin";
 import { hashPassword, verifyPassword } from "../lib/auth/password/hash";
 import { isLocked, LOCKOUT, recordFailure, recordSuccess } from "../lib/auth/password/lockout";
@@ -104,10 +104,35 @@ runScript(async () => {
       t.check("een verkeerde code zet niets aan", await confirmMfaSetup(tx, self, "000000"), { ok: false, problem: "wrongCode" });
       t.check("de code van nu wel", await confirmMfaSetup(tx, self, totpCode(setup.secret, counterFor(new Date()))), { ok: true });
       t.check("de stand zegt aan", (await securityState(tx, user.id)).mfaEnabled, true);
+      t.ok("opnieuw beginnen als het al aan staat geeft niets en laat het aan", (await beginMfaSetup(tx, user.id)) === undefined && (await securityState(tx, user.id)).mfaEnabled);
 
       const required = mfaRequiredFor([plainRole]);
       const off = await disableMfa(tx, self, totpCode(setup.secret, counterFor(new Date())));
       t.check(required ? "uitzetten kan niet als het verplicht is" : "uitzetten met de code lukt", off, required ? { ok: false, problem: "required" } : { ok: true });
+    });
+
+    t.section("6. Instellen zonder mail: een token alleen na het juiste wachtwoord");
+    await inRollback(db, async (tx) => {
+      const adminRole = ADMIN_ROLES[0] ?? plainRole;
+      const mail = `check-setup-${randomUUID()}@voorbeeld.invalid`;
+      const user = (await tx.insert(users).values({ organisationId: ctx.organisationId, externalId: `local:${randomUUID()}`, email: mail, displayName: "Check Setup", initials: "CS", roles: [adminRole] }).returning({ id: users.id }))[0];
+      if (user === undefined) throw new Error("geen testgebruiker");
+      await tx.insert(credentials).values({ userId: user.id, organisationId: ctx.organisationId, passwordHash: hash });
+
+      t.ok("een verkeerd wachtwoord geeft geen token", (await issueMfaSetupToken(tx, mail, "verkeerd paard")) === undefined);
+      const first = await issueMfaSetupToken(tx, mail, "correct paard batterij nietje");
+      if (!mfaRequiredFor([adminRole])) {
+        t.ok("niet verplicht voor deze rol: geen token", first === undefined);
+        return;
+      }
+      t.ok("het juiste wachtwoord geeft een token voor deze persoon", first !== undefined && (await peekAuthToken(tx, first, "mfa_setup"))?.userId === user.id);
+      const second = await issueMfaSetupToken(tx, mail, "correct paard batterij nietje");
+      t.ok("een nieuw token maakt het vorige ongeldig", second !== undefined && first !== undefined && (await peekAuthToken(tx, first, "mfa_setup")) === undefined);
+
+      await tx.update(credentials).set({ lockedUntil: new Date(Date.now() + 60 * 1000) }).where(eq(credentials.userId, user.id));
+      t.ok("vergrendeld: geen token", (await issueMfaSetupToken(tx, mail, "correct paard batterij nietje")) === undefined);
+      await tx.update(credentials).set({ lockedUntil: null, mfaEnabled: true }).where(eq(credentials.userId, user.id));
+      t.ok("al ingesteld: geen token", (await issueMfaSetupToken(tx, mail, "correct paard batterij nietje")) === undefined);
     });
 
     t.summary("check:auth-password");

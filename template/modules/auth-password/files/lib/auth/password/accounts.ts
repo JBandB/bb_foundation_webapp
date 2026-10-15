@@ -15,9 +15,10 @@ import { enqueueKind } from "@/lib/messaging/enqueue-kind";
 import { PROJECT } from "@/lib/project/config.generated";
 import { parseRoles } from "@/lib/auth/roles";
 import { hashPassword, verifyPassword } from "./hash";
+import { isLocked } from "./lockout";
 import { mfaRequiredFor } from "./mfa-policy";
 import { checkPassword, type PasswordProblem } from "./policy";
-import { boxKeyFromEnv, open, seal } from "./secret-box";
+import { boxKeyFromEnv, openFromEnv, seal } from "./secret-box";
 import { consumeAuthToken, createAuthToken, peekAuthToken, revokeAuthTokens } from "./tokens";
 import { generateTotpSecret, otpauthUrl, verifyTotp } from "./totp";
 
@@ -137,17 +138,19 @@ export interface MfaSetup {
 /**
  * Een (nieuw) geheim klaarzetten: versleuteld in de rij, nog niet aan. Staat er al een geheim dat
  * nog niet bevestigd is, dan komt dat terug, zodat een tweede keer laden dezelfde QR toont.
+ * Staat tweestapsverificatie al aan, dan komt er niets: anders zou een overgebleven instelkoppeling
+ * (of een tweede tabblad na het instellen) een nieuw geheim klaarzetten en de tweede factor uitzetten.
  */
 export async function beginMfaSetup(db: DbOrTransaction, userId: string): Promise<MfaSetup | undefined> {
   const account = await accountById(db, userId);
   const row = (await db.select({ mfaSecret: credentials.mfaSecret, mfaEnabled: credentials.mfaEnabled }).from(credentials).where(eq(credentials.userId, userId)).limit(1))[0];
-  if (account === undefined || row === undefined) return undefined;
+  if (account === undefined || row === undefined || row.mfaEnabled) return undefined;
 
-  const key = boxKeyFromEnv();
-  const pending = row.mfaEnabled || row.mfaSecret === null ? undefined : open(row.mfaSecret, key);
+  const opened = row.mfaSecret === null ? undefined : openFromEnv(row.mfaSecret);
+  const pending = opened?.plain;
   const secret = pending ?? generateTotpSecret();
-  if (pending === undefined) {
-    await db.update(credentials).set({ mfaSecret: seal(secret, key), mfaEnabled: false, updatedAt: sql`now()` }).where(eq(credentials.userId, userId));
+  if (pending === undefined || opened?.stale === true) {
+    await db.update(credentials).set({ mfaSecret: seal(secret, boxKeyFromEnv()), mfaEnabled: false, updatedAt: sql`now()` }).where(eq(credentials.userId, userId));
   }
   return { secret, otpauth: otpauthUrl(PROJECT.name, account.email, secret) };
 }
@@ -155,7 +158,7 @@ export async function beginMfaSetup(db: DbOrTransaction, userId: string): Promis
 /** De code klopt met het klaargezette geheim: dan staat tweestapsverificatie aan. */
 export async function confirmMfaSetup(db: DbOrTransaction, actor: AuditActor, code: string): Promise<PasswordResult> {
   const row = (await db.select({ mfaSecret: credentials.mfaSecret }).from(credentials).where(eq(credentials.userId, actor.id)).limit(1))[0];
-  const secret = row?.mfaSecret === null || row?.mfaSecret === undefined ? undefined : open(row.mfaSecret, boxKeyFromEnv());
+  const secret = row?.mfaSecret === null || row?.mfaSecret === undefined ? undefined : openFromEnv(row.mfaSecret)?.plain;
   if (secret === undefined) return { ok: false, problem: "expired" };
   if (!verifyTotp(secret, code)) return { ok: false, problem: "wrongCode" };
 
@@ -164,7 +167,7 @@ export async function confirmMfaSetup(db: DbOrTransaction, actor: AuditActor, co
   return { ok: true };
 }
 
-/** De stap na een login die tweestapsverificatie eist: via de koppeling uit de mail. */
+/** De stap na een login die tweestapsverificatie eist: de code bevestigen op de instelpagina. */
 export async function confirmMfaSetupByToken(db: DbOrTransaction, token: string, code: string): Promise<PasswordResult> {
   const found = await peekAuthToken(db, token, "mfa_setup");
   const account = found === undefined ? undefined : await accountById(db, found.userId);
@@ -180,7 +183,7 @@ export async function disableMfa(db: DbOrTransaction, actor: AuditActor, code: s
   if (mfaRequiredFor(parseRoles(account.roles))) return { ok: false, problem: "required" };
 
   const row = (await db.select({ mfaSecret: credentials.mfaSecret, mfaEnabled: credentials.mfaEnabled }).from(credentials).where(eq(credentials.userId, actor.id)).limit(1))[0];
-  const secret = row?.mfaEnabled === true && row.mfaSecret !== null ? open(row.mfaSecret, boxKeyFromEnv()) : undefined;
+  const secret = row?.mfaEnabled === true && row.mfaSecret !== null ? openFromEnv(row.mfaSecret)?.plain : undefined;
   if (secret === undefined) return { ok: false, problem: "expired" };
   if (!verifyTotp(secret, code)) return { ok: false, problem: "wrongCode" };
 
@@ -189,16 +192,51 @@ export async function disableMfa(db: DbOrTransaction, actor: AuditActor, code: s
   return { ok: true };
 }
 
-/** De koppeling om tweestapsverificatie in te stellen, per mail, bij een login die dat eist. */
-export async function sendMfaSetupLink(db: DbOrTransaction, account: AccountRow, origin: string): Promise<void> {
+/**
+ * De stap na een login die tweestapsverificatie eist, zonder mail: een vers eenmalig token voor de
+ * instelpagina (`/sign-in/mfa/<token>`), waar het inlogscherm meteen naartoe stuurt.
+ *
+ * Waarom niet meer per mail: zonder ingerichte mail kwam de koppeling nooit aan, en het bericht in
+ * Beheer, Berichten is pas te zien na inloggen. De eerste beheerder sloot zichzelf zo buiten.
+ *
+ * Wanneer: alleen als de provider dezelfde aanvraag net met `mfa_setup` weigerde, dus nadat het
+ * wachtwoord klopte en de rate limit per adres al was geteld. Toch controleert deze functie alles
+ * zelf opnieuw (actief, niet vergrendeld, nog niet ingesteld, wel verplicht, en het wachtwoord),
+ * want ze geeft een sleutel uit en mag niet leunen op wat de aanroeper zegt. De provider kan het
+ * token niet zelf teruggeven: Auth.js zet de code van een mislukte login in een URL.
+ *
+ * Het token is hetzelfde soort als dat uit de mail: eenmalig, vijftien minuten geldig, alleen de
+ * hash in de database, en een nieuw token maakt het vorige ongeldig. Het staat alleen in het pad
+ * van de instelpagina, net als vroeger in de mailkoppeling.
+ *
+ * De prijs, bewust gekozen: wie het wachtwoord van een beheerder kent die nog geen tweede factor
+ * heeft, kan die nu zelf instellen. Met de mail was daar ook de mailbox voor nodig. Het venster is
+ * klein: alleen tot de eerste echte login, en het token geeft nooit een sessie.
+ */
+export async function issueMfaSetupToken(db: DbOrTransaction, email: string, password: string): Promise<string | undefined> {
+  const account = email.trim() === "" ? undefined : await accountByEmail(db, email);
+  if (account === undefined || !account.isActive) return undefined;
+  if (!mfaRequiredFor(parseRoles(account.roles))) return undefined;
+  const row = (
+    await db
+      .select({ passwordHash: credentials.passwordHash, mfaEnabled: credentials.mfaEnabled, lockedUntil: credentials.lockedUntil })
+      .from(credentials)
+      .where(eq(credentials.userId, account.id))
+      .limit(1)
+  )[0];
+  if (row === undefined || row.mfaEnabled || isLocked(row)) return undefined;
+  if (!(await verifyPassword(password, row.passwordHash))) return undefined;
+
   await revokeAuthTokens(db, account.id, "mfa_setup");
+  /*
+   * Een vers geheim bij elk nieuw token: het nog niet bevestigde geheim gaat weg, en de instelpagina
+   * maakt een nieuw. Anders zag wie eerder met hetzelfde wachtwoord de pagina opende, dezelfde
+   * QR-code als de beheerder, en deelden ze één geheim.
+   */
+  await db.update(credentials).set({ mfaSecret: null, updatedAt: sql`now()` }).where(eq(credentials.userId, account.id));
   const token = await createAuthToken(db, { organisationId: account.organisationId, userId: account.id, kind: "mfa_setup" });
-  await enqueueKind(db, account.organisationId, "mfa_setup", {
-    about: `${account.id}:${randomUUID()}`,
-    person: account.email,
-    subject: labels.password.mfaTitle,
-    bodyMd: [labels.password.mfaSetupRequired, "", `${origin}/sign-in/mfa/${token}`].join("\n"),
-  });
+  await appendAuditLog(db, selfActor(account), { entityTable: "auth_tokens", entityId: account.id, action: "insert", after: { kind: "mfa_setup" } });
+  return token;
 }
 
 export interface SecurityState {
