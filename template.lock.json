@@ -2,7 +2,7 @@
   "lockVersion": 1,
   "source": "https://github.com/JBandB/bb_foundation_webapp.git",
   "version": "1.1.0",
-  "appliedAt": "2026-10-16T08:13:44Z",
+  "appliedAt": "2026-10-16T09:27:20Z",
   "modules": {
     "core": {
       "schemaVersion": 1,
@@ -533,7 +533,7 @@
     "wizard/index.html": {"module":"core","class":"owned","hash":"39f68df92b03f7efd0d9e5eb4c385271c8ff294876fcb445db5b645368712609","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/inloggen.js": {"module":"core","class":"owned","hash":"9f80be75ea9c318ad498c4927cc5f5a900c13e5bcc4e7aecec9c5021c3f877d6","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/schermen.json": {"module":"core","class":"owned","hash":"f70c446f26fffc53b92b43c6287d5537b32864c2ca60aff5f78c041550e711d6","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "wizard/toegang.js": {"module":"core","class":"owned","hash":"428c1461bfbfc63b453d2700f4493031ec2ff26ddd1ebe225fac22a09d4aa548","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "wizard/toegang.js": {"module":"core","class":"owned","hash":"b95e274ef80ed7f805c1df89c377a32923b0f049172d9c4e108db297d610b1fd","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/voorbereiding.html": {"module":"core","class":"owned","hash":"536593d52c476acf18ad3e6cb86359b4bb515a7e6762a5525bc824646c9eec13","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/workshop-2.html": {"module":"core","class":"owned","hash":"60c2fb3ba2afc0750d25da5cfcd609ede2b942bfbfb7ff0c7e1e10062e58b52a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null}
   },
