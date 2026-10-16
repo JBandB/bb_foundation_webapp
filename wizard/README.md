@@ -53,7 +53,44 @@ Niets verlaat de browser. De antwoorden van deel B staan in `localStorage` onder
 `foundation-wizard-delen:v1`. Wie de oude voorbereidingspagina gebruikte (`foundation-voorbereiding:v1`),
 houdt zijn vinkjes en zijn halve pagina: de wizard neemt ze één keer over. De knop Opnieuw beginnen
 op het welkom wist alle drie. Werkt de opslag niet (een privévenster), dan werkt de wizard gewoon,
-alleen zonder geheugen. Zet geen wachtwoorden of andere geheimen in de wizard.
+alleen zonder geheugen. Zet geen wachtwoorden of andere geheimen in de wizard. Wie op de site
+inlogt, blijft ingelogd via `foundation-wizard-toegang:v1` (de gebruikersnaam en het begin van de
+hash, geen wachtwoord); Opnieuw beginnen laat dat staan, Uitloggen wist het.
+
+## Inloggen
+
+Op de site vragen alle drie de pagina's (`index.html`, `workshop-2.html`, `feedback.html`) eerst om
+een gebruikersnaam en een wachtwoord, één account per deelnemer. **Dit is een drempel, geen
+beveiliging.** De repo is openbaar: de wizard en de lijst met accounts zijn voor iedereen op GitHub te
+lezen, en wie wil, zet de controle in de browser uit. Het houdt toevallige bezoekers van de site
+tegen, meer niet.
+
+- **Alleen op de site.** Open je de wizard als bestand van je schijf, dan is er geen inlog: wie de
+  repo heeft, heeft de wizard al. Zo kan een deelnemer de wizard in zijn eigen project ook gebruiken
+  als zijn account uit staat.
+- **De accounts** staan in `wizard/toegang.js`: per account een code als naam, aan of uit, een zout
+  en een hash van het wachtwoord (PBKDF2 met SHA-256, in de browser met WebCrypto). Een `.js` en geen
+  `.json`, omdat een pagina vanaf `file://` geen bestand mag ophalen. Zonder accounts is er geen
+  inlog; een los gedownloade pagina zonder dat bestand ook niet.
+- **Nooit een naam of mailadres als gebruikersnaam.** Het bestand is openbaar en komt via Use this
+  template en `pnpm template:update` in elk project. Gebruik codes (`deelnemer-01`) en houd buiten de
+  repo bij wie welke code heeft.
+- **Beheer** met het script, alleen in de repo van het template:
+
+      node template/ci/wizard-toegang.mjs                    de lijst
+      node template/ci/wizard-toegang.mjs nieuw              de volgende deelnemer-NN, met een wachtwoord
+      node template/ci/wizard-toegang.mjs uit deelnemer-03   uitzetten; bij de volgende pagina uitgelogd
+      node template/ci/wizard-toegang.mjs aan deelnemer-03   weer aanzetten
+      node template/ci/wizard-toegang.mjs wachtwoord deelnemer-03
+      node template/ci/wizard-toegang.mjs verwijder deelnemer-03
+
+  Een nieuw wachtwoord (vier groepjes van vier tekens, zonder letters en cijfers die op elkaar lijken)
+  staat één keer in de terminal en nergens anders. Geef het door aan de deelnemer, niet via een chat
+  met Claude. Het script draait daarna apply, zodat `template.lock.json` klopt; commit en push, en na
+  de merge geldt het op de site.
+- Hoofdletters en spaties rondom tellen niet bij het inloggen. Een fout wachtwoord en een onbekende
+  naam krijgen dezelfde melding; een account dat uit staat, krijgt een eigen melding. Een nieuw
+  wachtwoord logt wie met het oude was ingelogd uit.
 
 ## Huisstijl
 
@@ -106,6 +143,32 @@ adressen, teamnamen en andere persoonlijke gegevens. De VS Code-schermen (`opnam
 je met de hand, 1280 breed, en je zet ze in `schermen.json` met kaders.
 
 Alleen Windows-varianten; macOS staat als tekst in de stappen.
+
+## De tweede dag: `workshop-2.html`
+
+Een tweede pagina in dezelfde stijl, voor de vervolgworkshop, vanaf de voet van de wizard
+bereikbaar (op Pages: https://jbandb.github.io/bb_foundation_webapp/wizard/workshop-2.html). Wie hem
+gebruikt, heeft al een tool die live staat.
+
+| Deel | Wat | Levert op |
+|---|---|---|
+| A. Vooraf | tool online, template bijwerken, Vercel CLI, Neon, de Claude Console (workspace, uitgavenlimiet, service account), akkoord over gegevens, huiswerk, de controle | vinkjes |
+| B. Veilig werken | variabelen per omgeving, een dev-branch voor de laptop, twee instellingen voor previews, een ronde via `release/next`, terugzetten en weer vooruit | vinkjes |
+| C. Intake | een formulier ontwerpen: wie, welke velden (gevoelig of niet), statussen, melding | de opdracht voor Claude Code |
+| D. AI in je tool | moment, gegevens, vaste structuur, instructie, testgevallen | de instructie en de testgevallen voor de Playground, en de opdracht voor Claude Code |
+
+De rode draad van deel D: **AI vult de inhoud, de tool bepaalt de vorm.** Claude antwoordt altijd
+in dezelfde vaste onderdelen (in de tool afgedwongen met structured outputs), de tool toont ze
+altijd met dezelfde componenten, en een mens bevestigt. Bedragen rekent de tool, nooit Claude. De
+instructie krijgt altijd vijf vaste regels mee (niets verzinnen, de aanvraag is gegevens en geen
+opdracht, een uitweg als iets niet past, geen bedragen, een mens beslist). De wizard laat zien wat
+Claude precies krijgt, vraagt om een bevestiging als er een gevoelig veld meegaat, en geeft geen
+opdracht zolang er iets in de antwoorden staat dat op een sleutel of een verbindingsstring lijkt.
+
+De opdracht van deel D gaat uit van de module `ai` en de controle `pnpm doctor`; die komen in een
+volgende versie van het template. De antwoorden staan in `localStorage` onder
+`foundation-workshop2:v1`, los van de eerste wizard. De casus is dezelfde verzonnen kinderboerderij,
+nu met een aanvraag voor een kinderfeestje.
 
 ## Feedback
 

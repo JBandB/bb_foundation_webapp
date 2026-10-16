@@ -8,6 +8,8 @@
 <meta name="description" content="Van idee tot een eigen tool die online staat, in drie delen: voorbereiden, je tool ontwerpen en live zetten. Levert de startprompt voor Claude Code op. Alles blijft in de browser.">
 <meta name="theme-color" content="#2a4740">
 <link rel="icon" type="image/svg+xml" href="brand/sublogo-vierkant-donker.svg">
+<script src="toegang.js"></script>
+<script src="inloggen.js"></script>
 <style>
 /*
  * De huisstijl van de wizard zelf. De wizard is het werkinstrument rond het template; wat hij
@@ -499,6 +501,7 @@ footer.foot p { margin: .25rem 0; }
   <div class="wrap">
     <p>Een werkinstrument van Bos &amp; Brouwer bij het template BB_foundation_webapp. Wat de wizard voor je maakt, draagt geen merk: het is van jou.</p>
     <p><a href="feedback.html">Feedback geven</a> op de workshop, de voorbereiding, de wizard of het template.</p>
+    <p>Voor de tweede workshopdag: <a href="workshop-2.html">Live @ Five, day 2</a>.</p>
   </div>
 </footer>
 <div id="announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
@@ -839,7 +842,7 @@ footer.foot p { margin: .25rem 0; }
   /* Tekst met `code` tussen backticks en **vet** tussen dubbele sterretjes. */
   const rich = (text) => String(text).split(/(`[^`]+`|\*\*[^*]+\*\*)/).filter((part) => part !== "").map((part) => {
     if (part.length > 1 && part.startsWith("`") && part.endsWith("`")) return h("code", {}, part.slice(1, -1));
-    if (part.length > 4 && part.startsWith("**") && part.endsWith("**")) return h("strong", {}, part.slice(2, -2));
+    if (part.length > 4 && part.startsWith("**") && part.endsWith("**")) return h("strong", {}, rich(part.slice(2, -2)));
     return part;
   });
   const note = (text, kind) => h("p", { class: `note ${kind || ""}` }, rich(text));

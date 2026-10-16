@@ -17,11 +17,12 @@ const EXEMPT = new Set(["template/README.md", "template/ci/forbidden-words.txt",
 /*
  * De merknamen mogen in de wizard, en nergens anders. De wizard is het workshopinstrument van de
  * organisatie achter het template, rond het neutrale template, en draagt daarom haar huisstijl en
- * naam. Wat de wizard oplevert (configuratie, projectplan, checklist, startprompt) blijft neutraal:
- * template/ci/wizard-smoke.mjs bewijst dat geen van die bestanden een woord uit de lijst bevat. De
- * uitzondering geldt alleen voor de woorden; de controle op em-dashes blijft overal.
+ * naam. Wat de wizard oplevert (configuratie, projectplan, checklist, startprompt, en op de tweede
+ * dag de opdrachten en de instructie) blijft neutraal: template/ci/wizard-smoke.mjs bewijst dat geen
+ * van die teksten een woord uit de lijst bevat. De uitzondering geldt alleen voor de woorden; de
+ * controle op em-dashes blijft overal.
  */
-const BRAND_ALLOWED = new Set(["wizard/index.html", "wizard/voorbereiding.html", "wizard/feedback.html", "wizard/README.md"]);
+const BRAND_ALLOWED = new Set(["wizard/index.html", "wizard/workshop-2.html", "wizard/voorbereiding.html", "wizard/feedback.html", "wizard/README.md"]);
 const BRAND_ALLOWED_DIRS = ["wizard/brand/"];
 const brandAllowed = (rel) => BRAND_ALLOWED.has(rel) || BRAND_ALLOWED_DIRS.some((dir) => rel.startsWith(dir));
 const SKIPPED_DIRS = new Set(["node_modules", ".next", ".git", ".vercel", ".template-backup", "coverage", "playwright-report", "test-results", "fonts"]);

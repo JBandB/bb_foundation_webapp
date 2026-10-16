@@ -9,7 +9,21 @@ versie na het bijwerken.
 
 ### Wat verandert
 
-- Nog niets.
+- **De wizard voor de tweede workshopdag**, `wizard/workshop-2.html`, in dezelfde stijl en vanaf de
+  voet van de eerste wizard bereikbaar. Vier delen: Vooraf (thuis, met de Claude Console en een
+  akkoord over gegevens), Veilig werken (dev-branch, `release/next`, terugzetten), Intake (levert de
+  opdracht voor een intakeformulier) en AI in je tool (levert de instructie en testgevallen voor de
+  Playground en de opdracht voor een AI-functie die altijd in dezelfde vaste onderdelen antwoordt).
+  De rooktest loopt hem door en bewijst dat wat hij oplevert neutraal is en geen em-dash bevat.
+- **Inloggen op de wizard**, als drempel en niet als beveiliging: op de site vragen de wizard, de
+  wizard van de tweede dag en de feedbackpagina eerst om een account, één per deelnemer, aan of uit.
+  De accounts staan als code met een gezouten hash in `wizard/toegang.js` en worden beheerd met
+  `node template/ci/wizard-toegang.mjs`; zonder accounts, en vanaf je eigen schijf, is er geen inlog.
+  De rooktest bewijst het op een nagebootste site met testaccounts.
+- **Terugdraaien in Vercel** (handleiding 90 en WERKWIJZE): Instant Rollback in plaats van Promote,
+  met de waarschuwing dat Vercel na een rollback geen nieuwe versie vanzelf live zet tot Undo
+  Rollback.
+- De wizard toonde code binnen een vetgedrukt stuk met losse backticks; nu staat het er als code.
 
 ### Let op bij bijwerken
 

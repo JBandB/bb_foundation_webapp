@@ -40,8 +40,12 @@ Geef Claude Code daarna de foutmelding letterlijk, met wat je deed en wanneer.
 
 ## Terugdraaien
 
-- **Een deploy**: in Vercel, Deployments, de vorige deploy kiezen en **Promote to Production**. Dat
-  draait geen migratie terug.
+- **Een deploy**: in Vercel, je project, op de tegel Production Deployment **Instant Rollback**, de
+  vorige versie kiezen en **Confirm Rollback**. Op het Hobby-plan kan dat alleen naar de direct
+  vorige productieversie. Het draait geen migratie terug, en de teruggezette versie draait met de
+  variabelen van toen. **Daarna:** zolang de rollback staat, zet Vercel geen nieuwe versie vanzelf
+  live, ook niet na een merge. Is het opgelost, klik dan op dezelfde tegel **Undo Rollback** en kies
+  de versie die live moet.
 - **Een migratie**: op `dev` met `pnpm db:down`; op productie alleen na overleg en met de terugweg uit
   `lib/db/migrations/down/`, want een migratie die is gedraaid wijzig je niet (zie
   `lib/db/migrations/README.md`).

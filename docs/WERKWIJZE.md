@@ -91,8 +91,9 @@ er, dan zit de reparatie erin.
 1. Kijk op Beheer, Systeem: versie, databaseschema, koppelingen. Rood zegt waar.
 2. Kijk in de logs van Vercel bij de laatste deploy.
 3. Geef Claude de foutmelding letterlijk, met wat je deed en wanneer. Niet "het doet het niet".
-4. Een deploy terugdraaien kan in Vercel met één klik (Promote van de vorige); een migratie
-   terugdraaien doet `pnpm db:down` op de dev-branch, en op productie alleen na overleg.
+4. Een deploy terugdraaien kan in Vercel met één klik (Instant Rollback), en daarna weer vooruit
+   met Undo Rollback; tot dan gaat een merge niet live. Een migratie terugdraaien doet
+   `pnpm db:down` op de dev-branch, en op productie alleen na overleg.
 
 Handleiding 90 heeft de lijst van bekende storingen en wat eraan te doen is.
 
