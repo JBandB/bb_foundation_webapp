@@ -18,9 +18,9 @@
  * voorbereidingspagina stuurt door, de oude opslag wordt overgenomen, de ingebedde manifest is gelijk
  * aan wizard/schermen.json, op telefoonbreedte schuift niets opzij, en de browser logde geen fout.
  *
- * Daarna de feedbackpagina, en wizard/workshop-2.html voor de tweede dag: het huiswerk vult deel C
- * en D, de opdrachten en de instructie voor de Playground zijn neutraal, een gevoelig veld vraagt om
- * een bevestiging, en de geheimenwacht houdt een sleutel tegen. Als laatste het inlogscherm, op een
+ * Daarna de feedbackpagina, de labels naar dag 2, en wizard/workshop-2.html voor de tweede dag: het
+ * huiswerk komt in deel C, de instructie volgt de opbouw van de stap prompting, de rekenhulp rekent
+ * zonder ingebouwde prijzen, de opdrachten zijn neutraal, en de geheimenwacht houdt een sleutel tegen. Als laatste het inlogscherm, op een
  * nagebootste site: vanaf file:// is er geen inlog, en dat bewijzen alle tests hiervoor.
  *
  *   node template/ci/wizard-smoke.mjs           draait en ruimt op
@@ -95,8 +95,11 @@ try {
   const index = pathToFileURL(join(root, "wizard", "index.html")).href;
   await page.goto(index);
   const heading = page.locator("#step-heading");
+  /* Wacht tot de kop de verwachte tekst heeft: een wissel van deel via het adres tekent net na de klik. */
+  const settle = (target, expected) => target.waitForFunction((value) => (document.getElementById("step-heading")?.textContent ?? "").trim().startsWith(value), expected, { timeout: 5_000 }).catch(() => undefined);
   const headingIs = async (expected, label) => {
     await heading.waitFor({ state: "visible" });
+    await settle(page, expected);
     const text = (await heading.textContent())?.trim() ?? "";
     check(text.startsWith(expected), `${label ?? `door naar "${expected}"`} (kop: ${text})`);
   };
@@ -397,11 +400,19 @@ try {
   await feedback.close();
 
   /*
-   * De wizard voor de tweede dag: vier delen, het huiswerk vult deel C en D, de opdrachten en de
-   * instructie zijn neutraal en zonder em-dash, een gevoelig veld vraagt om een bevestiging, de
-   * geheimenwacht houdt een sleutel tegen, en op telefoonbreedte schuift niets opzij.
+   * De wizard voor de tweede dag: vier delen (vooraf, dev en prod, AI ontwerpen, AI bouwen). Het
+   * huiswerk komt in deel C, een nieuwe functie krijgt een eigen opdracht, de instructie volgt de
+   * opbouw uit de stap prompting, de rekenhulp rekent zonder ingebouwde prijzen, de scorekaart telt,
+   * en wat de pagina oplevert is neutraal en zonder em-dash. Daarnaast de labels naar dag 2 in de
+   * wizard van dag 1.
    */
   check((await page.locator('a[href="workshop-2.html"]').count()) > 0, "de wizard linkt naar de wizard van de tweede dag");
+  await page.goto(`${index}#voorbereiden-0`);
+  await headingIs("Welkom", "dag 1: het welkom opent via het adres");
+  check((await page.locator(".dag2 a[href^='workshop-2.html']").count()) >= 1, "dag 1: het welkom heeft een label naar dag 2");
+  await page.goto(`${index}#live-5`);
+  await headingIs("Stap 5 van 8", "dag 1: de stap met de variabelen opent via het adres");
+  check((await page.locator(".dag2 a[href='workshop-2.html#devprod']").count()) === 1, "dag 1: de stap met de variabelen wijst naar dag 2, dev en prod");
   const day2Url = pathToFileURL(join(root, "wizard", "workshop-2.html")).href;
   const day2 = await context.newPage();
   day2.setDefaultTimeout(15_000);
@@ -412,6 +423,7 @@ try {
   const day2Heading = async (expected, label) => {
     const h2 = day2.locator("#step-heading");
     await h2.waitFor({ state: "visible" });
+    await settle(day2, expected);
     const text = (await h2.textContent())?.trim() ?? "";
     check(text.startsWith(expected), `workshop-2: ${label} (kop: ${text})`);
   };
@@ -419,89 +431,112 @@ try {
     await day2.goto(`${day2Url}${hash}`);
     await day2Heading(expected, label);
   };
+  const live = async (name) => (await day2.locator(`[data-live="${name}"]`).textContent()) ?? "";
   await day2.goto(day2Url);
   await day2Heading("Welkom", "opent op het welkom");
   check((await day2.locator("a.part").count()) === 4, "workshop-2: vier delen");
-  check((await day2.locator("#logo").getAttribute("src")) === "brand/logo-met-bi-wit.svg", "workshop-2: het welkom toont het logo met Business Intelligence");
+  check(((await day2.locator("nav.parts").textContent()) ?? "").includes("Dev en prod"), "workshop-2: deel B heet Dev en prod");
   check((await day2.title()).includes("Live @ Five, day 2"), "workshop-2: de titel is Live @ Five, day 2");
   check((await day2.locator('a[href="index.html"]').count()) > 0, "workshop-2: linkt terug naar de wizard van de eerste dag");
 
-  // Deel A, stap 7: het huiswerk komt in deel C en D.
+  // Deel A, stap 7: het huiswerk komt in deel C.
   await day2Open("#voorbereiden-7", "Stap 7 van 8", "het huiswerk opent via het adres");
-  await day2.fill("#a-name", "Aanvraag kinderfeestje");
+  await day2.check("#a-route-1");
   await day2.fill("#a-test-2", "Aantal kinderen: 28\nWensen: een schoolreisje");
-  await day2Open("#intake-1", "Stap 1 van 4", "deel C, stap 1");
-  check((await day2.inputValue("#c-name")) === "Aanvraag kinderfeestje", "workshop-2: de naam uit het huiswerk staat in deel C");
+  await day2Open("#devprod-8", "Stap 8 van 8", "deel B, stap 8 over echte gegevens buiten productie");
+  check(((await day2.locator("main").textContent()) ?? "").includes("een kopie van productie"), "workshop-2: deel B zegt dat de preview een kopie van productie is");
+  await day2Open("#ontwerpen-3", "Stap 3 van 8", "deel C, stap 3");
+  check(await day2.isChecked("#c-route-1"), "workshop-2: de keuze uit het huiswerk staat in deel C");
 
-  // Deel C: het voorbeeld vraagt eerst om een ja, omdat er al iets staat.
+  // Deel C, stap 4: de nieuwe functie krijgt het formulier; er staat nog niets, dus geen vraag.
+  await day2Open("#ontwerpen-4", "Stap 4 van 8", "deel C, stap 4");
   await day2.click("#intake-example");
-  await day2.click("#intake-example-ja");
-  check((await day2.locator("fieldset[data-veld]").count()) === 8, "workshop-2: het voorbeeld van de kinderboerderij heeft acht velden");
+  check((await day2.locator("fieldset[data-veld]").count()) === 8, "workshop-2: het formulier van de kinderboerderij heeft acht velden");
   await day2.click("#c-add");
-  check((await day2.locator("fieldset[data-veld]").count()) === 9, "workshop-2: een veld toevoegen werkt");
-  check(await day2.evaluate(() => document.activeElement?.id === "c-f-8-label"), "workshop-2: na toevoegen staat de focus op het nieuwe veld");
+  check((await day2.locator("fieldset[data-veld]").count()) === 9 && (await day2.evaluate(() => document.activeElement?.id === "c-f-8-label")), "workshop-2: een veld toevoegen werkt, met de focus erop");
   await day2.getByRole("button", { name: "Verwijder veld 9" }).click();
-  await day2Open("#intake-2", "Stap 2 van 4", "deel C, stap 2");
+  const gets = await live("claude-gets");
+  check(gets.includes("<gegevens>\nAantal kinderen: <waarde>") && !gets.includes("Naam ouder:") && gets.includes("Gaat nooit mee: Naam ouder"), "workshop-2: Claude krijgt alleen de aangevinkte velden, tussen <gegevens>");
+  await day2.check("#c-f-0-ai");
+  check((await day2.locator("#d-sensitive-ok").count()) === 1, "workshop-2: een gevoelig veld vraagt om een bevestiging");
+  await day2.uncheck("#c-f-0-ai");
+
+  // Deel D, stap 2 en 3: de opdracht voor de nieuwe functie, en de open punten voor de AI-functie.
+  await day2Open("#bouwen-2", "Stap 2 van 4", "deel D, stap 2");
   const intakePrompt = await day2.inputValue("#intake-prompt-text");
-  check(intakePrompt.includes("| Naam ouder | korte tekst | ja | ja |") && intakePrompt.includes("Nieuw, In behandeling, Bevestigd, Afgewezen") && intakePrompt.includes("Git doe ik zelf"), "workshop-2: de opdracht voor het formulier bevat velden en statussen, en laat git bij de mens");
+  check(intakePrompt.includes("| Naam ouder | korte tekst | ja | ja |") && intakePrompt.includes("De AI-functie: die komt in de volgende ronde.") && intakePrompt.includes("Git doe ik zelf"), "workshop-2: de opdracht voor de nieuwe functie bevat de velden, laat AI voor later en git bij de mens");
   await day2.click("#intake-prompt-copy");
   await day2.locator("#intake-prompt-status").filter({ hasText: "Gekopieerd" }).waitFor({ state: "visible" });
-  check((await day2.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, "\n") === intakePrompt, "workshop-2: het klembord bevat de opdracht voor het formulier");
-
-  // Deel D: zonder ontwerp staan er open punten in plaats van een opdracht.
-  await day2Open("#ai-7", "Stap 7 van 7", "deel D, stap 7");
+  check((await day2.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, "\n") === intakePrompt, "workshop-2: het klembord bevat de opdracht");
+  await day2Open("#bouwen-3", "Stap 3 van 4", "deel D, stap 3 zonder ontwerp");
   check((await day2.locator("#ai-prompt-open").count()) === 1 && (await day2.locator("#ai-prompt-copy").count()) === 0, "workshop-2: zonder ontwerp geen opdracht, wel de open punten");
-  await day2Open("#ai-1", "Stap 1 van 7", "deel D, stap 1");
+
+  // Deel C, stap 3: het voorbeeld vult de rest.
+  await day2Open("#ontwerpen-3", "Stap 3 van 8", "deel C, stap 3 opnieuw");
   await day2.click("#ai-example");
-  check((await day2.inputValue("#d-title")) === "Stel voor bij een aanvraag", "workshop-2: het voorbeeld vult deel D");
+  check((await day2.inputValue("#d-title")) === "Stel voor bij een aanvraag", "workshop-2: het voorbeeld vult deel C");
 
-  // Stap 2: wat Claude krijgt, en een gevoelig veld vraagt om een bevestiging.
-  await day2Open("#ai-2", "Stap 2 van 7", "deel D, stap 2");
-  const gets = (await day2.locator('[data-live="claude-gets"]').textContent()) ?? "";
-  check(gets.includes("Aantal kinderen: <waarde>") && !gets.includes("Naam ouder:") && gets.includes("Gaat nooit mee: Naam ouder"), "workshop-2: Claude krijgt alleen de aangevinkte velden, en de rest staat erbij als nooit");
-  await day2.check("#d-send-0");
-  check((await day2.locator("#d-sensitive-ok").count()) === 1, "workshop-2: een gevoelig veld vraagt om een bevestiging");
-  await day2Open("#ai-7", "Stap 7 van 7", "deel D, stap 7 met een gevoelig veld");
-  check(((await day2.locator("#ai-prompt-open").textContent()) ?? "").includes("gevoelig veld"), "workshop-2: zonder bevestiging blijft de opdracht dicht");
-  await day2Open("#ai-2", "Stap 2 van 7", "deel D, stap 2 opnieuw");
-  await day2.uncheck("#d-send-0");
-
-  // Stap 3: de vaste structuur, met de twee beginpunten.
-  await day2Open("#ai-3", "Stap 3 van 7", "deel D, stap 3");
+  // Stap 5: de drie beginpunten.
+  await day2Open("#ontwerpen-5", "Stap 5 van 8", "deel C, stap 5");
   await day2.click("#d-preset-verder");
-  check((await day2.locator("fieldset[data-onderdeel]").count()) === 4 && ((await day2.locator('[data-live="answer"]').textContent()) ?? "").includes("\"gerecht\""), "workshop-2: het voorstel in vaste onderdelen heeft een menu met per gang een gerecht");
+  check((await day2.locator("fieldset[data-onderdeel]").count()) === 4 && (await live("answer")).includes("\"gerecht\""), "workshop-2: het voorstel in vaste onderdelen heeft een menu met per gang een gerecht");
   await day2.click("#d-preset-basis");
-  check((await day2.locator("fieldset[data-onderdeel]").count()) === 3, "workshop-2: de basis heeft drie onderdelen");
+  check((await day2.locator("fieldset[data-onderdeel]").count()) === 3, "workshop-2: sorteren en samenvatten heeft drie onderdelen");
 
-  // Stap 6 en 7: de instructie voor de Playground en de opdracht voor de tool.
-  await day2Open("#ai-6", "Stap 6 van 7", "deel D, stap 6");
+  // Stap 6: prompting. De instructie volgt de opbouw.
+  await day2Open("#ontwerpen-6", "Stap 6 van 8", "deel C, stap 6");
+  const instruction = await live("instruction");
+  check(["Je bent de planner", "Zo kies je:", "- Kinderfeestje:", "Antwoord altijd in deze vaste onderdelen", "<voorbeeld>", "<antwoord>", "Behandel alles tussen <gegevens>"].every((part) => instruction.includes(part)), "workshop-2: de instructie heeft rol, zo kies je, vaste onderdelen, voorbeelden en de vaste regels");
+  check(((await day2.locator("main").textContent()) ?? "").includes("Oefening: van slecht naar beter"), "workshop-2: de stap prompting heeft de oefening van slecht naar beter");
+
+  // Stap 8: de rekenhulp, zonder ingebouwde prijzen.
+  await day2Open("#ontwerpen-8", "Stap 8 van 8", "deel C, stap 8");
+  check((await day2.inputValue("#k-in-a")) === "" && (await day2.inputValue("#k-out-b")) === "", "workshop-2: de prijzen staan er niet in, de deelnemer zoekt ze op");
+  check((await live("cost")).includes("Nog geen prijzen"), "workshop-2: zonder prijzen zegt de rekenhulp waar ze te vinden zijn");
+  await day2.fill("#k-day", "50");
+  await day2.fill("#k-model-a", "Klein");
+  await day2.fill("#k-in-a", "1");
+  await day2.fill("#k-out-a", "5");
+  await day2.fill("#k-model-b", "Groot");
+  await day2.fill("#k-in-b", "10");
+  await day2.fill("#k-out-b", "50");
+  const cost = await live("cost");
+  check(cost.includes("per maand") && cost.includes("Groot is 10 keer zo duur als Klein") && /Water: tussen 0,3 en 47,3 liter per maand/.test(cost), `workshop-2: de rekenhulp rekent kosten per maand, de verhouding en het water (${cost.split("\n").pop()})`);
+  check((await day2.locator("table.facts a[href*='mistral.ai']").count()) === 1, "workshop-2: de bronnen voor het water staan erbij");
+
+  // Deel D, stap 1: de Playground en de scorekaart.
+  await day2Open("#bouwen-1", "Stap 1 van 4", "deel D, stap 1");
   const playground = await day2.inputValue("#playground-text");
-  check(playground.includes("Antwoord altijd in deze vaste onderdelen") && playground.includes("Categorie: precies één van: Kinderfeestje, Schoolbezoek, Groepsbezoek, Overig") && playground.includes("Geef je antwoord als JSON"), "workshop-2: de instructie voor de Playground noemt de vaste onderdelen en vraagt om JSON");
-  check((await day2.getByRole("button", { name: /^Kopieer testgeval \d$/ }).count()) === 5, "workshop-2: vijf testgevallen om te kopiëren");
-  await day2Open("#ai-7", "Stap 7 van 7", "deel D, stap 7 met ontwerp");
-  const aiPrompt = await day2.inputValue("#ai-prompt-text");
-  check(aiPrompt.includes("structured outputs") && aiPrompt.includes("ANTHROPIC_API_KEY") && aiPrompt.includes("| Categorie | keuze uit een vaste lijst | Kinderfeestje, Schoolbezoek, Groepsbezoek, Overig |"), "workshop-2: de opdracht noemt structured outputs, de sleutel en de vaste structuur");
-  check(aiPrompt.includes("Nooit: Naam ouder"), "workshop-2: de opdracht zegt welke velden nooit meegaan");
   check(playground.includes("JSON met precies deze sleutels: categorie, samenvatting, open_vragen."), "workshop-2: de Playground vraagt om de sleutels van de vaste onderdelen");
-  for (const [name, text] of [["de opdracht voor het formulier", intakePrompt], ["de instructie voor de Playground", playground], ["de opdracht voor de AI-functie", aiPrompt]]) {
+  check((await day2.getByRole("button", { name: /^Kopieer testgeval \d+$/ }).count()) === 5, "workshop-2: vijf testgevallen om te kopiëren");
+  check(((await day2.locator(".test-card pre").first().textContent()) ?? "").startsWith("<gegevens>"), "workshop-2: een testgeval staat tussen <gegevens>");
+  await day2.check("#score-1-form");
+  check(((await day2.locator("#score-summary").textContent()) ?? "").includes("vorm 1 van 5"), "workshop-2: de scorekaart telt mee");
+
+  // Deel D, stap 3: de opdracht voor de AI-functie.
+  await day2Open("#bouwen-3", "Stap 3 van 4", "deel D, stap 3 met ontwerp");
+  const aiPrompt = await day2.inputValue("#ai-prompt-text");
+  check(aiPrompt.includes("structured outputs") && aiPrompt.includes("ANTHROPIC_API_KEY") && aiPrompt.includes("| Categorie | keuze uit een vaste lijst | Kinderfeestje, Schoolbezoek, Groepsbezoek, Overig |") && aiPrompt.includes("denkniveau van deze prompt standaard op laag"), "workshop-2: de opdracht noemt structured outputs, de sleutel, de vaste structuur en het denkniveau");
+  check(aiPrompt.includes("Nooit: Naam ouder") && aiPrompt.includes("(verwacht: Kinderfeestje)"), "workshop-2: de opdracht zegt wat nooit meegaat en wat elk testgeval verwacht");
+  for (const [name, text] of [["de opdracht voor de nieuwe functie", intakePrompt], ["de instructie voor de Playground", playground], ["de opdracht voor de AI-functie", aiPrompt]]) {
     check(!text.includes(EM_DASH), `workshop-2: geen em-dash in ${name}`);
     const hits = FORBIDDEN.filter((word) => text.toLowerCase().includes(word.toLowerCase()));
     check(hits.length === 0, `workshop-2: ${name} is neutraal${hits.length ? ` (${hits.join(", ")})` : ""}`);
   }
 
   // De geheimenwacht: een sleutel in een veld geeft een melding en houdt de opdracht tegen.
-  await day2Open("#ai-4", "Stap 4 van 7", "deel D, stap 4");
+  await day2Open("#ontwerpen-6", "Stap 6 van 8", "deel C, stap 6 met een sleutel");
   await day2.fill("#d-rules", "sk-ant-api03-abcdefghijklmnopqrstuvwxyz");
   check(((await day2.locator("#d-rules-err").textContent()) ?? "").includes("API-sleutel"), "workshop-2: een API-sleutel in een veld geeft meteen een melding");
-  await day2Open("#ai-7", "Stap 7 van 7", "deel D, stap 7 met een sleutel");
+  await day2Open("#bouwen-3", "Stap 3 van 4", "deel D, stap 3 met een sleutel");
   check((await day2.locator("#ai-prompt-copy").count()) === 0, "workshop-2: met een sleutel in de antwoorden geen opdracht");
-  await day2Open("#ai-4", "Stap 4 van 7", "deel D, stap 4 opnieuw");
+  await day2Open("#ontwerpen-6", "Stap 6 van 8", "deel C, stap 6 opnieuw");
   await day2.fill("#d-rules", "Schrijf in gewone, vriendelijke taal.");
-  check((await day2.evaluate(() => JSON.parse(window.localStorage.getItem("foundation-workshop2:v1") ?? "{}").intake?.name)) === "Aanvraag kinderfeestje", "workshop-2: bewaart onder foundation-workshop2:v1");
+  check((await day2.evaluate(() => JSON.parse(window.localStorage.getItem("foundation-workshop2:v2") ?? "{}").route)) === "nieuw", "workshop-2: bewaart onder foundation-workshop2:v2");
 
   // Telefoonbreedte: niets schuift opzij.
   await day2.setViewportSize({ width: 390, height: 844 });
-  for (const hash of ["#voorbereiden", "#ochtend-5", "#intake-1", "#ai-3", "#ai-7"]) {
+  for (const hash of ["#voorbereiden", "#devprod-1", "#ontwerpen-4", "#ontwerpen-8", "#bouwen-1"]) {
     await day2.goto(`${day2Url}${hash}`);
     await day2.locator("#step-heading").waitFor({ state: "visible" });
     const width = await day2.evaluate(() => document.documentElement.scrollWidth);

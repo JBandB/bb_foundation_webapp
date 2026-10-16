@@ -2,7 +2,7 @@
   "lockVersion": 1,
   "source": "https://github.com/JBandB/bb_foundation_webapp.git",
   "version": "1.1.0",
-  "appliedAt": "2026-10-16T09:27:20Z",
+  "appliedAt": "2026-10-16T12:24:41Z",
   "modules": {
     "core": {
       "schemaVersion": 1,
@@ -298,7 +298,7 @@
     "scripts/lint-house-rules.mjs": {"module":"core","class":"owned","hash":"714deb6d5c2efdf9c4b708ec6ffabdd47528a6357338d7fe56cd68f3b1c81ec3","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "scripts/smoke-prod.ts": {"module":"core","class":"owned","hash":"f0235ca3592bface502c48df80e5728544dacb033701dc6f0edef5654b71445a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "scripts/task-prune.ts": {"module":"core","class":"owned","hash":"d5b9a3d8f771b3ee6238d9acb62b45a1d34cf0cbe83934bb3151bea53bb1a595","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "template/CHANGELOG.md": {"module":"core","class":"owned","hash":"3417ece30c1bae19056475ab8df311f0bf3295e2a081250bf3b72849b9516a82","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "template/CHANGELOG.md": {"module":"core","class":"owned","hash":"dcbdf3fff9a3a5008a1e4cd19acb5a8bd8f3c4a4c6401d1d9addc47a445bf413","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/README.md": {"module":"core","class":"owned","hash":"af2adf084c39a3c721e4f77e5ccc76a2329a01c97bfdd21b3b5b0cbf32af73f7","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/check-template.mjs": {"module":"core","class":"owned","hash":"3720da5fd4f886416473f7ef6c97fbc4908debc3ef482307e32698dafe073319","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/controle-laptop.test.ts": {"module":"core","class":"owned","hash":"34896fbb12c5ed6ae21632e2c18be660d27db75b8be37dcd800f4349c29f0b7b","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
@@ -306,7 +306,7 @@
     "template/ci/golden.mjs": {"module":"core","class":"owned","hash":"f50c9c674773db9bc72e26a1f259776a4fa99c7edb1a14501d2eeeb3b2d19f7b","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/schermen-opnemen.mjs": {"module":"core","class":"owned","hash":"a0fd038007de0b2344e345491477a511eb6bf82c8abaceadda93608a38bfb32d","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/update-test.mjs": {"module":"core","class":"owned","hash":"30c9b0292bb9ed6de28152f49d074914ec93777ad42b4a7478197fb481cba0ea","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "template/ci/wizard-smoke.mjs": {"module":"core","class":"owned","hash":"5911db8cfe9d08696180fa06d4ead959e8c05dd76f3e22da55dc96c051b24043","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "template/ci/wizard-smoke.mjs": {"module":"core","class":"owned","hash":"d0da5a32abe3f9638280a2ee5445a6edfd86a0289d5eca2300b38c1bb2ad67bd","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/wizard-toegang.mjs": {"module":"core","class":"owned","hash":"5faee7ecfe5791c2c91d821927444baa48d505bd74b10be9f3f545127fd599a8","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/cli/add.ts": {"module":"core","class":"owned","hash":"720152730b2a8997469359b0aab05fc5a429d4a88f3c245ed1360e1695fd36de","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/cli/adopt.ts": {"module":"core","class":"owned","hash":"28b198f40d7a682909f19c29a085133b69e09188dc1614e55cc4d816d58ecbf8","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
@@ -514,7 +514,7 @@
     "tsconfig.json": {"module":"core","class":"owned","hash":"28a08286df4683f8ebe7f00b3c00bd16d37b43892d0a2f7eac32dd520f914b47","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "types/auth.d.ts": {"module":"core","class":"owned","hash":"e1c5148bbad583cb0b9cce7a50d861f6b1aa084b15862b4017c4f86492b70992","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "vitest.config.mts": {"module":"core","class":"owned","hash":"a7919a876d217896ae56025ef470ec105da4a34f6506804de66b32a4c5339b36","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "wizard/README.md": {"module":"core","class":"owned","hash":"888ac033b423de9a436f1248a5f04b849304a1428d858ea2c57bd7439274f903","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "wizard/README.md": {"module":"core","class":"owned","hash":"f35f88dabbd93511b764f8a9d37ea8c6a3ecccf19093abe6ecc5417c95c458a5","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/brand/fonts/README.md": {"module":"core","class":"owned","hash":"bce1e92dcea71be2c0fbe991540e59649eaa43ebc1f5de7d08f03a89cafd9b7e","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/brand/fonts/manrope-latin-var.woff2": {"module":"core","class":"owned","hash":"a30ddcd349703aff7464c34bef3fffdff405ee50c113440d7c8693c02d210972","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/brand/fonts/space-grotesk-latin-var.woff2": {"module":"core","class":"owned","hash":"0640890476fc1198ab4de571fb658de443c4d85b66466ec09534a8737ab1ce9d","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
@@ -530,12 +530,12 @@
     "wizard/img/nodejs-download.webp": {"module":"core","class":"owned","hash":"7a6248bd3289fd0903c0505b75df7115f5ab19703e08bfd3f266a16814b094dd","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/img/vercel-aanmelden.webp": {"module":"core","class":"owned","hash":"2a756280c872003d26fe3eb7dd5577d5237d43d3631abf3ae02d999aa9ff9705","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/img/vscode-download.webp": {"module":"core","class":"owned","hash":"42f286ef5c33a8d20aa34f3f59653b2fff0ee8d9caa7650c099afdd21e39c5a3","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "wizard/index.html": {"module":"core","class":"owned","hash":"39f68df92b03f7efd0d9e5eb4c385271c8ff294876fcb445db5b645368712609","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "wizard/index.html": {"module":"core","class":"owned","hash":"3f7107984bdf29d538bf5eba9a82d118c515853a7dba924bbb013a66f371e807","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/inloggen.js": {"module":"core","class":"owned","hash":"9f80be75ea9c318ad498c4927cc5f5a900c13e5bcc4e7aecec9c5021c3f877d6","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/schermen.json": {"module":"core","class":"owned","hash":"f70c446f26fffc53b92b43c6287d5537b32864c2ca60aff5f78c041550e711d6","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/toegang.js": {"module":"core","class":"owned","hash":"b95e274ef80ed7f805c1df89c377a32923b0f049172d9c4e108db297d610b1fd","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "wizard/voorbereiding.html": {"module":"core","class":"owned","hash":"536593d52c476acf18ad3e6cb86359b4bb515a7e6762a5525bc824646c9eec13","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "wizard/workshop-2.html": {"module":"core","class":"owned","hash":"60c2fb3ba2afc0750d25da5cfcd609ede2b942bfbfb7ff0c7e1e10062e58b52a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null}
+    "wizard/workshop-2.html": {"module":"core","class":"owned","hash":"5b985abce2f948112bbb5f20802af88499c3e3877e141e3646ec4cd3083f5a9b","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null}
   },
   "merged": {
     "packageJson": {

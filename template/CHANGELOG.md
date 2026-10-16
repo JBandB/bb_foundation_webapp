@@ -9,12 +9,16 @@ versie na het bijwerken.
 
 ### Wat verandert
 
-- **De wizard voor de tweede workshopdag**, `wizard/workshop-2.html`, in dezelfde stijl en vanaf de
+- **De wizard voor de tweede trainingsdag**, `wizard/workshop-2.html`, in dezelfde stijl en vanaf de
   voet van de eerste wizard bereikbaar. Vier delen: Vooraf (thuis, met de Claude Console en een
-  akkoord over gegevens), Veilig werken (dev-branch, `release/next`, terugzetten), Intake (levert de
-  opdracht voor een intakeformulier) en AI in je tool (levert de instructie en testgevallen voor de
-  Playground en de opdracht voor een AI-functie die altijd in dezelfde vaste onderdelen antwoordt).
-  De rooktest loopt hem door en bewijst dat wat hij oplevert neutraal is en geen em-dash bevat.
+  akkoord over gegevens), Dev en prod (een eigen database voor de laptop, previews met een eigen
+  database, `release/next`, migraties en terugzetten, echte gegevens buiten productie), AI ontwerpen
+  (toepassing, gegevens, vaste structuur, prompting met een oefening, testgevallen, een rekenhulp voor
+  kosten zonder ingebouwde prijzen, en het waterverbruik met bronnen) en AI bouwen (de Playground met
+  een scorekaart, een nieuwe functie als route, de AI-functie in de tool, onderhoud). De rooktest loopt
+  hem door en bewijst dat wat hij oplevert neutraal is en geen em-dash bevat.
+- **Labels "Dag 2" in de eerste wizard**, op de plekken waar de vraag al opkomt, met een link naar de
+  stap van dag 2.
 - **Inloggen op de wizard**, als drempel en niet als beveiliging: op de site vragen de wizard, de
   wizard van de tweede dag en de feedbackpagina eerst om een account, één per deelnemer, aan of uit.
   De accounts staan als code met een gezouten hash in `wizard/toegang.js` en worden beheerd met
