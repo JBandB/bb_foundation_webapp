@@ -43,7 +43,7 @@
       { "email": "volunteer@dev.invalid", "displayName": "Dev Vrijwilliger", "roles": ["volunteer"] }
     ]
   },
-  "modules": ["auth-password", "jobs", "messaging", "files"],
+  "modules": ["auth-password", "jobs", "messaging", "files", "ai"],
   "messaging": { "transport": "smtp", "teams": false },
   "hosting": { "region": "fra1", "github": "de-weide/rooster", "vercelTeam": null, "neonProject": "rooster-de-weide" },
   "template": { "source": null, "skipDependencies": [], "keepCrons": [] },

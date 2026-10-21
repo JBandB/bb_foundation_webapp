@@ -561,7 +561,6 @@ footer.foot p { margin: .25rem 0; }
   const MODULES = { "auth-entra": "Inloggen met Microsoft Entra", "auth-password": "Wachtwoordlogin", jobs: "Achtergrondwerk", messaging: "Berichten", files: "Bestanden" };
   const RESERVED = [
     ["monitoring-sentry", "Foutmonitoring met Sentry", "Fouten en trage verzoeken naar Sentry, zonder de gegevens die er niet in horen."],
-    ["ai", "AI-integratie", "Een taal- of documentmodel aanroepen vanuit de tool, met kostenbewaking."],
     ["portal", "Klantportaal", "Een tweede deur voor mensen buiten de organisatie, met autorisatie per rij."],
     ["access-graph", "Rollen schrijven naar Entra", "Rollen toekennen vanuit de tool in plaats van in het Entra-beheercentrum."],
   ];
@@ -1890,7 +1889,7 @@ footer.foot p { margin: .25rem 0; }
       h("h3", {}, "Later"),
       h("p", {}, "Deze modules zijn gereserveerd voor een volgende versie van het template en nog niet te kiezen."),
       h("ul", { class: "reserved" }, RESERVED.map(([name, title, text]) => h("li", {}, title, " ", h("code", {}, name), h("span", { class: "badge" }, "later"), h("br"), text))),
-      dag2("Op dag 2 komt AI in je tool: een knop die voorstelt in vaste onderdelen, met een instructie die je zelf schrijft en de prijs per verzoek in Beheer.", "ontwerpen"),
+      dag2("Op dag 2 komt AI in je tool, met de module `ai` die je dan toevoegt met `pnpm template:add ai`: een knop die voorstelt in vaste onderdelen, met een instructie die je zelf schrijft en de prijs per verzoek in Beheer.", "ontwerpen"),
     ];
   }
 

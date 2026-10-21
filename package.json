@@ -44,9 +44,11 @@
     "template:update": "node template/cli/bootstrap.mjs update",
     "template:add": "node template/cli/bootstrap.mjs add",
     "template:release": "node template/cli/bootstrap.mjs release",
-    "entra:status": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/entra-status.ts"
+    "entra:status": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/entra-status.ts",
+    "doctor": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/doctor.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.131.0",
     "@neondatabase/serverless": "1.1.0",
     "drizzle-orm": "0.45.2",
     "next": "16.3.6",

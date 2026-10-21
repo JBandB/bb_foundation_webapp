@@ -9,6 +9,41 @@ versie na het bijwerken.
 
 ### Wat verandert
 
+- Nog niets.
+
+### Let op bij bijwerken
+
+- Nog niets.
+
+## v1.2.0 (16 oktober 2026)
+
+### Wat verandert
+
+- **Module `ai`**, niet meer gereserveerd: Claude doet in de tool een voorstel in een vaste
+  structuur, en een mens bevestigt. De prompts staan in `lib/ai/catalogue.ts` (van het project,
+  begint leeg), elk met een sleutel, een versie, de volledige instructie, de velden die meegaan en de
+  structuur van het antwoord. `runPrompt` is de enige plek die Claude aanroept: recht `ai:use`, de
+  prompt aan met een model, de sleutel, de daglimiet per persoon per prompt, structured outputs, en
+  het antwoord nog een keer nagekeken. `ProposalView` toont een voorstel altijd met dezelfde
+  onderdelen. Onder **Beheer, AI** (recht `admin:ai`) kiest een beheerder per prompt aan of uit, het
+  model, het denkniveau en de daglimiet, vult de prijzen per model in, en ziet het verbruik met de
+  kosten per verzoek en per maand. Elk verzoek staat in `ai_requests` met tokens en de prijs van dat
+  moment, nooit met de inhoud. Geen model, sleutel of bedrag in de code. Beheer, Systeem toont de stand
+  zonder de API aan te roepen. Bewijs: `pnpm check:ai` en de tests onder `lib/ai/`; een proef met de
+  echte sleutel is `pnpm ai:test -- <model>`. Uitleg in `docs/modules/ai.md`, inrichten in de nieuwe
+  handleiding 24; de checklist (00), de startpagina (01) en het overzicht beveiliging en kosten (30)
+  noemen hem. De eerste wizard noemt ai niet meer als gereserveerd: het label Dag 2 zegt dat hij er
+  dan bij komt met `pnpm template:add ai`.
+- **Twee rechten in core**: `admin:ai` en `ai:use`, met hun teksten. Een beheerdersrol krijgt ze
+  vanzelf; een andere rol alleen als de matrix van het project ze geeft.
+- **`@anthropic-ai/sdk` staat in de afhankelijkheden van core**, net als `nodemailer` en `qrcode`:
+  het lockbestand moet kloppen voordat een module is toegepast. Een project zonder module ai laadt het
+  pakket nooit.
+- **`pnpm doctor`**: klopt deze werkmap? Node en pnpm, git en de commit-hook, het template tegen
+  `project.config.json`, `.env.local` met de variabelen van elke toegepaste module, de database
+  tegen `SEED_TARGET` en productie, en de koppeling met Vercel. Per regel OK, ACTIE of LATER met wat
+  je doet, exitcode 1 bij een actie. Raakt geen database en toont nooit een waarde. Handleiding 07 en
+  90 verwijzen ernaar.
 - **De wizard voor de tweede trainingsdag**, `wizard/workshop-2.html`, in dezelfde stijl en vanaf de
   voet van de eerste wizard bereikbaar. Vier delen: Vooraf (thuis, met de Claude Console en een
   akkoord over gegevens), Dev en prod (een eigen database voor de laptop, previews met een eigen
@@ -31,7 +66,12 @@ versie na het bijwerken.
 
 ### Let op bij bijwerken
 
-- Nog niets.
+- **`pnpm install`** na het bijwerken: er is een nieuwe afhankelijkheid (`@anthropic-ai/sdk`).
+- **De module ai erbij** gaat met `pnpm template:add ai`, dan `pnpm install` en `pnpm db:migrate`
+  op de dev-branch (`pnpm db:roundtrip` voor de terugweg). Geef een rol die geen beheerder is het
+  recht `ai:use` in `lib/auth/matrix.ts` als die rol voorstellen mag vragen. Daarna handleiding 24:
+  een workspace met uitgavenlimiet in de Claude Console, `ANTHROPIC_API_KEY` in Vercel en in
+  `.env.local`, de prijzen en per prompt het model onder Beheer, AI.
 
 ## v1.1.0 (15 oktober 2026)
 

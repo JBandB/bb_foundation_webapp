@@ -59,7 +59,7 @@ online, en elke ronde daarna gaat via `release/next`.
 | De manier van inloggen | 05, Microsoft Entra, of 05b, wachtwoordlogin | Rollen voor de eerste mensen, tweestapsverificatie |
 | De rooktest | 08 | `pnpm smoke:prod` is groen |
 | GitHub, Vercel en Neon afmaken | 02, 03, 04 | Organisatie, tweestapsverificatie, regio, preview-branches, plafonds |
-| De modules die je in de wizard aanzette | 20 of 20b (mail), 21 (Teams), 22 (bestanden), 23 (crons) | Niets ervoor |
+| De modules die je in de wizard aanzette | 20 of 20b (mail), 21 (Teams), 22 (bestanden), 23 (crons), 24 (AI) | Niets ervoor |
 | Altijd | 30, beveiliging en kosten; 90, als iets misgaat | Overzicht en rust |
 
 ## Wat je nodig hebt voordat je begint

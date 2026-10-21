@@ -157,6 +157,8 @@ export const en = {
     "admin:messages": "Manage messages: who receives what",
     "files:read": "Download files",
     "files:write": "Upload and remove files",
+    "admin:ai": "Manage AI: prompts, models, prices and usage",
+    "ai:use": "Ask AI for a proposal",
   },
 
   system: {

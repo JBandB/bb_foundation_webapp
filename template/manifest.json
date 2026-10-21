@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "source": "https://github.com/JBandB/bb_foundation_webapp.git",
   "rootRenderedOn": "2026-10-02",
   "modules": {
@@ -185,6 +185,7 @@
         { "to": "scripts/db-roundtrip.ts", "class": "owned" },
         { "to": "scripts/db-seed.ts", "class": "owned" },
         { "to": "scripts/db-status.ts", "class": "owned" },
+        { "to": "scripts/doctor.ts", "class": "owned" },
         { "to": "scripts/house-rules/client-imports.mjs", "class": "owned" },
         { "to": "scripts/house-rules/env-template.mjs", "class": "owned" },
         { "to": "scripts/house-rules/files.mjs", "class": "owned" },
@@ -201,6 +202,8 @@
         { "to": "scripts/lib/bootstrap.ts", "class": "owned" },
         { "to": "scripts/lib/check.ts", "class": "owned" },
         { "to": "scripts/lib/connection.ts", "class": "owned" },
+        { "to": "scripts/lib/doctor.test.ts", "class": "owned" },
+        { "to": "scripts/lib/doctor.ts", "class": "owned" },
         { "to": "scripts/lib/migrate.test.ts", "class": "owned" },
         { "to": "scripts/lib/migrate.ts", "class": "owned" },
         { "to": "scripts/lib/run.ts", "class": "owned" },
@@ -242,6 +245,7 @@
             "db:bootstrap": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/db-bootstrap.ts",
             "db:seed": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/db-seed.ts",
             "db:status": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/db-status.ts",
+            "doctor": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/doctor.ts",
             "e2e": "node --env-file-if-exists=.env.local node_modules/@playwright/test/cli.js test",
             "e2e:ui": "node --env-file-if-exists=.env.local node_modules/@playwright/test/cli.js test --ui",
             "e2e:all": "node node_modules/next/dist/bin/next build && node --env-file-if-exists=.env.local node_modules/@playwright/test/cli.js test",
@@ -259,6 +263,7 @@
             "template:release": "node template/cli/bootstrap.mjs release"
           },
           "dependencies": {
+            "@anthropic-ai/sdk": "0.131.0",
             "@neondatabase/serverless": "1.1.0",
             "drizzle-orm": "0.45.2",
             "next": "16.3.6",
@@ -605,8 +610,59 @@
     },
     "ai": {
       "title": "AI-integratie",
-      "description": "Een taal- of documentmodel aanroepen vanuit de tool, met kostenbewaking en zonder gegevens te lekken.",
-      "status": "reserved"
+      "description": "Een prompt naar de Claude API vanuit de tool, met een vaste structuur voor het antwoord (structured outputs), een catalogus van prompts met versies, en onder Beheer, AI de instellingen per prompt (aan of uit, model, denkniveau, daglimiet), de prijzen per model en het verbruik met de kosten per verzoek.",
+      "schemaVersion": 1,
+      "schemaFiles": ["ai"],
+      "files": [
+        { "to": "app/(app)/admin/ai/actions.ts", "class": "owned" },
+        { "to": "app/(app)/admin/ai/forms.tsx", "class": "owned" },
+        { "to": "app/(app)/admin/ai/page.tsx", "class": "owned" },
+        { "to": "components/ai/proposal-view.tsx", "class": "owned" },
+        { "to": "lib/ai/admin-tab.ts", "class": "owned" },
+        { "to": "lib/ai/catalogue.ts", "class": "seed" },
+        { "to": "lib/ai/client.ts", "class": "owned" },
+        { "to": "lib/ai/cost.test.ts", "class": "owned" },
+        { "to": "lib/ai/cost.ts", "class": "owned" },
+        { "to": "lib/ai/health-provider.ts", "class": "owned" },
+        { "to": "lib/ai/message.test.ts", "class": "owned" },
+        { "to": "lib/ai/message.ts", "class": "owned" },
+        { "to": "lib/ai/models.ts", "class": "owned" },
+        { "to": "lib/ai/prompts.ts", "class": "owned" },
+        { "to": "lib/ai/run.test.ts", "class": "owned" },
+        { "to": "lib/ai/run.ts", "class": "owned" },
+        { "to": "lib/ai/settings.ts", "class": "owned" },
+        { "to": "lib/ai/structure.test.ts", "class": "owned" },
+        { "to": "lib/ai/structure.ts", "class": "owned" },
+        { "to": "lib/ai/usage.ts", "class": "owned" },
+        { "to": "lib/db/schema/ai.ts", "class": "owned" },
+        { "to": "lib/i18n/template/ai.test.ts", "class": "owned" },
+        { "to": "lib/i18n/template/ai.ts", "class": "owned" },
+        { "to": "scripts/ai-test.ts", "class": "owned" },
+        { "to": "scripts/check-ai.ts", "class": "owned" }
+      ],
+      "registry": {
+        "adminTabs": [{ "name": "aiAdminTab", "from": "@/lib/ai/admin-tab" }],
+        "healthProviders": [{ "name": "aiHealth", "from": "@/lib/ai/health-provider" }],
+        "labels": [{ "name": "aiLabels", "from": "@/lib/i18n/template/ai" }]
+      },
+      "merge": {
+        "packageJson": {
+          "scripts": {
+            "check:ai": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/check-ai.ts",
+            "ai:test": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/ai-test.ts"
+          }
+        },
+        "envExample": "template/modules/ai/env.example.txt",
+        "claudeMd": "template/modules/ai/claude.md"
+      },
+      "env": [
+        { "name": "ANTHROPIC_API_KEY", "secret": true, "where": "both", "guide": "docs/handleiding/24-claude-api.md", "description": "Een sleutel van een service account in de workspace van deze tool, in de Claude Console." }
+      ],
+      "migrations": { "1": { "down": "template/modules/ai/migrations/1/down.sql" } },
+      "manual": [
+        "Maak in de Claude Console een workspace voor deze tool met een uitgavenlimiet en een service account, maak een sleutel en zet ANTHROPIC_API_KEY in Vercel (Production en Preview, Sensitive) en zelf in .env.local (handleiding 24). Draai pnpm ai:test -- <model>.",
+        "Kies onder Beheer, AI per prompt het model, het denkniveau en de daglimiet, en vul de prijzen per model in van de prijspagina van Anthropic. Zonder model staat een prompt uit."
+      ]
     },
     "portal": {
       "title": "Klantportaal",

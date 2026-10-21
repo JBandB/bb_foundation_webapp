@@ -152,6 +152,8 @@ export const nl = {
     "admin:messages": "Berichten beheren: wie wat ontvangt",
     "files:read": "Bestanden downloaden",
     "files:write": "Bestanden uploaden en weghalen",
+    "admin:ai": "AI beheren: prompts, modellen, prijzen en verbruik",
+    "ai:use": "Een voorstel van AI vragen",
   },
 
   system: {

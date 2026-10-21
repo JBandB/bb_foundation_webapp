@@ -97,10 +97,10 @@ describe("fouten met het pad erbij", () => {
 
   it("een onbekende, een gereserveerde en een onvolledige modulekeuze", () => {
     expect(errorsOf(withPatch((raw) => (raw.modules = ["auth-entra", "lake"])))).toEqual([
-      'modules: onbekende module "lake"; beschikbaar: auth-entra, auth-password, jobs, messaging, files',
+      'modules: onbekende module "lake"; beschikbaar: auth-entra, auth-password, jobs, messaging, files, ai',
     ]);
-    expect(errorsOf(withPatch((raw) => (raw.modules = ["auth-entra", "ai"])))).toEqual([
-      'modules: module "ai" is gereserveerd voor een latere versie van het template en nog niet beschikbaar',
+    expect(errorsOf(withPatch((raw) => (raw.modules = ["auth-entra", "portal"])))).toEqual([
+      'modules: module "portal" is gereserveerd voor een latere versie van het template en nog niet beschikbaar',
     ]);
     expect(errorsOf(withPatch((raw) => (raw.modules = ["auth-entra", "messaging"])))).toEqual(['modules: module "messaging" vereist "jobs"; zet die er ook in']);
   });

@@ -11,7 +11,8 @@ dezelfde drie plekken, dan de tabel.
    gelijk aan `main`?
 3. **Vercel, Logs** van de laatste minuten, gefilterd op fouten.
 
-Geef Claude Code daarna de foutmelding letterlijk, met wat je deed en wanneer.
+Lokaal, op je eigen machine: `pnpm doctor`. Geef Claude Code daarna de foutmelding letterlijk, met
+wat je deed en wanneer.
 
 ## De tabel
 

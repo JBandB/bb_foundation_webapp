@@ -24,7 +24,9 @@ half uur de eerste keer.
    `SEED_TARGET=<endpoint-id van de dev-branch>`.
    **Controle:** `git status` toont `.env.local` **niet**; hij staat in `.gitignore`.
 3. `pnpm template:apply` als je dat nog niet deed na de wizard, en volg de slottekst.
-   **Controle:** "template.lock.json geschreven" en een lijst met wat je nu doet.
+   **Controle:** "template.lock.json geschreven" en een lijst met wat je nu doet. Daarna
+   `pnpm doctor`: Node, git, het template, `.env.local` en de database tegen `SEED_TARGET`, zonder
+   iets aan te raken. Geen regel op ACTIE.
 4. `pnpm db:status`. De regel over de wegwerpbranch moet verschijnen en de branch moet `dev` zijn.
    Daarna `pnpm db:migrate` (de baseline en wat de modules genereerden), `pnpm db:bootstrap` (de
    organisatie) en `pnpm db:seed` (de dev-accounts).
@@ -69,6 +71,7 @@ De dev-branch van Neon heeft een eigen compute die wakker is terwijl je werkt en
 
 | Wat je ziet | Wat er aan de hand is |
 |---|---|
+| Je weet niet waar het zit | `pnpm doctor` zegt per onderdeel wat niet klopt en wat je doet |
 | `tsx ontbreekt` | `pnpm install` nog niet gedraaid in deze map |
 | `DATABASE_URL_UNPOOLED ontbreekt` | `.env.local` is er niet of mist de Development-waarden; `vercel env pull .env.local` opnieuw |
 | De dev-login staat er niet | `AUTH_DEV_LOGIN=1` ontbreekt in `.env.local`, of je kijkt naar een deploy |
