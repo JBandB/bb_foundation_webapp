@@ -16,6 +16,7 @@ zodat je het in een kwartier kunt nalopen. Doe dat maandelijks (kosten en verval
 | Audit | Elke mutatie een regel die nooit meer verandert, met wie, wat, wanneer en vanwaar |
 | Buitenkant | Security headers (CSP, nosniff, geen framing), cronroutes dicht zonder token, downloads via de server met het recht erbij |
 | Mail en bestanden | Tekst van buiten als citaat; de inhoud van een bestand nagekeken voordat hij de opslag in gaat |
+| AI | Alleen de velden van een prompt gaan mee, als gegevens; elke aanroep via de server met een recht; de inhoud wordt niet bewaard |
 | Dev-login | Alleen lokaal; weigert te laden zodra `VERCEL_ENV` bestaat |
 
 ## Beveiliging: wat jij doet
@@ -39,6 +40,7 @@ zodat je het in een kwartier kunt nalopen. Doe dat maandelijks (kosten en verval
 | Neon | Free | Free of Launch | het plan; autosuspend en minimum compute | compute die wakker blijft, schrijfvolume, branches |
 | Azure (opslag) | pay as you go | pay as you go | een budget met waarschuwing op de resource group | opslag en transacties, centen |
 | Mailaanbieder | gratis plan | gratis of laagste | het plan zelf | volume |
+| Claude API | tegoed vooraf | tegoed vooraf | de uitgavenlimiet op de workspace, automatisch bijkopen uit, en de daglimiet per persoon in de tool | tokens per verzoek, nadenken telt als output |
 | Microsoft 365 | bestaand | bestaand | niet van toepassing | niets extra |
 
 Geen bedragen hier: die veranderen. Het bedrag per dienst uit je eigen budget staat in je checklist
@@ -48,6 +50,7 @@ Geen bedragen hier: die veranderen. Het bedrag per dienst uit je eigen budget st
 
 - [ ] Maandelijks de rekening per dienst tegen het plafond uit je checklist.
 - [ ] Bij Neon: autosuspend kort, minimum compute laag, oude branches weg (04).
+- [ ] Bij de Claude API: het verbruik onder Beheer, AI tegen de Console, en de prijzen nog actueel (24).
 - [ ] Bij Vercel: geen preview zonder pull request; Web Analytics en Observability uit als je ze niet
       gebruikt (03).
 - [ ] Zodra er echte gebruikers zijn: Vercel naar Pro met Spend Management, en de wachtrijcrons naar

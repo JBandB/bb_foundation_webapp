@@ -254,6 +254,11 @@ figure.shot figcaption { margin-top: .375rem; font-size: .875rem; color: var(--m
 .shot-todo li { margin: .125rem 0; }
 .shot-todo strong { font-family: var(--font-display); color: var(--ink); }
 
+/* Een label naar dag 2, op plekken waar de vraag al opkomt. */
+.dag2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .625rem; margin: 1.25rem 0; padding: .625rem .875rem; background: var(--card); border: 1px solid var(--soft); border-left: 4px solid var(--dark); border-radius: var(--radius-card); }
+.dag2-pill { flex: none; font-family: var(--font-display); font-weight: 700; font-size: .8125rem; color: var(--lime); background: var(--dark); border-radius: 999px; padding: .0625rem .5rem; }
+.dag2 a { font-weight: 600; }
+
 footer.foot { border-top: 1px solid var(--soft); padding: 1rem 0 2rem; color: var(--muted); font-size: .875rem; }
 footer.foot p { margin: .25rem 0; }
 </style>
@@ -556,7 +561,6 @@ footer.foot p { margin: .25rem 0; }
   const MODULES = { "auth-entra": "Inloggen met Microsoft Entra", "auth-password": "Wachtwoordlogin", jobs: "Achtergrondwerk", messaging: "Berichten", files: "Bestanden" };
   const RESERVED = [
     ["monitoring-sentry", "Foutmonitoring met Sentry", "Fouten en trage verzoeken naar Sentry, zonder de gegevens die er niet in horen."],
-    ["ai", "AI-integratie", "Een taal- of documentmodel aanroepen vanuit de tool, met kostenbewaking."],
     ["portal", "Klantportaal", "Een tweede deur voor mensen buiten de organisatie, met autorisatie per rij."],
     ["access-graph", "Rollen schrijven naar Entra", "Rollen toekennen vanuit de tool in plaats van in het Entra-beheercentrum."],
   ];
@@ -847,6 +851,8 @@ footer.foot p { margin: .25rem 0; }
   });
   const note = (text, kind) => h("p", { class: `note ${kind || ""}` }, rich(text));
   const exampleBox = (text) => h("p", { class: "example" }, h("strong", {}, "Voorbeeld uit de kinderboerderij. "), text);
+  /* Een label naar de wizard van dag 2, op plekken waar de vraag al opkomt. */
+  const dag2 = (text, hash) => h("p", { class: "dag2" }, h("span", { class: "dag2-pill" }, "Dag 2"), h("span", {}, rich(text)), h("a", { href: `workshop-2.html${hash ? `#${hash}` : ""}` }, "Bekijk dag 2"));
 
   function field(o) {
     const described = [];
@@ -1493,6 +1499,7 @@ footer.foot p { margin: .25rem 0; }
             entra || !known ? "`AUTH_MICROSOFT_ENTRA_ID_ID`, `AUTH_MICROSOFT_ENTRA_ID_SECRET` en `AUTH_MICROSOFT_ENTRA_ID_ISSUER`, alleen bij inloggen met Microsoft: uit de app-registratie van handleiding 05." : null),
           shot("vercel-variabelen"),
           h("p", { class: "hint" }, "De volledige tabel per omgeving: ", guideLink("06", "06-variabelen-in-vercel.md"), "."),
+          dag2("Op dag 2 krijgt je laptop een eigen database, zodat een test je echte gegevens nooit raakt.", "devprod"),
         ],
         gelukt: [P("Elke naam uit de lijst van Claude staat in Vercel, behalve wat \"alleen lokaal\" heet (`AUTH_DEV_LOGIN`, `SEED_TARGET`). `AUTH_SECRET` staat er twee keer: één regel voor Production, één voor Preview en Development.")],
         misgaat: [
@@ -1559,6 +1566,7 @@ footer.foot p { margin: .25rem 0; }
           "**Merge.** In de pull request: **Merge pull request**, **Confirm merge**. Nu gaat het live.",
           "**Ruim op.** Klik op GitHub **Delete branch**, en verwijder in VS Code de branch `release/next` (Ctrl+Shift+P, **Git: Delete Branch...**). De volgende ronde begin je weer bij 1."),
         h("p", { class: "hint" }, "Alle stappen met uitleg: ", guideLink("09", "09-werken-met-een-releasebranch.md"), ". Wat er daarna nog moet, zoals lokaal werken en de dev-branch, staat in handleiding 01 onder deel 3."),
+        dag2("Op dag 2 oefen je dit: een preview met een eigen database, en een versie terugzetten als het misgaat.", "devprod-6"),
       ],
       waarom: "Op `main` zet Vercel alles meteen op productie, ook een fout. Op `release/next` zie je eerst of het werkt. Gaat er iets mis, dan merkt alleen jij het.",
       gelukt: [P("Elke ronde heeft een pull request met een groene CI en een groene check van Vercel, en na het mergen toont je tool de nieuwe versie.")],
@@ -1588,6 +1596,7 @@ footer.foot p { margin: .25rem 0; }
     const out = [
       h("p", { class: "lead" }, "Met deze wizard bouw je met Claude Code een eigen webtool op het template, in drie delen. Je kunt stoppen wanneer je wilt: de wizard onthoudt waar je was."),
       h("div", { class: "cards" }, cards),
+      dag2("Na de eerste dag: je tool gescheiden in dev en prod, en AI die voorstelt in een vaste vorm, met de kosten in beeld."),
       H3("Wat er met je antwoorden gebeurt"),
       P("Niets verlaat je browser. De wizard heeft geen server en stuurt niets weg; alleen de schermafbeeldingen, de lettertypes en het logo komen uit dezelfde map. Je antwoorden en vinkjes staan alleen in de opslag van deze browser, onder de sleutels `foundation-wizard:v1` en `foundation-wizard-delen:v1`. Zet er geen wachtwoorden of andere geheimen in."),
     ];
@@ -1846,6 +1855,7 @@ footer.foot p { margin: .25rem 0; }
       h("p", { class: "lead" }, "Het denkwerk. Schrijf in gewone taal wat er bestaat en wat ermee gebeurt, niet hoe het gebouwd wordt. Leeg laten mag: dan blijft in het plan de aanwijzing staan en vraagt Claude ernaar."),
       halfPageFilled() ? note("Wat je in deel A bij je halve pagina schreef, staat hier al. Vul aan waar het kan.", "good") : null,
       ...CONTENT.map(([key, id, label, hint, example, rows]) => field({ id, label, obj: state.content, key, rows, hint, example })),
+      dag2("Op dag 2: welke gegevens je wel en nooit naar AI stuurt, en hoe je dat vastlegt.", "ontwerpen-4"),
     ];
   }
 
@@ -1879,6 +1889,7 @@ footer.foot p { margin: .25rem 0; }
       h("h3", {}, "Later"),
       h("p", {}, "Deze modules zijn gereserveerd voor een volgende versie van het template en nog niet te kiezen."),
       h("ul", { class: "reserved" }, RESERVED.map(([name, title, text]) => h("li", {}, title, " ", h("code", {}, name), h("span", { class: "badge" }, "later"), h("br"), text))),
+      dag2("Op dag 2 komt AI in je tool, met de module `ai` die je dan toevoegt met `pnpm template:add ai`: een knop die voorstelt in vaste onderdelen, met een instructie die je zelf schrijft en de prijs per verzoek in Beheer.", "ontwerpen"),
     ];
   }
 
@@ -2226,7 +2237,8 @@ footer.foot p { margin: .25rem 0; }
     items.push(
       h("li", {}, "Ga naar deel C. Op de dag maak je eerst je repo (stap 1) en haal je hem naar je laptop (stap 2)."),
       h("li", {}, "In stap 3 plak je de startprompt in het Claude-paneel. Claude zet de drie bestanden neer en stopt."),
-      h("li", {}, rich("Commit en sync de bestanden en zeg \"gedaan\": `pnpm template:apply` weigert op een werkmap met wijzigingen die nog niet gecommit zijn. Daarna schrijft Claude de eerste specificatie.")));
+      h("li", {}, rich("Commit en sync de bestanden en zeg \"gedaan\": `pnpm template:apply` weigert op een werkmap met wijzigingen die nog niet gecommit zijn. Daarna schrijft Claude de eerste specificatie.")),
+      h("li", {}, "Na de eerste dag: ", h("a", { href: "workshop-2.html" }, "dag 2"), ", met dev en prod gescheiden en AI in je tool."));
     return h("ol", {}, items);
   }
   function download(name, text, type) {

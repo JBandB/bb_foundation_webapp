@@ -40,8 +40,8 @@ project ze nog niet had aangeraakt.
 
 ## Modules
 
-`core` (altijd), `auth-entra`, `auth-password`, `jobs`, `messaging` (vereist jobs), `files`.
-Gereserveerd en leeg: `monitoring-sentry`, `ai`, `portal`, `access-graph`. De bronbestanden van een
+`core` (altijd), `auth-entra`, `auth-password`, `jobs`, `messaging` (vereist jobs), `files`, `ai`.
+Gereserveerd en leeg: `monitoring-sentry`, `portal`, `access-graph`. De bronbestanden van een
 opt-in module staan onder `template/modules/<naam>/files/`; ze landen pas bij apply in de
 projectboom, en daarom sluit `tsconfig.json` die map uit.
 

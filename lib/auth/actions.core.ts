@@ -18,6 +18,10 @@ export const CORE_ACTIONS = [
   /** Bestanden downloaden en uploaden (module files). */
   "files:read",
   "files:write",
+  /** Beheer, AI: de instellingen per prompt, de prijzen en het verbruik (module ai). */
+  "admin:ai",
+  /** Een voorstel van AI vragen, zoals de knop Stel voor (module ai). Het project kan er zijn eigen recht naast zetten. */
+  "ai:use",
 ] as const;
 
 export type CoreAction = (typeof CORE_ACTIONS)[number];

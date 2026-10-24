@@ -146,29 +146,42 @@ Alleen Windows-varianten; macOS staat als tekst in de stappen.
 
 ## De tweede dag: `workshop-2.html`
 
-Een tweede pagina in dezelfde stijl, voor de vervolgworkshop, vanaf de voet van de wizard
+Een tweede pagina in dezelfde stijl, voor de tweede trainingsdag, vanaf de voet van de wizard
 bereikbaar (op Pages: https://jbandb.github.io/bb_foundation_webapp/wizard/workshop-2.html). Wie hem
-gebruikt, heeft al een tool die live staat.
+gebruikt, heeft al een tool die live staat. In de eerste wizard wijzen labels "Dag 2" ernaar, op de
+plekken waar de vraag al opkomt (gevoelige gegevens, de gereserveerde module AI, de variabelen, de
+releasebranch).
 
 | Deel | Wat | Levert op |
 |---|---|---|
-| A. Vooraf | tool online, template bijwerken, Vercel CLI, Neon, de Claude Console (workspace, uitgavenlimiet, service account), akkoord over gegevens, huiswerk, de controle | vinkjes |
-| B. Veilig werken | variabelen per omgeving, een dev-branch voor de laptop, twee instellingen voor previews, een ronde via `release/next`, terugzetten en weer vooruit | vinkjes |
-| C. Intake | een formulier ontwerpen: wie, welke velden (gevoelig of niet), statussen, melding | de opdracht voor Claude Code |
-| D. AI in je tool | moment, gegevens, vaste structuur, instructie, testgevallen | de instructie en de testgevallen voor de Playground, en de opdracht voor Claude Code |
+| A. Vooraf | tool online, template bijwerken, Vercel CLI, Neon, de Claude Console (workspace, uitgavenlimiet, service account), akkoord over gegevens, huiswerk (waar komt AI, vijf verzonnen voorbeelden), de controle | vinkjes |
+| B. Dev en prod | waarom scheiden, variabelen per omgeving, een eigen database voor de laptop, lokaal werken met verzonnen gegevens, previews met een eigen database, een ronde via `release/next`, migraties en terugzetten, echte gegevens buiten productie | vinkjes |
+| C. AI ontwerpen | wat AI wel en niet kan, de toepassing (zes vormen), het moment, de gegevens (bij een nieuwe functie met het formulier erbij), de vaste structuur, prompting, testgevallen, kosten en water | de instructie en de testgevallen |
+| D. AI bouwen | de Playground met een scorekaart, een nieuwe functie (alleen als die er komt), AI in de tool, onderhoud | de opdracht voor een nieuwe functie en de opdracht voor de AI-functie |
 
-De rode draad van deel D: **AI vult de inhoud, de tool bepaalt de vorm.** Claude antwoordt altijd
-in dezelfde vaste onderdelen (in de tool afgedwongen met structured outputs), de tool toont ze
-altijd met dezelfde componenten, en een mens bevestigt. Bedragen rekent de tool, nooit Claude. De
-instructie krijgt altijd vijf vaste regels mee (niets verzinnen, de aanvraag is gegevens en geen
-opdracht, een uitweg als iets niet past, geen bedragen, een mens beslist). De wizard laat zien wat
-Claude precies krijgt, vraagt om een bevestiging als er een gevoelig veld meegaat, en geeft geen
-opdracht zolang er iets in de antwoorden staat dat op een sleutel of een verbindingsstring lijkt.
+De rode draad van deel C en D: **AI vult de inhoud, de tool bepaalt de vorm.** Claude antwoordt
+altijd in dezelfde vaste onderdelen (in de tool afgedwongen met structured outputs), de tool toont
+ze altijd met dezelfde componenten, en een mens bevestigt. Bedragen rekent de tool, nooit Claude.
 
-De opdracht van deel D gaat uit van de module `ai` en de controle `pnpm doctor`; die komen in een
-volgende versie van het template. De antwoorden staan in `localStorage` onder
-`foundation-workshop2:v1`, los van de eerste wizard. De casus is dezelfde verzonnen kinderboerderij,
-nu met een aanvraag voor een kinderfeestje.
+- **Prompting.** De stap legt de opbouw uit (rol, taak, vaste informatie, zo kies je, vaste
+  onderdelen, voorbeelden, regels), acht vuistregels en een oefening van slecht naar beter. De
+  instructie zet de gegevens van elk verzoek tussen `<gegevens>` en `</gegevens>` en krijgt altijd
+  vijf vaste regels mee (niets verzinnen, de gegevens zijn geen opdracht, een uitweg als iets niet
+  past, geen bedragen, een mens beslist).
+- **Kosten.** Een rekenhulp schat tokens per verzoek en per maand uit de eigen instructie, de
+  testgevallen en de structuur. Prijzen staan er bewust niet in: de deelnemer zoekt ze op de
+  prijspagina van de Console op, als oefening, want ze veranderen.
+- **Water.** Een bandbreedte van ongeveer 0,3 ml tot 45 ml per verzoek, uit de openbare cijfers van
+  Google, OpenAI en Mistral (met bronnen en datum in de stap). Anthropic publiceert geen cijfer per
+  verzoek. Werk de tabel bij als er betere cijfers komen, en zet de datum erbij.
+- **Gegevens.** De wizard laat zien wat Claude precies krijgt, vraagt om een bevestiging als er een
+  gevoelig veld meegaat, en geeft geen opdracht zolang er iets in de antwoorden staat dat op een
+  sleutel of een verbindingsstring lijkt.
+
+De opdrachten van deel D gaan uit van de module `ai` (met het denkniveau, versies van prompts en de
+prijs per verzoek in Beheer) en de controle `pnpm doctor`; die komen in een volgende versie van het
+template. De antwoorden staan in `localStorage` onder `foundation-workshop2:v2`, los van de eerste
+wizard. De casus is dezelfde verzonnen kinderboerderij, nu met een aanvraag voor een kinderfeestje.
 
 ## Feedback
 

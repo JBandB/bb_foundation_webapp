@@ -93,14 +93,15 @@ describe("de overige generatoren", () => {
 
   it("schrijven de beheertabbladen en de teksten van de toegepaste modules, en niets voor de standaard", () => {
     /* In de volgorde van toepassen: jobs vóór messaging, want messaging vereist jobs. */
-    expect(content("lib/project/registry.generated.ts")).toContain("export const ADMIN_TABS: readonly AdminTab[] = [jobsAdminTab, messagingAdminTab, accountsAdminTab];");
+    expect(content("lib/project/registry.generated.ts")).toContain("export const ADMIN_TABS: readonly AdminTab[] = [jobsAdminTab, messagingAdminTab, accountsAdminTab, aiAdminTab];");
     expect(content("lib/project/registry.generated.ts")).toContain('import { jobsAdminTab } from "@/lib/jobs/admin-tab";');
-    expect(content("lib/project/registry.generated.ts")).toContain("[jobsHealth, messagingHealth, filesHealth]");
+    expect(content("lib/project/registry.generated.ts")).toContain("[jobsHealth, messagingHealth, filesHealth, aiHealth]");
     expect(content("lib/project/ui-registry.generated.ts")).toContain("export const LOGIN_EXTRAS: readonly ComponentType[] = [LoginHelp];");
     const moduleLabels = content("lib/i18n/template/modules.generated.ts");
     expect(moduleLabels).toContain('import { jobsLabels } from "@/lib/i18n/template/jobs";');
     expect(moduleLabels).toContain("  jobs: jobsLabels[PROJECT.uiLanguage],");
     expect(moduleLabels).toContain("  messaging: messagingLabels[PROJECT.uiLanguage],");
+    expect(moduleLabels).toContain("  ai: aiLabels[PROJECT.uiLanguage],");
 
     const standard = generateAll(example("default"), manifest);
     expect(standard.find((file) => file.path === "lib/project/registry.generated.ts")?.content).toContain("ADMIN_TABS: readonly AdminTab[] = [];");
@@ -112,6 +113,6 @@ describe("de overige generatoren", () => {
   });
 
   it("kennen de volgorde van toepassen", () => {
-    expect(appliedModules(manifest, config.modules)).toEqual(["core", "jobs", "messaging", "auth-password", "files"]);
+    expect(appliedModules(manifest, config.modules)).toEqual(["core", "jobs", "messaging", "auth-password", "files", "ai"]);
   });
 });

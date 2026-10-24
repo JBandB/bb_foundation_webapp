@@ -101,6 +101,15 @@ acht stappen, ook in de wizard als deel C.
 - [ ] De vervaldatum in `BLOB_SAS_EXPIRES` én in de tabel hieronder.
 - [ ] Een bewaarbeleid op de container als de bestanden onder een bewaarplicht vallen.
 
+### AI, alleen als de module ai aan staat (handleiding 24)
+
+- [ ] Kopje 10 van het projectplan zegt per prompt wat er naar Claude gaat en wat niet.
+- [ ] Een workspace voor deze tool in de Claude Console, met een uitgavenlimiet per maand en
+      automatisch bijkopen uit.
+- [ ] Een sleutel voor Vercel (Production en Preview, Sensitive) en een eigen sleutel in
+      `.env.local`; `pnpm ai:test -- <model>` zegt "Structuur: klopt".
+- [ ] Onder Beheer, AI de prijzen per model ingevuld, met de datum bij "Vul in" in handleiding 24.
+
 ### Lokaal werken (handleiding 07)
 
 - [ ] `vercel env pull .env.local`, `AUTH_DEV_LOGIN=1` erbij, `pnpm install`, `pnpm db:status`.
@@ -143,3 +152,4 @@ acht stappen, ook in de wizard als deel C.
 | Neon | gratis, later Launch | het plan zelf, autosuspend | |
 | Azure (opslag) | pay as you go | een budgetwaarschuwing op de resource group | |
 | Mailaanbieder | | | |
+| Claude API | tegoed vooraf, automatisch bijkopen uit | de uitgavenlimiet op de workspace | |
