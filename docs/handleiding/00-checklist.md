@@ -1,8 +1,8 @@
 <!-- template-owned (module core). Wordt overschreven door pnpm template:update; wijzig dit bestand niet. -->
 # Checklist: accounts, toegang en kosten
 
-De wizard maakt van dit stramien een persoonlijke versie (`00-checklist-<slug>.md`) met de namen
-ingevuld en alleen de onderdelen die voor jouw project gelden. Dit is het volledige stramien. Vink
+Een wizard kan van dit stramien een persoonlijke versie maken (`00-checklist-<slug>.md`), met de
+namen ingevuld en alleen de onderdelen die voor jouw project gelden. Dit is het volledige stramien. Vink
 af wat gedaan is; vul de twee tabellen onderaan in en houd ze bij. Geen geheimen in dit bestand: het
 staat in git.
 
@@ -14,9 +14,9 @@ staat in git.
 - [ ] Je hebt een budget per maand afgesproken en weet bij welke dienst het plafond staat
       (handleiding 30).
 
-## Deel 1. Voorbereiding (de wizard, deel A: `wizard/index.html#voorbereiden`)
+## Deel 1. Voorbereiding
 
-Dezelfde zeven stappen als in deel A van de wizard, in dezelfde volgorde.
+Vooraf en thuis, ongeveer een uur, in deze volgorde (handleiding 01).
 
 - [ ] 1. Accounts aanmaken: GitHub, Vercel met GitHub als login, Claude met een abonnement dat
       Claude Code bevat. Overal tweestapsverificatie en het plafond per dienst. Neon komt later via
@@ -24,18 +24,20 @@ Dezelfde zeven stappen als in deel A van de wizard, in dezelfde volgorde.
 - [ ] 2. Installeren: Git, Node.js 24, VS Code, Claude Code, pnpm.
 - [ ] 3. Git instellen: naam en e-mail.
 - [ ] 4. Een werkmap buiten OneDrive.
-- [ ] 5. Het controlescript draaien (`wizard/controle-laptop.md`): alles in orde.
-- [ ] 6. Je halve pagina schrijven: de zes vragen.
-- [ ] 7. Klaar: laptop, telefoon met authenticator, inloggegevens, de halve pagina.
+- [ ] 5. Controleren: `git --version`, `node -v` (begint met `v24`), `pnpm -v` en `claude --version`
+      geven elk een versie.
+- [ ] 6. Een eerste versie van je projectplan: minstens kopje 1, 2, 3 en 8 (handleiding 10).
+- [ ] 7. Klaar: laptop, telefoon met authenticator, inloggegevens, je projectplan.
 
 ## Deel 2. Klaarzetten en live (handleiding 01)
 
-Eerst deel B van de wizard: je tool ontwerpen, met je halve pagina er al in (handleiding 10). Dan deze
-acht stappen, ook in de wizard als deel C.
+Eerst ontwerp je je tool: het projectplan en de keuzes voor `project.config.json` (handleiding 10).
+Dan deze acht stappen.
 
 - [ ] 1. GitHub: Use this template, privérepo (handleiding 02).
 - [ ] 2. VS Code: Clone Repository, in de werkmap uit de voorbereiding, niet in OneDrive.
-- [ ] 3. De startprompt in het Claude-paneel: Claude zet config, plan en checklist neer en stopt. Commit en Sync, zeg "gedaan".
+- [ ] 3. De startprompt in het Claude-paneel, uit een wizard of uit handleiding 10. Commit en Sync wat
+      Claude neerzet, en zeg "gedaan".
 - [ ] 4. Vercel: Add New Project, Neon onder Storage (handleiding 03 en 04).
 - [ ] 5. De variabelen die Claude noemt, in Vercel: namen van Claude, waarden alleen van jou (handleiding 06).
 - [ ] 6. Commit en Sync: je tool gaat online (handleiding 08).

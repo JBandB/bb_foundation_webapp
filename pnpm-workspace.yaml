@@ -19,3 +19,6 @@ allowBuilds:
 overrides:
   nanoid@<3.3.18: ^3.3.18
   js-yaml@>=4.0.0 <4.3.2: ^4.3.2
+  # zod komt binnen via de Anthropic SDK en eslint-plugin-react-hooks; onder 4.6.6 kan een te groot
+  # schema het geheugen uitputten (hoog, oktober 2026).
+  zod@<4.6.6: ^4.6.6

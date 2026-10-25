@@ -16,7 +16,7 @@ die je na elke deploy doet. **Tijd:** een kwartier.
 
 ## Stappen
 
-1. Merge je branch met de uitvoer van de wizard en `template.lock.json` naar `main` via een pull
+1. Merge je branch met de configuratie, het projectplan en `template.lock.json` naar `main` via een pull
    request met groene CI.
    **Controle:** Vercel start een productiedeploy; in de build-log staat `pnpm db:deploy` met de
    migraties die hij draaide.

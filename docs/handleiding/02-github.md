@@ -4,7 +4,7 @@
 **Wat het is.** GitHub bewaart de code en draait bij elke wijziging de controles (de CI). Vercel haalt
 de code hier op. **Tijd:** een half uur.
 
-**Doe dit na** 01 en de wizard. **Daarna kun je** het Vercel-project aanmaken (03).
+**Doe dit na** 01 en je projectplan (10). **Daarna kun je** het Vercel-project aanmaken (03).
 
 ## Nodig
 
@@ -42,10 +42,10 @@ de code hier op. **Tijd:** een half uur.
    licensing, Budgets and alerts**: een budget voor Actions van **0**, met "stop usage when budget
    limit is reached" aan (het gratis quotum is genoeg voor deze CI).
    **Controle:** een push bouwt nog steeds; het verbruik staat onder Billing and licensing, Usage.
-6. Kopieer de startprompt op het eindscherm van de wizard (deel B, de knop **Kopieer de startprompt**)
-   en plak hem in het Claude-paneel. Claude zet drie bestanden neer, `project.config.json`,
+6. Plak de startprompt in het Claude-paneel: die van een wizard (op het eindscherm, de knop **Kopieer
+   de startprompt**), of die uit handleiding 10. Claude zet drie bestanden neer, `project.config.json`,
    `docs/PROJECTPLAN.md` en `docs/handleiding/00-checklist-<slug>.md`, en stopt dan. Alleen een eigen
-   logo zet je zelf in `public/brand/`. Commit en push; op de workshopdag rechtstreeks op `main`, daarna
+   logo zet je zelf in `public/brand/`. Commit en push; de eerste keer rechtstreeks op `main`, daarna
    via `release/next` met een pull request (09). Zeg Claude dan "gedaan".
    **Controle:** de CI van de pull request is groen, ook de stap "Het template is intact".
 7. Geef collega's toegang via **Settings, Collaborators and teams**: wie bouwt krijgt Write, wie alleen

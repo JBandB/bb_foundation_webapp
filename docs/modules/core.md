@@ -27,7 +27,7 @@ Altijd aanwezig. Wat elk project krijgt voordat het één regel eigen code heeft
 
 ## Wat het project levert
 
-`project.config.json` (via de wizard), `docs/PROJECTPLAN.md`, de rechten en de matrix, de teksten in
+`project.config.json` (uit een wizard, of zelf op basis van `examples/`), `docs/PROJECTPLAN.md`, de rechten en de matrix, de teksten in
 `lib/i18n/domain/`, de navigatie (`app/(app)/nav.project.ts`), het beginscherm, de eigen tabellen
 onder `lib/db/schema/index.ts`, en de eigen checks en e2e vanaf `10`.
 
