@@ -2,7 +2,7 @@
   "lockVersion": 1,
   "source": "https://github.com/JBandB/bb_foundation_webapp.git",
   "version": "1.4.0",
-  "appliedAt": "2026-10-25T08:41:26Z",
+  "appliedAt": "2026-10-25T19:37:13Z",
   "modules": {
     "core": {
       "schemaVersion": 1,
@@ -12,7 +12,7 @@
   "files": {
     ".gitattributes": {"module":"core","class":"owned","hash":"29843f7bf30534363d59bd20f0c6cc3a3182caa4c07507571fbd09fb8ae22d6c","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     ".githooks/commit-msg": {"module":"core","class":"owned","hash":"a4fb323ccd6fd03065b16f20230fd45982b7a00b97c54aa4720cd3d5ee870e7b","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    ".github/dependabot.yml": {"module":"core","class":"owned","hash":"c011f165847d9aa40fce8345e625cd59b4d44d7ed4ba1aa2f2edd0e36e63cba9","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    ".github/dependabot.yml": {"module":"core","class":"owned","hash":"bc0bb2f4dc190f8613d651f4c12c47c827facaaa3bd7406c4f49558a8b8df92a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     ".github/workflows/ci.yml": {"module":"core","class":"owned","hash":"991a7f093de27407be0cc80c84068c6f3bfffa729e19e335ef02171cd26a82ae","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     ".secretlintignore": {"module":"core","class":"owned","hash":"6bc20883b98ae881877017da291159a61e8e65a3a6952422792e67cebaaf225e","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     ".secretlintrc.json": {"module":"core","class":"owned","hash":"1c0e86ca72216c22cc77b1c94c27f975b731aa9e104167f5d57a5befa654c10e","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
@@ -317,7 +317,7 @@
     "scripts/lint-house-rules.mjs": {"module":"core","class":"owned","hash":"714deb6d5c2efdf9c4b708ec6ffabdd47528a6357338d7fe56cd68f3b1c81ec3","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "scripts/smoke-prod.ts": {"module":"core","class":"owned","hash":"f0235ca3592bface502c48df80e5728544dacb033701dc6f0edef5654b71445a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "scripts/task-prune.ts": {"module":"core","class":"owned","hash":"d5b9a3d8f771b3ee6238d9acb62b45a1d34cf0cbe83934bb3151bea53bb1a595","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "template/CHANGELOG.md": {"module":"core","class":"owned","hash":"1d24649a8ef55fbd219cfde4e1826e2a770aaa410ca2a772ff6111fa70047c13","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "template/CHANGELOG.md": {"module":"core","class":"owned","hash":"70a816d416847918844678355a210c711f78af146f6574a8ffe590d11b68871f","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/README.md": {"module":"core","class":"owned","hash":"94be43de14a899316462f6d230d192df4be0de932e4b7b01ce78b39ab4420f39","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/check-template.mjs": {"module":"core","class":"owned","hash":"4ed7931ca4c301027d677f1064fd10086b605e489af6b3c34409ba1ac148eedd","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/forbidden-words.txt": {"module":"core","class":"owned","hash":"c69b5fec9d3ad98a9998716179f3968d2a9e33b24f2c3ee0bfddb3ab8c91c01e","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},

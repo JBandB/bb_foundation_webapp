@@ -44,8 +44,8 @@ versie na het bijwerken.
   run beoordeeld en groen is). Drie nepverbindingsstrings in de code hebben een uitzondering met de
   reden erbij.
 - **`.github/dependabot.yml`**: elke maandag één gegroepeerde pull request voor minor en patch, zeven
-  dagen na de release (`cooldown`), majors van pakketten die samen moeten bewegen genegeerd, en ook
-  de actions. Een security-update komt meteen.
+  dagen na de release (`cooldown`), majors van pakketten die samen moeten bewegen genegeerd, en de
+  actions samen in één eigen pull request. Een security-update komt meteen.
 - **`pnpm check:all`** bestaat nu: de hele batterij, goedkoopste eerst, rechtstreeks met `node` (nooit
   genest `pnpm`), met een tabel voor de rubriek Bewijs. Stappen tegen de database draaien als
   `.env.local` een database noemt, en worden anders zichtbaar overgeslagen (exitcode 2).
