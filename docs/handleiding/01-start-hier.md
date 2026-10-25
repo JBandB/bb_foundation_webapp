@@ -12,38 +12,35 @@ stap waar je de rechten niet hebt: half ingericht is erger dan wachten.
 
 ## De volgorde
 
-De route heeft drie delen. Ze heten overal hetzelfde: hier, in de checklist (`00-checklist.md`) en in
-de wizard (`wizard/index.html`), die alle drie de delen op één pagina zet, met per stap een vinkje.
-Op GitHub Pages: https://jbandb.github.io/bb_foundation_webapp/wizard/.
+De route heeft drie delen, hier en in de checklist (`00-checklist.md`) met dezelfde namen. Gebruik je
+een wizard, bijvoorbeeld bij een training, dan volgt die dezelfde delen.
 
 ### Deel 1. Voorbereiding, vooraf en thuis
 
-Open de wizard, deel A (`wizard/index.html#voorbereiden`). Die loopt de zeven stappen met je door, met
-per stap een vinkje, en onthoudt in je browser hoe ver je bent. De oude link `wizard/voorbereiding.html`
-stuurt daarheen door.
+Zeven stappen, samen ongeveer een uur. Vink ze af in de checklist.
 
 | Stap | Wat | Waar |
 |---|---|---|
-| 1 | Accounts aanmaken: GitHub, Vercel met GitHub als login, Claude met een abonnement dat Claude Code bevat. Neon komt later via Vercel | wizard, deel A, stap 1; 02, 03 en 30 voor het plafond per dienst |
-| 2 | Installeren: Git, Node.js, VS Code, Claude Code, pnpm | deel A, stap 2 |
-| 3 | Git instellen: naam en e-mail | deel A, stap 3 |
-| 4 | Een werkmap buiten OneDrive | deel A, stap 4 |
-| 5 | Het controlescript draaien | deel A, stap 5; `wizard/controle-laptop.md` |
-| 6 | Je halve pagina schrijven: de zes vragen, die meteen in deel B staan | deel A, stap 6; 10 voor de uitleg |
-| 7 | Klaar: wat je meeneemt | deel A, stap 7 |
+| 1 | Accounts aanmaken: GitHub, Vercel met GitHub als login, Claude met een abonnement dat Claude Code bevat. Neon komt later via Vercel | 02 en 03; 30 voor het plafond per dienst |
+| 2 | Installeren: Git, Node.js 24, VS Code, Claude Code, pnpm | 07, Nodig |
+| 3 | Git instellen: naam en e-mail | `git config --global user.name "Je naam"` en `user.email` |
+| 4 | Een werkmap buiten OneDrive | een gewone map, zoals `C:\Projecten` |
+| 5 | Controleren: `git --version`, `node -v` (`v24`), `pnpm -v` en `claude --version` | na het klonen ook `pnpm doctor` (07) |
+| 6 | Een eerste versie van je projectplan: minstens kopje 1, 2, 3 en 8 | 10 |
+| 7 | Klaar: laptop, telefoon met authenticator, inloggegevens, je projectplan | |
 
 ### Deel 2. Klaarzetten en live
 
-Eerst ontwerp je je tool in de wizard, deel B (handleiding 10). Je halve pagina staat daar al in. Deel B
-levert één ding op: de startprompt, met `project.config.json`, het projectplan en je persoonlijke
-checklist erin. Daarna deze acht stappen, ook in de wizard als deel C. Aan het eind staat de lege tool
+Eerst ontwerp je je tool (handleiding 10): het projectplan en de keuzes voor `project.config.json`.
+Dat levert één ding op: de startprompt. Een wizard maakt hem voor je, met de configuratie, het plan en
+je checklist erin; zonder wizard staat hij in handleiding 10. Daarna deze acht stappen. Aan het eind staat de lege tool
 online, en elke ronde daarna gaat via `release/next`.
 
 | Stap | Wat | Handleiding | Wat je daarna hebt |
 |---|---|---|---|
 | 1 | GitHub: Use this template, privérepo | 02, stap 3 | je eigen repo, privé |
 | 2 | VS Code: Clone Repository | 07, stap 1 | de repo in je werkmap |
-| 3 | Plak de startprompt in het Claude-paneel: Claude zet config, plan en checklist neer en stopt. Commit en Sync, zeg "gedaan" | `wizard/README.md`; 10, "Wat Claude ermee doet" | de drie bestanden staan op GitHub; Claude past het template toe en schrijft de eerste specificatie |
+| 3 | Plak de startprompt in het Claude-paneel: Claude zet config, plan en checklist neer en stopt. Commit en Sync, zeg "gedaan" | 10, "De startprompt" | de drie bestanden staan op GitHub; Claude past het template toe en schrijft de eerste specificatie |
 | 4 | Vercel: Add New Project, Neon onder Storage | 03, 04 | een project dat bij elke push bouwt, met een database in Frankfurt |
 | 5 | Zet de variabelen die Claude noemt in Vercel: namen van Claude, waarden alleen van jou | 06 | de geheimen op hun plek, nergens anders |
 | 6 | Commit en Sync: je tool gaat online | 08 | de tool staat live |
@@ -59,14 +56,14 @@ online, en elke ronde daarna gaat via `release/next`.
 | De manier van inloggen | 05, Microsoft Entra, of 05b, wachtwoordlogin | Rollen voor de eerste mensen, tweestapsverificatie |
 | De rooktest | 08 | `pnpm smoke:prod` is groen |
 | GitHub, Vercel en Neon afmaken | 02, 03, 04 | Organisatie, tweestapsverificatie, regio, preview-branches, plafonds |
-| De modules die je in de wizard aanzette | 20 of 20b (mail), 21 (Teams), 22 (bestanden), 23 (crons), 24 (AI) | Niets ervoor |
+| De modules die je in `project.config.json` aanzette | 20 of 20b (mail), 21 (Teams), 22 (bestanden), 23 (crons), 24 (AI) | Niets ervoor |
 | Altijd | 30, beveiliging en kosten; 90, als iets misgaat | Overzicht en rust |
 
 ## Wat je nodig hebt voordat je begint
 
 | Nodig | Waarom | Heb je dat |
 |---|---|---|
-| De zeven stappen van deel A in de wizard afgevinkt | Accounts, software, git en een werkmap staan klaar; het controlescript is groen | |
+| De zeven stappen van deel 1 afgevinkt | Accounts, software, git en een werkmap staan klaar, en de versies kloppen | |
 | Een e-mailadres van de organisatie, geen privéadres | Alle accounts hangen eraan en moeten overdraagbaar zijn | |
 | Een telefoon met een authenticator-app | Tweestapsverificatie bij GitHub, Vercel, Neon en Azure | |
 | Een wachtwoordmanager | Elke dienst krijgt een eigen, lang wachtwoord | |
@@ -96,7 +93,7 @@ terugvindt. Nooit het geheim zelf.
 
 | Wat je ziet | Waar je kijkt |
 |---|---|
-| Je laptop is niet klaar | Het controlescript uit `wizard/controle-laptop.md`, dan de stap van deel A die het noemt |
+| Je laptop is niet klaar | De versies uit deel 1, stap 5; na het klonen `pnpm doctor`, die per regel zegt wat je doet |
 | Een stap lukt niet | De tabel "Als het misgaat" onderaan die handleiding, dan handleiding 90 |
 | De tool doet het niet na een wijziging | Beheer, Systeem in de tool, dan handleiding 90 |
 | Je weet niet welke variabele waar hoort | Handleiding 06, de tabel per omgeving |

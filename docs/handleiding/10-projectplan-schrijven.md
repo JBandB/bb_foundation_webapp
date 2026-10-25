@@ -6,8 +6,8 @@ specificatie, het datamodel, de rechten en de schermen uit af. Een goed plan kos
 elke ronde daarna een misverstand. **Tijd:** een uur voor een eerste versie, en daarna een kwartier
 per wijziging.
 
-**Doe dit na** handleiding 01. **Daarna kun je** de wizard invullen (die vraagt dezelfde dingen) en
-de startprompt aan Claude geven.
+**Doe dit na** handleiding 01. **Daarna kun je** de startprompt aan Claude geven: uit een wizard (die
+vraagt dezelfde dingen), of de startprompt hieronder.
 
 ## Vier regels
 
@@ -68,6 +68,17 @@ voor fase 2)."
 
 **12. Wijzigingen.** Elke keer dat je het plan aanpast één regel, zodat Claude ziet wat er anders is
 sinds de vorige ronde.
+
+## De startprompt
+
+Een wizard maakt de startprompt voor je, met de configuratie en het plan erin. Zonder wizard zet je
+eerst zelf twee bestanden klaar: `project.config.json` (kopieer `examples/default.project.config.json`
+en pas het aan; `pnpm template:validate` controleert het) en `docs/PROJECTPLAN.md`. Commit en Sync,
+want `pnpm template:apply` weigert op een werkmap met wijzigingen. Plak dan in het Claude-paneel:
+
+    Lees CLAUDE.md, docs/WERKWIJZE.md, project.config.json en docs/PROJECTPLAN.md. Draai pnpm install
+    en pnpm template:apply, en volg de slottekst. Lever daarna als v0.02 de eerste specificatie op,
+    zonder iets te bouwen. Git doe ik zelf.
 
 ## Wat Claude ermee doet
 

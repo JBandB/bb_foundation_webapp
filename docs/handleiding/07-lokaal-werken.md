@@ -23,7 +23,7 @@ half uur de eerste keer.
 2. `vercel env pull .env.local`. Voeg met de hand twee regels toe: `AUTH_DEV_LOGIN=1` en
    `SEED_TARGET=<endpoint-id van de dev-branch>`.
    **Controle:** `git status` toont `.env.local` **niet**; hij staat in `.gitignore`.
-3. `pnpm template:apply` als je dat nog niet deed na de wizard, en volg de slottekst.
+3. `pnpm template:apply` als je dat nog niet deed na de startprompt, en volg de slottekst.
    **Controle:** "template.lock.json geschreven" en een lijst met wat je nu doet. Daarna
    `pnpm doctor`: Node, git, het template, `.env.local` en de database tegen `SEED_TARGET`, zonder
    iets aan te raken. Geen regel op ACTIE.

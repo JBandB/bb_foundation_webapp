@@ -14,17 +14,6 @@ import { join, relative, sep } from "node:path";
 const root = process.cwd();
 const WORDS_FILE = join(root, "template", "ci", "forbidden-words.txt");
 const EXEMPT = new Set(["template/README.md", "template/ci/forbidden-words.txt", "template/ci/check-template.mjs"]);
-/*
- * De merknamen mogen in de wizard, en nergens anders. De wizard is het workshopinstrument van de
- * organisatie achter het template, rond het neutrale template, en draagt daarom haar huisstijl en
- * naam. Wat de wizard oplevert (configuratie, projectplan, checklist, startprompt, en op de tweede
- * dag de opdrachten en de instructie) blijft neutraal: template/ci/wizard-smoke.mjs bewijst dat geen
- * van die teksten een woord uit de lijst bevat. De uitzondering geldt alleen voor de woorden; de
- * controle op em-dashes blijft overal.
- */
-const BRAND_ALLOWED = new Set(["wizard/index.html", "wizard/workshop-2.html", "wizard/voorbereiding.html", "wizard/feedback.html", "wizard/README.md"]);
-const BRAND_ALLOWED_DIRS = ["wizard/brand/"];
-const brandAllowed = (rel) => BRAND_ALLOWED.has(rel) || BRAND_ALLOWED_DIRS.some((dir) => rel.startsWith(dir));
 const SKIPPED_DIRS = new Set(["node_modules", ".next", ".git", ".vercel", ".template-backup", "coverage", "playwright-report", "test-results", "fonts"]);
 const TEXT_EXTENSIONS = new Set([".ts", ".tsx", ".mts", ".mjs", ".cjs", ".js", ".json", ".md", ".css", ".sql", ".yml", ".yaml", ".txt", ".html", ".svg"]);
 
@@ -58,7 +47,6 @@ for (const file of walk(root)) {
   const lines = text.split("\n");
   lines.forEach((line, index) => {
     if (line.includes(EM_DASH)) problems.push(`${rel}:${index + 1} em-dash`);
-    if (brandAllowed(rel)) return;
     for (const word of words) {
       if (line.toLowerCase().includes(word.toLowerCase())) problems.push(`${rel}:${index + 1} bevat "${word}"`);
     }

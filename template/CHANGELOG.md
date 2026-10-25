@@ -15,6 +15,42 @@ versie na het bijwerken.
 
 - Nog niets.
 
+## v1.3.0 (24 oktober 2026)
+
+### Wat verandert
+
+- **Beveiliging: Next.js 16.4.2** (en `eslint-config-next` 16.4.2). Next 16.3.6 had twee kritieke
+  kwetsbaarheden zonder inlog (remote code execution via de Image Optimization API en via
+  `use cache`, GHSA-2464-fhr4-w9xw), een denial of service via server actions
+  (GHSA-p3m5-59mp-jv5r, raakt elk project uit het template) en een SSRF in de Image Optimization
+  API. Verder `nodemailer` 10.1.7 (drie fouten in het parsen van adressen) en een override voor
+  `zod` 4.6.6 of hoger, die via de Anthropic SDK binnenkomt. `pnpm audit --prod` is daarmee
+  schoon; wat overblijft zit alleen in de ontwikkeltooling.
+- **De wizard en het lesmateriaal staan niet meer in het template.** De map `wizard/` (de wizard,
+  de pagina's van de training, de feedbackpagina, de accounts, het controlescript voor de laptop en
+  de huisstijl van de organisatie) is weg, met de bijbehorende scripts in `template/ci/`
+  (`wizard-smoke.mjs`, `wizard-toegang.mjs`, `schermen-opnemen.mjs`, `controle-laptop.test.ts`)
+  en de job in de template-CI. Ze staan in een eigen repo, die het template op een vastgezette tag
+  ophaalt en test dat wat de wizard oplevert door `template:validate` komt. Het enige contract
+  tussen de twee is `project.config.json`.
+- **Het template is nu zonder uitzondering neutraal:** `check-template.mjs` kent geen plekken meer
+  waar merknamen mogen.
+- **De handleidingen staan op zichzelf.** 00, 01, 02, 07, 08 en 10 en `docs/modules/core.md`
+  verwijzen niet meer naar bestanden of delen van de wizard. De voorbereiding eindigt met een
+  controle van de versies (en na het klonen `pnpm doctor`), en handleiding 10 heeft een startprompt
+  voor wie zonder wizard begint: `project.config.json` uit `examples/`, het projectplan, en één
+  opdracht voor Claude.
+
+### Let op bij bijwerken
+
+- **Werk bij, ook als je verder niets nodig hebt:** deze versie dicht twee kritieke lekken in
+  Next.js. Na `pnpm template:update` draai je `pnpm install`, en de volgende deploy zet het live.
+- **`wizard/` verdwijnt uit je project.** `pnpm template:update` haalt elk bestand in `wizard/` weg
+  dat je niet hebt gewijzigd. Een gewijzigd bestand blijft staan, met de melding "niet meer in het
+  template"; haal het zelf weg als je het niet gebruikt. Hetzelfde geldt voor de vier scripts in
+  `template/ci/`.
+- Verwees je eigen documentatie naar `wizard/`, pas die dan aan.
+
 ## v1.2.0 (16 oktober 2026)
 
 ### Wat verandert

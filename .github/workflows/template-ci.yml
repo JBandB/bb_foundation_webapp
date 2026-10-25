@@ -47,28 +47,6 @@ jobs:
       - name: Hygiëne
         run: node template/ci/check-template.mjs
 
-  wizard:
-    name: De wizard doorlopen in een browser
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - run: pnpm exec playwright install --with-deps chromium
-
-      # Opent wizard/index.html vanaf file://, vult de kinderboerderij-casus in, leest de downloads
-      # en haalt project.config.json door template:validate. Zie template/ci/wizard-smoke.mjs.
-      - name: Wizard-rooktest
-        run: node template/ci/wizard-smoke.mjs
-
   update:
     name: Bijwerken van de vorige naar deze versie
     runs-on: ubuntu-latest
