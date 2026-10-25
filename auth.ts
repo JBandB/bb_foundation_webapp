@@ -14,18 +14,17 @@
  * nooit gelezen. Zie CLAUDE.md regel 1.
  *
  * Gevolg van een JWT-sessie: een rolwijziging in Entra landt pas bij de volgende login. Daarom staat
- * de sessie op acht uur en niet op dertig dagen. Iemand die uit de tenant gaat verliest daarmee
- * binnen een werkdag toegang, en wie op Beheer wordt uitgeschakeld meteen (de actief-check in
- * `currentActor`).
+ * de sessie op acht uur en niet op dertig dagen, gerekend vanaf het inlogmoment en niet vanaf het
+ * laatste verzoek: `maxAge` alleen schuift mee (`lib/auth/session-age.ts`). Iemand die uit de tenant
+ * gaat verliest daarmee binnen een werkdag toegang, en wie op Beheer wordt uitgeschakeld meteen (de
+ * actief-check in `currentActor`).
  */
 
 import NextAuth from "next-auth";
 import { jwtCallback, sessionCallback } from "@/lib/auth/callbacks";
 import { loginProviders } from "@/lib/auth/providers";
 import { SIGN_IN_PATH } from "@/lib/auth/paths";
-
-/** Acht uur, zie de toelichting hierboven. */
-const SESSION_MAX_AGE_SECONDS = 8 * 60 * 60;
+import { SESSION_MAX_AGE_SECONDS } from "@/lib/auth/session-age";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: loginProviders().map((provider) => provider.create()),

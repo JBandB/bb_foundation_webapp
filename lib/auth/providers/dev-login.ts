@@ -10,15 +10,19 @@
  * Twee harde guards:
  *
  * 1. De provider wordt niet geregistreerd als AUTH_DEV_LOGIN ontbreekt.
- * 2. Deze module gooit bij het opstarten als VERCEL_ENV bestaat, ook als AUTH_DEV_LOGIN per ongeluk
- *    toch gezet is. Een deploy die dit pad probeert te gebruiken start dus niet op, in plaats van
- *    stil een achterdeur te openen.
+ * 2. Hij werkt alleen als de omgeving zelf zegt dat hij lokaal is: `APP_ENV=local`. Staat
+ *    AUTH_DEV_LOGIN aan in elke andere omgeving, ook een onbekende, dan gooit deze module bij het
+ *    opstarten. Een deploy die dit pad probeert te gebruiken start dus niet op, in plaats van stil een
+ *    achterdeur te openen. Een slot op `VERCEL_ENV` faalde op elke andere host open; zie
+ *    `lib/domain/deploy-environment.ts`.
  *
  * Gevolg dat je moet weten: op een preview-deployment werkt de dev-login niet. Een pull request
- * bekijken vraagt een echte login.
+ * bekijken vraagt een echte login. En `vercel env pull` overschrijft `.env.local`: zet
+ * `APP_ENV=local` er daarna weer in.
  */
 
 import Credentials from "next-auth/providers/credentials";
+import { deployEnvironment } from "@/lib/domain/deploy-environment";
 import type { LoginProvider } from "../login-provider";
 import { APP_ROLES, parseRoles, type AppRole } from "../roles";
 import { findUserByEmail, syncUserFromToken } from "../user-sync";
@@ -27,13 +31,17 @@ import { findUserByEmail, syncUserFromToken } from "../user-sync";
 export const DEV_LOGIN_PROVIDER_ID = "dev-login";
 
 const isEnabled = process.env.AUTH_DEV_LOGIN === "1";
-const isDeployed = process.env.VERCEL_ENV !== undefined;
+const environment = deployEnvironment();
 
-if (isEnabled && isDeployed) {
-  throw new Error("AUTH_DEV_LOGIN staat aan in een deploy. Dat mag nooit. Haal de variabele weg in Vercel.");
+if (isEnabled && environment !== "local") {
+  throw new Error(
+    environment === "unknown"
+      ? "AUTH_DEV_LOGIN staat aan, maar APP_ENV is niet local. Lokaal: zet APP_ENV=local in .env.local (vercel env pull haalt hem weg). In een deploy: haal AUTH_DEV_LOGIN weg."
+      : `AUTH_DEV_LOGIN staat aan in de omgeving ${environment}. Dat mag nooit. Haal de variabele daar weg.`,
+  );
 }
 
-export const devLoginEnabled = isEnabled && !isDeployed;
+export const devLoginEnabled = isEnabled && environment === "local";
 
 export const devLoginProvider: LoginProvider = {
   id: DEV_LOGIN_PROVIDER_ID,

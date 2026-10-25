@@ -51,8 +51,9 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 120_000,
     env: {
-      /* Zonder deze staat de dev-login uit en komt er niemand binnen. De guard in dev-login.ts gooit als VERCEL_ENV bestaat. */
+      /* Zonder deze twee staat de dev-login uit en komt er niemand binnen. De guard in dev-login.ts gooit als APP_ENV niet local is. */
       AUTH_DEV_LOGIN: "1",
+      APP_ENV: "local",
       /* Auth.js is in productiemodus streng over de host; zonder deze twee weigert hij de callback zonder foutmelding. */
       AUTH_URL: BASE_URL,
       AUTH_TRUST_HOST: "true",

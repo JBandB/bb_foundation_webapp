@@ -20,8 +20,9 @@ half uur de eerste keer.
 
 1. Kloon de repo en open de map. Draai `pnpm install`.
    **Controle:** geen fouten; `node_modules` bestaat.
-2. `vercel env pull .env.local`. Voeg met de hand twee regels toe: `AUTH_DEV_LOGIN=1` en
-   `SEED_TARGET=<endpoint-id van de dev-branch>`.
+2. `vercel env pull .env.local`. Voeg met de hand drie regels toe: `APP_ENV=local`, `AUTH_DEV_LOGIN=1`
+   en `SEED_TARGET=<endpoint-id van de dev-branch>`. Elke `vercel env pull` overschrijft het bestand:
+   zet ze er daarna weer in.
    **Controle:** `git status` toont `.env.local` **niet**; hij staat in `.gitignore`.
 3. `pnpm template:apply` als je dat nog niet deed na de startprompt, en volg de slottekst.
    **Controle:** "template.lock.json geschreven" en een lijst met wat je nu doet. Daarna
@@ -46,8 +47,8 @@ half uur de eerste keer.
 
 Lokaal werken tegen een echte Neon-branch en niet tegen een lokale Postgres: de extensies en het
 gedrag zijn dan gelijk aan productie, en een migratie die lokaal werkt, werkt ook daar. De dev-login
-bestaat alleen als `AUTH_DEV_LOGIN=1` staat én `VERCEL_ENV` niet bestaat, dus hij kan nooit in een
-deploy terechtkomen. `SEED_TARGET` zorgt dat `pnpm db:seed` alleen schrijft waar je het bedoelt.
+bestaat alleen als `AUTH_DEV_LOGIN=1` staat én `APP_ENV=local`, en weigert in elke andere omgeving te
+laden, dus hij kan nooit in een deploy terechtkomen, ook niet buiten Vercel. `SEED_TARGET` zorgt dat `pnpm db:seed` alleen schrijft waar je het bedoelt.
 
 ## Beveiliging
 
@@ -75,6 +76,7 @@ De dev-branch van Neon heeft een eigen compute die wakker is terwijl je werkt en
 | `tsx ontbreekt` | `pnpm install` nog niet gedraaid in deze map |
 | `DATABASE_URL_UNPOOLED ontbreekt` | `.env.local` is er niet of mist de Development-waarden; `vercel env pull .env.local` opnieuw |
 | De dev-login staat er niet | `AUTH_DEV_LOGIN=1` ontbreekt in `.env.local`, of je kijkt naar een deploy |
+| De app start niet: "AUTH_DEV_LOGIN staat aan, maar APP_ENV is niet local" | `APP_ENV=local` ontbreekt, meestal na `vercel env pull`; zet hem terug in `.env.local` |
 | `pnpm db:seed` weigert | `SEED_TARGET` ontbreekt of wijst naar een andere branch dan `DATABASE_URL`; dat is de bedoeling |
 | Een pnpm-script faalt met "is not recognized" en een half pad | Een `&` in de gebruikersnaam van Windows breekt geneste `pnpm`; de scripts van het template roepen daarom `node` rechtstreeks aan. Schrijf eigen scripts net zo |
 | `next build` faalt op een ontbrekende BUILD_ID | `next build` is gestart met een `--env-file`-vlag; de scripts doen dat bewust niet |

@@ -106,8 +106,8 @@ zelf niet laadt op het moment dat er iets stuk is.
 hulpmiddel dat gooit, maakt van één storing twee.
 
 **Regel.** Fail closed: zonder `CRON_SECRET` weigert elke cron, zonder `PRODUCTION_DB_ENDPOINT`
-faalt een preview-deploy, zonder `AUTH_SECRET` start Auth.js niet, dev-login plus `VERCEL_ENV` laat
-de app niet starten, zonder e-mail geen login. Fail soft: schemastand, thema, statusscherm en
+faalt een deploy buiten productie, zonder `AUTH_SECRET` start Auth.js niet, de dev-login zonder
+`APP_ENV=local` laat de app niet starten, zonder e-mail geen login. Fail soft: schemastand, thema, statusscherm en
 foutrapportage vangen hun eigen fout en zeggen "onbekend" (niet weten is niet achter). Een half
 ingerichte koppeling staat uit, niet half aan.
 

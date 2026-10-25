@@ -7,8 +7,10 @@
  * Past dezelfde migraties toe als `pnpm db:migrate`, met hetzelfde codepad (scripts/lib/migrate.ts),
  * en verschilt op drie punten:
  *
- * 1. **Een guard op de productiebranch.** Een preview-deploy hoort nooit de productiedatabase te
- *    migreren. Welke branch aan welke Vercel-omgeving hangt is een instelling in een console, en
+ * 1. **Een guard op de productiebranch.** Een deploy buiten productie (een preview, of een host waar
+ *    de omgeving onbekend is) hoort nooit de productiedatabase te migreren; zie
+ *    `lib/domain/deploy-environment.ts`, want een guard op `VERCEL_ENV` alleen faalde buiten Vercel
+ *    open. Welke branch aan welke Vercel-omgeving hangt is een instelling in een console, en
  *    instellingen in consoles gaan een keer mis. Deze guard maakt van die vergissing een gefaalde
  *    preview-build in plaats van een stilletjes gemigreerde productiedatabase.
  * 2. **Een advisory lock.** Twee deploys tegelijk, bijvoorbeeld twee merges vlak na elkaar, zouden
@@ -19,6 +21,7 @@
  */
 
 import { Pool } from "@neondatabase/serverless";
+import { deployEnvironment } from "../lib/domain/deploy-environment";
 import { describeTarget, directUrl } from "./lib/connection";
 import { applyMigrations } from "./lib/migrate";
 import { runScript } from "./lib/run";
@@ -31,22 +34,23 @@ const LOCK_TIMEOUT_MS = 120_000;
 const LOCK_RETRY_MS = 2_000;
 
 /**
- * Weigert te migreren als een preview-deploy op de productiebranch uitkomt.
+ * Weigert te migreren als een deploy buiten productie op de productiebranch uitkomt. Alleen in
+ * productie (`APP_ENV` of `VERCEL_ENV` is `production`) slaat hij de controle over.
  *
  * Fail closed: staat `PRODUCTION_DB_ENDPOINT` niet ingesteld, dan kunnen we het niet controleren en
  * gaan we er niet vanuit dat het wel goed zit.
  */
 function assertSafeTarget(endpoint: string): void {
-  if (process.env.VERCEL_ENV !== "preview") return;
+  if (deployEnvironment() === "production") return;
 
   const production = process.env.PRODUCTION_DB_ENDPOINT;
   if (production === undefined || production === "") {
     throw new Error(
       [
-        "PRODUCTION_DB_ENDPOINT ontbreekt, dus er is niet te controleren of deze preview-deploy op de",
+        `PRODUCTION_DB_ENDPOINT ontbreekt, dus er is niet te controleren of deze deploy (omgeving ${deployEnvironment()}) op de`,
         "productiedatabase uitkomt.",
         "",
-        "Zet in Vercel, scope Production en Preview:",
+        "Zet in Vercel, scope Production en Preview (op een andere host: zet daar ook APP_ENV op production of preview):",
         "  PRODUCTION_DB_ENDPOINT = het endpoint-id van de productiebranch (alleen het id, geen wachtwoord)",
         "Zie docs/handleiding/04-neon.md.",
       ].join("\n"),
@@ -57,7 +61,7 @@ function assertSafeTarget(endpoint: string): void {
     const branch = process.env.VERCEL_GIT_COMMIT_REF;
     throw new Error(
       [
-        `Deze preview-deploy wijst naar ${endpoint}, en dat is de productiebranch. Er is niets gemigreerd.`,
+        `Deze deploy (omgeving ${deployEnvironment()}) wijst naar ${endpoint}, en dat is de productiebranch. Er is niets gemigreerd.`,
         "",
         `Deze deploy komt van branch ${branch ?? "onbekend"}.`,
         "",
@@ -107,7 +111,7 @@ async function acquireLock(pool: Pool): Promise<() => Promise<void>> {
 runScript(async () => {
   const url = directUrl();
   const endpoint = describeTarget(url);
-  const where = process.env.VERCEL_ENV ?? "lokaal";
+  const where = deployEnvironment();
 
   console.log(`Migreren vanuit omgeving ${where} naar endpoint ${endpoint}`);
   assertSafeTarget(endpoint);

@@ -52,8 +52,8 @@ De bouw volgt het plan van 2 oktober 2026 in veertien rondes; de stand staat in 
     nieuwe enumwaarde en het gebruik ervan staan in twee migraties, en hernoemen is uitbreiden en
     inkrimpen in stappen. Zie `lib/db/migrations/README.md`.
 13. **Geheimen staan alleen in Vercel en in `.env.local`.** Nooit in de chat, nooit in
-    `.env.example` (de huisregel `env-template` controleert dat), en de dev-login weigert te laden
-    zodra `VERCEL_ENV` bestaat.
+    `.env.example` (de huisregel `env-template` controleert dat), en de dev-login werkt alleen met
+    `APP_ENV=local` en weigert anders te laden.
 14. **Bestanden met de kop `template-owned` of `template-generated` wijzig je niet.** Ze worden bij
     `pnpm template:update` overschreven. Eigen variant nodig: `pnpm template:adopt <pad>`. Een
     gegenereerd bestand verander je via `project.config.json` en `pnpm template:generate`.
@@ -142,7 +142,11 @@ Vuistregels: één bestand, één onderwerp; datatabellen apart van logica; sche
 
 - Database: Neon dev-branch, `vercel env pull .env.local`. Geen lokale Postgres.
 - `pnpm db:seed` voor een werkende dataset, idempotent, alleen op de branch uit `SEED_TARGET`.
-- Dev-login achter `AUTH_DEV_LOGIN=1`, met een harde guard die gooit als `VERCEL_ENV` bestaat.
+- Dev-login achter `AUTH_DEV_LOGIN=1` en `APP_ENV=local`, met een harde guard die gooit in elke andere
+  omgeving (`lib/domain/deploy-environment.ts`). `vercel env pull` overschrijft `.env.local`: zet
+  `APP_ENV=local` er daarna weer in.
+- Een route handler die schrijft en op de sessiecookie leunt, begint met `requestOriginVerdict`
+  (`lib/domain/request-origin.ts`), vóór de sessie. Server actions krijgen die controle van Next.
 - Elke cron-taak is ook een `pnpm task:<naam>` script.
 
 ## Lessen en patronen

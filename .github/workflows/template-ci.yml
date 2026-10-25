@@ -10,6 +10,16 @@ concurrency:
   group: template-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Alleen lezen: geen workflow hier hoeft iets naar de repo te schrijven.
+permissions:
+  contents: read
+
+# Elke action staat op een volledige commit-SHA met de versie als commentaar, en niet op een tag als
+# `@v4`: een tag kan de eigenaar stil laten wijzen naar andere code, zoals bij de aanvallen op
+# trivy-action en kics-github-action. Dependabot (github-actions) werkt de SHA en het commentaar samen
+# bij. Een nieuwe action pin je net zo: `git ls-remote --tags <repo>` geeft de commit achter de tag
+# (bij een geannoteerde tag de regel die op ^{} eindigt).
+
 jobs:
   golden:
     name: Gouden project uit ${{ matrix.example }}
@@ -19,11 +29,11 @@ jobs:
       matrix:
         example: [default, voorbeeld, minimaal]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: pnpm
@@ -39,8 +49,8 @@ jobs:
     name: Geen projectinhoud en geen em-dashes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
       # Grept het hele template op de namen uit template/ci/forbidden-words.txt en op em-dashes.
@@ -51,11 +61,11 @@ jobs:
     name: Bijwerken van de vorige naar deze versie
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: pnpm

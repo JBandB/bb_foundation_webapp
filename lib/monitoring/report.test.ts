@@ -17,6 +17,8 @@ describe("scrubMessage", () => {
   });
 
   it("maskeert verbindingsstrings, bearer-tokens, JWT's en handtekeningen in een URL", () => {
+    /* Geen geheim: een verzonnen verbindingsstring, precies wat deze test hoort weg te poetsen. */
+    // secretlint-disable-next-line
     expect(scrubMessage("connect postgresql://app:wachtwoord@ep-x.eu-central-1.aws.neon.tech/db?sslmode=require failed")).toBe("connect [verbindingsstring] failed");
     expect(scrubMessage("header Authorization: Bearer abc.def-ghi_jkl")).toBe("header Authorization: Bearer [token]");
     expect(scrubMessage("token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.sig_part-here")).toBe("token [token]");

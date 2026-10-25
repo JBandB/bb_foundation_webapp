@@ -34,9 +34,10 @@ de code hier op. **Tijd:** een half uur.
    uit.
    **Controle:** de nieuwe repo bestaat, met `template/manifest.json` en `project.config.json` erin, en
    onder **Actions** loopt de workflow CI groen (de wortel van het template bouwt).
-4. In de repo: **Settings, Code security**: zet **Dependabot alerts** en **Secret scanning** aan (met
-   push protection als het beschikbaar is).
-   **Controle:** beide staan op Enabled.
+4. In de repo: **Settings, Code security**: zet **Dependabot alerts**, **Dependabot security updates**
+   en **Secret scanning** aan (met push protection als het beschikbaar is). En onder **Settings,
+   General**: **Automatically delete head branches** aan, zodat een gemergde branch vanzelf verdwijnt.
+   **Controle:** alle drie staan op Enabled, en het vinkje voor het opruimen staat aan.
 5. **Settings, Actions, General**: Workflow permissions op **Read repository contents and packages
    permissions**. Op het account of de organisatie die de repo bezit: **Settings, Billing and
    licensing, Budgets and alerts**: een budget voor Actions van **0**, met "stop usage when budget
@@ -67,8 +68,19 @@ van de organisatie bevat; geheimen staan er nooit in, maar namen en plannen wel.
   houdt een merge niet tegen. De werkwijze (altijd via een pull request, kijken of de CI groen is)
   vangt dat op. Wil je het slot, dan is dat GitHub Team; dat is een besluit met een prijs per maand
   per persoon.
-- Dependabot alerts zeggen wanneer een afhankelijkheid een bekend lek heeft. Claude kan de update
-  doen; jij beslist wanneer.
+- Dependabot alerts zeggen wanneer een afhankelijkheid een bekend lek heeft, en de security updates
+  openen er meteen een pull request voor. `.github/dependabot.yml` (van het template) opent daarnaast
+  elke maandag één pull request met de minor- en patchupdates, zeven dagen na hun release (een pakket
+  dat net uit is, kan kwaadaardig of instabiel zijn), en laat de majors die alleen samen omhoog
+  kunnen liggen. Een gewijzigde `dependabot.yml` op `main` start meteen een run.
+- **Een pull request van Dependabot merge je niet los.** Hij gaat naar `main` en dus om `release/next`,
+  de versie en de release notes heen. Neem hem mee in een gewone ronde ("neem de open pull requests
+  van Dependabot mee in deze ronde") en sluit hem daarna. Een workflow die Dependabot start, krijgt
+  geen repository-secrets, en Vercel bouwt zijn branch niet (03, stap 5).
+- De CI controleert per pull request ook de bekende kwetsbaarheden in wat naar productie gaat
+  (`pnpm audit --prod --audit-level=high`) en geheimen in de code (`pnpm check:secrets`). Semgrep
+  draait als advies: een melding blokkeert niets tot de eerste run beoordeeld en groen is. De
+  actions in de CI staan op een vaste commit; Dependabot houdt die bij.
 
 ## Kosten
 

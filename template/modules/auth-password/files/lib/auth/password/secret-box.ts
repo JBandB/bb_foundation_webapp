@@ -16,11 +16,19 @@
  * geheimen onleesbaar en moet iedereen tweestapsverificatie opnieuw instellen: dat is de prijs.
  *
  * Opslag: `v1$<iv>$<tag>$<cijfertekst>`, alles base64url.
+ *
+ * **De tag is altijd 16 bytes**, bij versleutelen en bij openen. Zonder opgave aanvaardt GCM bij het
+ * openen ook een kortere tag, en een korte tag is makkelijker te raden (statische analyse meldt dat als
+ * `gcm-no-tag-length`). Een tag van een andere lengte wordt geweigerd voordat hij wordt gezet.
+ * Bestaande geheimen hebben al een tag van 16 bytes; er hoeft niets omgezet te worden.
  */
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
 import { PROJECT } from "@/lib/project/config.generated";
 
 const VERSION = "v1";
+
+/** De lengte van de GCM-tag in bytes: de volle 128 bits. */
+const TAG_LENGTH = 16;
 
 export function boxKey(secret: string, salt: string = PROJECT.slug): Buffer {
   if (secret.length < 16) throw new Error("Het geheim is te kort om een sleutel uit af te leiden.");
@@ -50,7 +58,7 @@ export function boxKeyFromEnv(): Buffer {
 
 export function seal(plain: string, key: Buffer): string {
   const iv = randomBytes(12);
-  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  const cipher = createCipheriv("aes-256-gcm", key, iv, { authTagLength: TAG_LENGTH });
   const encrypted = Buffer.concat([cipher.update(plain, "utf8"), cipher.final()]);
   return [VERSION, iv.toString("base64url"), cipher.getAuthTag().toString("base64url"), encrypted.toString("base64url")].join("$");
 }
@@ -60,8 +68,10 @@ export function open(boxed: string, key: Buffer): string | undefined {
   const parts = boxed.split("$");
   if (parts.length !== 4 || parts[0] !== VERSION) return undefined;
   try {
-    const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(parts[1] ?? "", "base64url"));
-    decipher.setAuthTag(Buffer.from(parts[2] ?? "", "base64url"));
+    const tag = Buffer.from(parts[2] ?? "", "base64url");
+    if (tag.length !== TAG_LENGTH) return undefined;
+    const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(parts[1] ?? "", "base64url"), { authTagLength: TAG_LENGTH });
+    decipher.setAuthTag(tag);
     return Buffer.concat([decipher.update(Buffer.from(parts[3] ?? "", "base64url")), decipher.final()]).toString("utf8");
   } catch {
     return undefined;

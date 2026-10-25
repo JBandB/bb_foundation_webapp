@@ -166,7 +166,7 @@ export const en = {
     intro: "The state of the tool: version, database and integrations. The first place to look when something does not work.",
     version: "Version",
     environment: "Environment",
-    environmentLocal: "local",
+    environmentNames: { local: "local", preview: "preview", production: "production", unknown: "unknown (set APP_ENV)" },
     schema: "Database schema",
     schemaOk: (applied: number, latest: string) => `${applied} migrations, up to ${latest}`,
     schemaBehind: (applied: number, expected: number) => `The database is behind: ${applied} of ${expected} migrations. Run the deploy or pnpm db:migrate.`,

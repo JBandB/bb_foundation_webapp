@@ -23,7 +23,7 @@ bewaren, delen en (met Microsoft-inloggen) één keer bij Microsoft opgeven.
 | Nodig | Waarom | Heb je dat |
 |---|---|---|
 | De tool staat live (08) | Je werkt verder op iets wat al draait | |
-| Een preview per pull request in Vercel (03, stap 5) en een databasebranch per preview in Neon (04, stap 3) | Zonder die twee heeft de preview geen eigen database | |
+| Vercel bouwt alleen `main` en `release/next` (03, stap 5) en Neon maakt een databasebranch per preview (04, stap 3) | Zonder die twee heeft de preview geen eigen database | |
 | VS Code met de map van je project open | Hier doe je de stappen in git | |
 
 ## Wat je aanmaakt
@@ -135,7 +135,8 @@ maandelijks in beide consoles of je binnen je plan blijft. Stand van oktober 202
 
 | Wat je ziet | Wat er aan de hand is |
 |---|---|
-| Na **Publish Branch** bouwt Vercel niets | Zo ingesteld: zonder pull request geen preview (03, stap 5). Open de pull request |
+| Na **Publish Branch** bouwt Vercel niets | De branch heet niet precies `release/next`: Vercel bouwt alleen die en `main` (03, stap 5) |
+| De eerste build van `release/next` faalt op `PRODUCTION_DB_ENDPOINT` of meldt dat hij naar de productiebranch wijst | De preview had nog geen eigen databasebranch, omdat de pull request er nog niet was; de guard hield het tegen en productie is niet geraakt. Open de pull request en klik in Vercel bij die deployment op **Redeploy** |
 | **Create new branch** zegt dat `release/next` al bestaat | De vorige ronde is niet opgeruimd. Doe stap 11, dan stap 1 |
 | De pull request heeft een conflict met `main` | Er is intussen iets anders op `main` gezet. Vraag Claude om het conflict op te lossen; jij commit daarna |
 | De preview toont nog de vorige versie | De bouw loopt nog, of de laatste commit staat niet op GitHub: klik **Sync Changes** |

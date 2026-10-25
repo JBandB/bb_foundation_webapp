@@ -10,16 +10,26 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Alleen lezen: geen workflow hier hoeft iets naar de repo te schrijven.
+permissions:
+  contents: read
+
+# Elke action staat op een volledige commit-SHA met de versie als commentaar, en niet op een tag als
+# `@v4`: een tag kan de eigenaar stil laten wijzen naar andere code, zoals bij de aanvallen op
+# trivy-action en kics-github-action. Dependabot (github-actions) werkt de SHA en het commentaar samen
+# bij. Een nieuwe action pin je net zo: `git ls-remote --tags <repo>` geeft de commit achter de tag
+# (bij een geannoteerde tag de regel die op ^{} eindigt).
+
 jobs:
   quality:
     name: Typecheck, lint, tests en build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: pnpm
@@ -46,11 +56,11 @@ jobs:
     name: Migraties, drift en contrast
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: pnpm
@@ -77,3 +87,46 @@ jobs:
       # je rekent het.
       - name: Het contrast haalt de norm in licht en donker
         run: pnpm check:contrast
+
+  security:
+    name: Kwetsbaarheden en geheimen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Alleen wat naar productie gaat, en alleen vanaf high: een moderate advisory op een
+      # devDependency is onderhoud voor de wekelijkse update van Dependabot, geen reden om een pull
+      # request te blokkeren. Een onvermijdelijke melding gaat met de reden erbij in
+      # pnpm.auditConfig.ignoreCves en in de release notes.
+      - name: Bekende kwetsbaarheden in de productieafhankelijkheden
+        run: pnpm audit --prod --audit-level=high
+
+      # secretlint met de aanbevolen regels; .secretlintignore zegt wat hij overslaat. Een vals alarm
+      # krijgt // secretlint-disable-next-line met de reden op de regel erboven.
+      - name: Geen geheimen in de code
+        run: pnpm check:secrets
+
+  # Statische analyse met Semgrep CE: de standaardregels plus die voor TypeScript. Advies en geen
+  # poort tot een run hier beoordeeld en groen is: de echte bevindingen gerepareerd, een vals alarm
+  # per regel uit met // nosemgrep: <regel-id> en de reden op de regel erboven. Daarna gaat
+  # continue-on-error naar false. De e2e-tests vallen erbuiten: testcode met vaste waarden.
+  semgrep:
+    name: Statische analyse (advies)
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - name: Semgrep
+        run: semgrep scan --config p/default --config p/typescript --error --exclude node_modules --exclude .next --exclude playwright-report --exclude test-results --exclude e2e

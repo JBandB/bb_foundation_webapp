@@ -47,7 +47,11 @@ rolwijziging bij de identity provider werkte pas na opnieuw inloggen.
 **Oorzaak.** Rollen en organisatie staan in de JWT en worden niet tegen database of identity
 provider gehouden tot hij verloopt.
 
-**Regel.** `session.strategy: "jwt"` met een korte `maxAge` (acht uur). Per request één goedkope
+**Regel.** `session.strategy: "jwt"` met een korte `maxAge` (acht uur), en die acht uur gerekend
+vanaf het inlogmoment: Auth.js tekent het token bij elke aanvraag van `/api/auth/session` opnieuw voor
+de volle `maxAge`, dus `maxAge` alleen schuift mee en een sessie leefde in een eerder project
+eindeloos door, met de rollen van het inlogmoment. Daarom een `loginAt` op het token, en de
+jwt-callback geeft `null` terug na acht uur (een ontbrekende waarde telt als verlopen). Per request één goedkope
 controle of de gebruiker nog actief en niet verwijderd is, via React `cache` zodat het één query per
 request blijft; de rollen zelf komen uit het token (Entra) of uit diezelfde query (wachtwoordlogin).
 `AUTH_SECRET` per omgeving verschillend, zodat een previewcookie nooit een productiesessie is.
@@ -55,7 +59,8 @@ request blijft; de rollen zelf komen uit het token (Entra) of uit diezelfde quer
 of versleuteld: leid daarom vanaf dag één per doel een eigen sleutel af. In een eerder project was dat
 uitgesteld, en achteraf invoeren breekt alle bestaande handtekeningen.
 
-**Afgedwongen door.** `auth.ts` (de sessieduur), `currentActor` in `lib/auth/session.ts` (de
+**Afgedwongen door.** `auth.ts` (de sessieduur), `lib/auth/session-age.ts` met test en de
+jwt-callback in `lib/auth/callbacks.ts` (de absolute grens), `currentActor` in `lib/auth/session.ts` (de
 controle per request), en in module auth-password `lib/auth/password/secret-box.ts` (HKDF per doel
 uit `AUTH_SECRET`). De sleutel per omgeving is afspraak, zie `docs/handleiding/06-variabelen-in-vercel.md`.
 
@@ -68,12 +73,14 @@ in een deploy aanstaat.
 
 **Regel.** Lokaal identiteit namaken, geen opslag: een credentials-provider waarmee je als geseede
 gebruiker met gekozen rollen inlogt. Slot 1: niet registreren zonder `AUTH_DEV_LOGIN=1`. Slot 2: de
-module gooit bij het laden als `VERCEL_ENV` bestaat, zodat een deploy niet start in plaats van stil
-open te staan. Verzonnen rollen niet wegschrijven naar een kolom die de identity provider hoort te
+module gooit bij het laden tenzij `APP_ENV=local`, zodat een deploy niet start in plaats van stil
+open te staan. Een eerdere versie gooide als `VERCEL_ENV` bestond; dat faalde open op elke andere host,
+en `NODE_ENV` helpt niet omdat de e2e op `next start` draait. Verzonnen rollen niet wegschrijven naar een kolom die de identity provider hoort te
 spiegelen. Gevolg: op een preview werkt alleen de echte login. Een eigen
 `CredentialsSignin`-subklasse vraagt `override code` onder `noImplicitOverride`.
 
-**Afgedwongen door.** `lib/auth/providers/dev-login.ts` (gooit bij laden). De e2e gebruikt dit pad.
+**Afgedwongen door.** `lib/auth/providers/dev-login.ts` (gooit bij laden), `lib/domain/deploy-environment.ts`
+met test. De e2e gebruikt dit pad en zet `APP_ENV=local` in `playwright.config.ts`.
 
 ## L-AUTH-05 Een token is invoer, ook als je hem zelf ondertekende
 
@@ -103,8 +110,13 @@ in beeld en verkeerde initialen. Een lege e-mail zou twee mensen op één rij ze
 **Regel.** `profile()` overschrijven: geen foto (cookiegrootte, extra Graph-call), wel `roles` en
 `oid` meenemen. E-mail terugvallen op `preferred_username`, en zonder e-mail niet inloggen. De naam
 normaliseren voordat hij in het cookie komt, initialen afleiden. Geseede gebruikers krijgen een
-plaatshouder als extern id en de eerste echte login koppelt op e-mail (unieke index op
-`lower(email)`) en zet het echte id.
+plaatshouder als extern id (`dev:<adres>`) en de eerste echte login koppelt op e-mail (unieke index
+op `lower(email)`) en zet het echte id. **Alleen zo'n plaatshouder**: een rij die al aan een echte
+identiteit hangt, neemt een login op e-mail niet over. In een eerder project kreeg een tweede
+identiteit met dezelfde e-mailclaim zo de rij, de rollen en de historie van een ander; de
+e-mailclaim is geen betrouwbare sleutel, het object-id wel.
 
 **Afgedwongen door.** Pure functies met unittests: `lib/auth/providers/entra-profile.ts`,
-`lib/auth/display-name.ts`, `lib/domain/initials.ts`; de koppeling in `lib/auth/user-sync.ts`.
+`lib/auth/display-name.ts`, `lib/domain/initials.ts`, `lib/auth/email-fallback.ts`; de koppeling in
+`lib/auth/user-sync.ts`, die bij een andere identiteit weigert met een melding in plaats van te botsen
+op de unieke index.

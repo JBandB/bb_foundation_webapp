@@ -50,7 +50,8 @@ Dan deze acht stappen.
 
 - [ ] Een organisatie, geen persoonlijk account: een persoonlijk account is niet overdraagbaar.
 - [ ] Tweestapsverificatie verplicht voor alle leden van de organisatie.
-- [ ] Dependabot alerts en secret scanning aan (Settings, Code security).
+- [ ] Dependabot alerts, Dependabot security updates en secret scanning aan (Settings, Code
+      security), en Automatically delete head branches aan (Settings, General).
 - [ ] Actions: workflow permissions op alleen-lezen; de uitgavenlimiet voor Actions op nul.
 - [ ] Het gratis plan heeft geen branch protection op een privé-repo: de CI is advies. Werk daarom
       altijd via een pull request (werkwijze, sectie 10). Wil je het slot, dan is dat GitHub Team.

@@ -28,6 +28,8 @@ import { join } from "node:path";
 /** Zo lang mag generate erover doen voordat we aannemen dat hij op input wacht. */
 const TIMEOUT_MS = 60_000;
 
+/* Geen geheim: een adres waar niets luistert, zodat drizzle-kit alleen bestanden leest. */
+// secretlint-disable-next-line
 const UNREACHABLE = "postgres://drift-check:none@127.0.0.1:1/none";
 const DIR = join(process.cwd(), "lib", "db", "migrations");
 

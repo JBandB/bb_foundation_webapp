@@ -33,6 +33,7 @@ describe("de templateteksten in twee talen", () => {
       "admin.tabFeedback",
       "feedback.title",
       "error.code",
+      "system.environmentNames.preview",
     ]);
     const nlMap = new Map(leaves(nl));
     const same = leaves(en)

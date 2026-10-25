@@ -15,6 +15,68 @@ versie na het bijwerken.
 
 - Nog niets.
 
+## v1.4.0 (25 oktober 2026)
+
+### Wat verandert
+
+- **Een sessie verloopt acht uur na het inloggen, ook als hij steeds ververst wordt.** Auth.js tekent
+  het token bij elke sessieaanvraag opnieuw, dus `maxAge` alleen schoof mee en een sessie leefde
+  eindeloos door met de rollen van het inlogmoment. Nu staat `loginAt` op het token en geeft de
+  jwt-callback `null` na acht uur (`lib/auth/session-age.ts`, met test).
+- **Een login neemt een bestaand account alleen op e-mailadres over als dat een dev-account uit de
+  seed is.** Een tweede identiteit met dezelfde e-mailclaim kreeg anders de rij, de rollen en de
+  historie van een ander; nu weigert de login met een melding in de serverlog
+  (`lib/auth/email-fallback.ts`, met test).
+- **De dev-login werkt alleen met `APP_ENV=local`.** Het slot op `VERCEL_ENV` faalde open op elke
+  andere host. `lib/domain/deploy-environment.ts` bepaalt de omgeving (eerst `APP_ENV`, dan
+  `VERCEL_ENV`, anders onbekend) en elke guard kiest bij "onbekend" de veilige kant: de dev-login
+  gooit, de deploy-migratie controleert altijd behalve in productie, de seed weigert in een deploy.
+  Beheer, Systeem toont de omgeving, de e2e zet `APP_ENV=local`, en `pnpm doctor` meldt een
+  `APP_ENV` die niet bij de dev-login past.
+- **Module auth-password: de GCM-tag van het TOTP-geheim is altijd 16 bytes**, bij versleutelen en
+  openen; een kortere tag wordt geweigerd. Bestaande geheimen hebben al 16 bytes.
+- **`requestOriginVerdict`** (`lib/domain/request-origin.ts`, met test): de herkomstcontrole die
+  server actions van Next krijgen, voor een route handler die schrijft en op de sessiecookie leunt.
+  Het template heeft er nog geen; het kernblok van `CLAUDE.md` zegt dat zo'n handler ermee begint.
+- **CI**: elke action op een vaste commit-SHA met de versie als commentaar, `permissions: contents:
+  read`, en twee nieuwe jobs: "Kwetsbaarheden en geheimen" (`pnpm audit --prod --audit-level=high`
+  en `pnpm check:secrets` met secretlint) en Semgrep als advies (`continue-on-error` tot de eerste
+  run beoordeeld en groen is). Drie nepverbindingsstrings in de code hebben een uitzondering met de
+  reden erbij.
+- **`.github/dependabot.yml`**: elke maandag één gegroepeerde pull request voor minor en patch, zeven
+  dagen na de release (`cooldown`), majors van pakketten die samen moeten bewegen genegeerd, en ook
+  de actions. Een security-update komt meteen.
+- **`pnpm check:all`** bestaat nu: de hele batterij, goedkoopste eerst, rechtstreeks met `node` (nooit
+  genest `pnpm`), met een tabel voor de rubriek Bewijs. Stappen tegen de database draaien als
+  `.env.local` een database noemt, en worden anders zichtbaar overgeslagen (exitcode 2).
+- **Ontwikkeltooling**: vitest 4.1.12 en een override voor vite 8.3.4 of hoger. `pnpm audit` toont
+  daarna alleen nog de bekende matige melding op esbuild onder drizzle-kit.
+- **Handleidingen**: 03, stap 5 noemde een optie die Vercel niet heeft; nu een opdracht onder Ignored
+  Build Step die alleen `main` en `release/next` bouwt, zodat een branch van Dependabot geen build
+  en geen database kost. 04 ruimt oude databasebranches op, 02 zet Dependabot security updates en
+  het opruimen van gemergde branches aan en zegt hoe je een pull request van Dependabot meeneemt, 07
+  en 06 noemen `APP_ENV`, 09 heeft een rij voor een eerste build zonder eigen database, en
+  WERKWIJZE, 00, 30 en de lessen in `authjs.md` en `werkwijze.md` volgen.
+
+### Let op bij bijwerken
+
+- **Iedereen logt na de uitrol één keer opnieuw in**: een bestaande cookie heeft nog geen
+  inlogmoment en telt als verlopen.
+- **Zet `APP_ENV=local` in `.env.local`**, anders start de app lokaal niet zolang
+  `AUTH_DEV_LOGIN=1` staat. `vercel env pull` haalt hem weer weg; `pnpm doctor` meldt het. Op Vercel
+  verandert niets. Draait een project op een andere host, zet daar dan `APP_ENV=production` of
+  `preview`.
+- **`pnpm install`** na het bijwerken: secretlint en vitest zijn nieuw of nieuwer.
+- **Vercel**: zet Ignored Build Step op de opdracht uit handleiding 03, stap 5. **Neon**: zet
+  Automatically delete obsolete branches aan (04, stap 3). **GitHub**: zet Dependabot security
+  updates en Automatically delete head branches aan (02, stap 4).
+- **Controleer bij de eerste ronde** of de eerste build van `release/next` een eigen databasebranch
+  in Neon krijgt. Zo niet, dan houdt de guard hem tegen; open dan de pull request en klik op
+  Redeploy (handleiding 09). Dat gedrag is nog niet op een echt project nagelopen.
+- Staat er al een gebruiker met hetzelfde e-mailadres maar een andere identiteit, dan lukt inloggen
+  voor de tweede niet meer; de serverlog zegt wat je doet als het toch dezelfde persoon is.
+- Dependabot opent op maandag zijn eerste pull requests. Neem ze mee in een ronde, niet los mergen.
+
 ## v1.3.0 (24 oktober 2026)
 
 ### Wat verandert

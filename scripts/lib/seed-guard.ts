@@ -9,11 +9,13 @@
  * connectiestring valt op in plaats van dat hij wordt gevolgd.
  */
 
+import { deployEnvironment } from "../../lib/domain/deploy-environment";
 import { isProductionEndpoint } from "./connection";
 
 export function assertConfirmedTarget(endpoint: string, what: string): void {
-  if (process.env.VERCEL_ENV !== undefined) {
-    throw new Error(`${what} draait nooit op Vercel. Dit is iets voor je eigen dev-branch.`);
+  const environment = deployEnvironment();
+  if (environment === "preview" || environment === "production") {
+    throw new Error(`${what} draait nooit in een deploy (omgeving ${environment}). Dit is iets voor je eigen dev-branch.`);
   }
   if (isProductionEndpoint(endpoint)) {
     throw new Error(`Endpoint ${endpoint} is de productiedatabase (PRODUCTION_DB_ENDPOINT). ${what} hoort daar nooit te draaien.`);

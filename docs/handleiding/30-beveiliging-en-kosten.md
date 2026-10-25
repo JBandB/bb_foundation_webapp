@@ -17,7 +17,9 @@ zodat je het in een kwartier kunt nalopen. Doe dat maandelijks (kosten en verval
 | Buitenkant | Security headers (CSP, nosniff, geen framing), cronroutes dicht zonder token, downloads via de server met het recht erbij |
 | Mail en bestanden | Tekst van buiten als citaat; de inhoud van een bestand nagekeken voordat hij de opslag in gaat |
 | AI | Alleen de velden van een prompt gaan mee, als gegevens; elke aanroep via de server met een recht; de inhoud wordt niet bewaard |
-| Dev-login | Alleen lokaal; weigert te laden zodra `VERCEL_ENV` bestaat |
+| Dev-login | Alleen lokaal, met `APP_ENV=local`; weigert in elke andere omgeving te laden |
+| Sessie | Hoogstens acht uur vanaf het inlogmoment, hoe vaak hij ook ververst wordt |
+| Koppelen op e-mail | Alleen een dev-account uit de seed; een tweede identiteit met hetzelfde adres neemt geen account over |
 
 ## Beveiliging: wat jij doet
 
@@ -30,6 +32,8 @@ zodat je het in een kwartier kunt nalopen. Doe dat maandelijks (kosten en verval
 - [ ] Bij een vermoeden van een lek: het betreffende geheim wisselen (06), en in de audit log kijken
       wat er gebeurde.
 - [ ] `public/.well-known/security.txt` klopt (het adres waar iemand een lek kan melden).
+- [ ] De pull requests van Dependabot meenemen in een ronde, en een rode audit of geheimenscan in de
+      CI meteen oppakken (02).
 
 ## Kosten: waar het plafond staat
 

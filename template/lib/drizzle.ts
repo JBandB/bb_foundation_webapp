@@ -23,6 +23,8 @@ import { join } from "node:path";
 import { readText, writeText } from "./files";
 import type { ModuleManifest } from "./manifest";
 
+/* Geen geheim: een adres waar niets luistert, zodat drizzle-kit alleen bestanden leest. */
+// secretlint-disable-next-line
 export const UNREACHABLE_URL = "postgres://template-apply:none@127.0.0.1:1/none";
 export const MIGRATIONS_DIR = "lib/db/migrations";
 const TIMEOUT_MS = 60_000;

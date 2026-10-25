@@ -36,11 +36,16 @@ productie vanaf `main`. **Tijd:** een half uur.
 4. **Settings, Deployment Protection**: Vercel Authentication aan voor previews, zodat een
    preview-adres niet voor iedereen open staat.
    **Controle:** een preview-adres vraagt om in te loggen bij Vercel.
-5. **Settings, Git**: Production Branch is `main`. Zet onder **Ignored Build Step** dat er geen
-   preview wordt gebouwd zonder pull request (de optie "Only build production and pull requests"),
-   zodat een losse push geen deploy en geen databasebranch kost.
-   **Controle:** een push op een branch zonder pull request bouwt niets; een pull request wel.
-   Elke ronde gaat zo via de vaste branch `release/next` en zijn preview; zie 09.
+5. **Settings, Git**: Production Branch is `main`. Dan **Settings, Build and Deployment**, het blok
+   **Ignored Build Step**: zet Behavior op **Custom** en plak deze opdracht:
+
+       if [ "$VERCEL_GIT_COMMIT_REF" = "main" ] || [ "$VERCEL_GIT_COMMIT_REF" = "release/next" ]; then exit 1; else exit 0; fi
+
+   `exit 1` betekent bouwen, `exit 0` overslaan. Vercel bouwt dan alleen productie en de vaste
+   preview van `release/next`. Een andere branch, ook die van Dependabot (02), kost zo geen build en
+   geen databasebranch in Neon, en op die preview zou toch niemand kunnen inloggen.
+   **Controle:** een push op een andere branch staat in **Deployments** als Canceled; een push op
+   `release/next` bouwt. Elke ronde gaat zo via `release/next` en zijn preview; zie 09.
 6. Noteer het adres onder **Domains** (`<slug>.vercel.app`). Wil je een eigen domein, koppel het dan
    nu: de redirect-URI van de inlog (05) moet erop matchen en dat achteraf wijzigen is een extra
    ronde.

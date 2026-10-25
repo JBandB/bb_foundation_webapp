@@ -118,6 +118,16 @@ function envLocal(facts: DoctorFacts): Finding[] {
   return found;
 }
 
+/**
+ * De dev-login start alleen met `APP_ENV=local`. Ontbreekt APP_ENV, dan meldt `envLocal` dat al; hier
+ * alleen het geval dat hij er staat met een andere waarde, want dan start de app lokaal niet.
+ */
+function devLogin(facts: DoctorFacts): Finding[] {
+  const appEnv = (facts.env.APP_ENV ?? "").trim();
+  if (facts.env.AUTH_DEV_LOGIN !== "1" || appEnv === "" || appEnv === "local") return [];
+  return [{ level: "action", text: `AUTH_DEV_LOGIN staat aan, maar APP_ENV is ${appEnv}: de app start dan niet`, fix: "Zet APP_ENV=local in .env.local (handleiding 07)." }];
+}
+
 function database(facts: DoctorFacts): Finding[] {
   const { pooled, direct } = facts.endpoints;
   const endpoint = direct ?? pooled;
@@ -165,7 +175,7 @@ function git(facts: DoctorFacts): Finding[] {
 /** Alle bevindingen, in de volgorde waarin je ze oplost: eerst de machine, dan het template, dan de omgeving. */
 export function diagnose(facts: DoctorFacts): Finding[] {
   const pnpmFinding = pnpm(facts);
-  return [node(facts), ...(pnpmFinding === undefined ? [] : [pnpmFinding]), ...git(facts), ...template(facts), ...envLocal(facts), ...database(facts), vercel(facts)];
+  return [node(facts), ...(pnpmFinding === undefined ? [] : [pnpmFinding]), ...git(facts), ...template(facts), ...envLocal(facts), ...devLogin(facts), ...database(facts), vercel(facts)];
 }
 
 const TAGS: Readonly<Record<DoctorLevel, string>> = { ok: "[OK]   ", action: "[ACTIE]", later: "[LATER]" };

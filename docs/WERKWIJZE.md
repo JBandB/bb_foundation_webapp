@@ -80,6 +80,8 @@ er, dan zit de reparatie erin.
 ## 8. Het ritme
 
 - **Per ronde**: opdracht, oplevering, pull request op `release/next`, controle op de preview, merge.
+  Staan er pull requests van Dependabot open, neem ze dan mee in de ronde en sluit ze daarna; nooit
+  los mergen, want ze gaan om de versie en de release notes heen.
 - **Wekelijks**: kijk één keer op Beheer, Systeem. Alles groen is alles goed.
 - **Maandelijks**: de kosten van GitHub, Vercel en Neon tegen het plafond uit je checklist, en de
   vervaldata (client secrets, tokens) in dezelfde checklist.

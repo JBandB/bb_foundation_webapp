@@ -10,6 +10,7 @@
 import type { Account, Session, User } from "next-auth";
 import { loginProviderById } from "./providers";
 import { parseRoles } from "./roles";
+import { epochSeconds, SESSION_MAX_AGE_SECONDS, sessionExpired } from "./session-age";
 import { actorFromToken, TOKEN_FIELDS } from "./token";
 
 type Token = Record<string, unknown>;
@@ -40,9 +41,17 @@ async function withReadableFailure<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-export async function jwtCallback({ token, user, account }: { token: Token; user?: User; account?: Account | null }): Promise<Token> {
+/**
+ * Buiten het inloggen bewaakt deze callback alleen de absolute grens: Auth.js tekent het token bij
+ * elke sessieaanvraag opnieuw, dus `maxAge` alleen begrenst niets. `null` teruggeven laat Auth.js de
+ * cookie opruimen, en daarna stuurt `requireSession` naar de inlog. Een cookie zonder `loginAt` (van
+ * vóór deze regel) telt als verlopen: iedereen logt na de uitrol één keer opnieuw in.
+ */
+export async function jwtCallback({ token, user, account }: { token: Token; user?: User; account?: Account | null }): Promise<Token | null> {
   const isSignIn = user !== undefined && account !== undefined && account !== null;
-  if (!isSignIn) return token;
+  if (!isSignIn) {
+    return sessionExpired(token[TOKEN_FIELDS.loginAt], epochSeconds(), SESSION_MAX_AGE_SECONDS) ? null : token;
+  }
 
   const provider = loginProviderById(account.provider);
   if (provider === undefined) {
@@ -56,6 +65,7 @@ export async function jwtCallback({ token, user, account }: { token: Token; user
   token[TOKEN_FIELDS.organisationId] = synced.organisationId;
   token[TOKEN_FIELDS.initials] = synced.initials;
   token[TOKEN_FIELDS.roles] = roles;
+  token[TOKEN_FIELDS.loginAt] = epochSeconds();
   token["name"] = synced.displayName;
   token["email"] = synced.email;
   return token;

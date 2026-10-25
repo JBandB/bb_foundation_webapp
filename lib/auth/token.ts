@@ -20,6 +20,8 @@ export const TOKEN_FIELDS = {
   organisationId: "organisationId",
   initials: "initials",
   roles: "roles",
+  /** Het inlogmoment in epoch-seconden; de grens van de sessie telt daarvanaf (`session-age.ts`). */
+  loginAt: "loginAt",
 } as const;
 
 /** Leest een veld als string, met een expliciete fallback. */

@@ -8,6 +8,7 @@ import { can } from "@/lib/auth/can";
 import { requireSession } from "@/lib/auth/session";
 import { getDb } from "@/lib/db/client";
 import { schemaState } from "@/lib/db/schema-state";
+import { deployEnvironment } from "@/lib/domain/deploy-environment";
 import { withTimeout, type HealthStatus } from "@/lib/integrations/health";
 import { labels } from "@/lib/i18n/labels";
 import { HEALTH_PROVIDERS } from "@/lib/project/registry.generated";
@@ -47,7 +48,7 @@ export default async function SystemPage() {
             <dt className="text-muted-foreground">{labels.system.version}</dt>
             <dd className="num">{APP_VERSION}</dd>
             <dt className="text-muted-foreground">{labels.system.environment}</dt>
-            <dd>{process.env.VERCEL_ENV ?? labels.system.environmentLocal}</dd>
+            <dd>{labels.system.environmentNames[deployEnvironment()]}</dd>
             <dt className="text-muted-foreground">{labels.system.schema}</dt>
             <dd className="flex flex-wrap items-center gap-2">
               {schema.applied === null ? (

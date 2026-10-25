@@ -81,6 +81,11 @@ describe("pnpm doctor", () => {
     expect(levels(diagnose({ ...GOOD, git: undefined }), "action")).toEqual(["Dit is geen git-werkmap, of git ontbreekt"]);
   });
 
+  it("de dev-login met een andere APP_ENV dan local is een actie", () => {
+    expect(levels(diagnose({ ...GOOD, env: { ...GOOD.env, AUTH_DEV_LOGIN: "1", APP_ENV: "production" } }), "action")).toEqual(["AUTH_DEV_LOGIN staat aan, maar APP_ENV is production: de app start dan niet"]);
+    expect(levels(diagnose({ ...GOOD, env: { ...GOOD.env, AUTH_DEV_LOGIN: "1", APP_ENV: "local" } }), "action")).toEqual([]);
+  });
+
   it("toont nooit de waarde van een variabele", () => {
     const secret = "sk-ant-geheim-123";
     const lines = formatFindings(diagnose({ ...GOOD, env: { ...GOOD.env, ANTHROPIC_API_KEY: secret, AUTH_SECRET: undefined } }));

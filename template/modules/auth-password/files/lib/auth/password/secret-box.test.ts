@@ -31,4 +31,16 @@ describe("secret-box", () => {
   it("weigert een te kort geheim als basis voor een sleutel", () => {
     expect(() => boxKey("kort", "test")).toThrow(/te kort/);
   });
+
+  it("weigert een ingekorte tag, ook als het begin klopt", () => {
+    const boxed = seal("JBSWY3DPEHPK3PXP", key);
+    const [version, iv, tag, body] = boxed.split("$");
+    const full = Buffer.from(tag ?? "", "base64url");
+    expect(full.length).toBe(16);
+    for (const length of [4, 8, 12, 15]) {
+      const short = full.subarray(0, length).toString("base64url");
+      expect(open([version, iv, short, body].join("$"), key)).toBeUndefined();
+    }
+    expect(open(boxed, key)).toBe("JBSWY3DPEHPK3PXP");
+  });
 });

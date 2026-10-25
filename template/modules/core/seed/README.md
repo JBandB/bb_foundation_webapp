@@ -35,8 +35,10 @@ pnpm check:contrast       # de kleuren halen de norm in beide modi
 pnpm build                # de productiebuild
 ```
 
-De hele batterij, inclusief de controles tegen de database en de e2e, is `pnpm check:all` (komt
-met een latere ronde van het template).
+De hele batterij, inclusief de controles tegen de database en de e2e, is `pnpm check:all`. Hij
+eindigt met een tabel voor de rubriek Bewijs van de release notes, en slaat de stappen tegen de
+database zichtbaar over als `.env.local` geen database noemt. `pnpm audit --prod --audit-level=high`
+draait los, en in de CI.
 
 ## Gemaakt uit
 

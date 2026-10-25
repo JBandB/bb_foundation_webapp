@@ -161,7 +161,8 @@ export const nl = {
     intro: "De stand van de tool: versie, database en koppelingen. De eerste plek om te kijken als iets niet werkt.",
     version: "Versie",
     environment: "Omgeving",
-    environmentLocal: "lokaal",
+    /** De omgeving uit `deployEnvironment()`: APP_ENV, anders VERCEL_ENV. */
+    environmentNames: { local: "lokaal", preview: "preview", production: "productie", unknown: "onbekend (zet APP_ENV)" },
     schema: "Databaseschema",
     schemaOk: (applied: number, latest: string) => `${applied} migraties, tot en met ${latest}`,
     schemaBehind: (applied: number, expected: number) => `De database loopt achter: ${applied} van ${expected} migraties. Draai de deploy of pnpm db:migrate.`,

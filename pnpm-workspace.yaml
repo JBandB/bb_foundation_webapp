@@ -22,3 +22,6 @@ overrides:
   # zod komt binnen via de Anthropic SDK en eslint-plugin-react-hooks; onder 4.6.6 kan een te groot
   # schema het geheugen uitputten (hoog, oktober 2026).
   zod@<4.6.6: ^4.6.6
+  # vite komt binnen via vitest; onder 8.3.3 zitten fouten in de dev-server en in launch-editor
+  # (hoog, oktober 2026). Alleen ontwikkeltooling, maar de wekelijkse audit hoort schoon te zijn.
+  vite@<8.3.3: ^8.3.4

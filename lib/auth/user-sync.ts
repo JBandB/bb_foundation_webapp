@@ -24,6 +24,7 @@ import { getDb } from "@/lib/db/client";
 import { organisations, users } from "@/lib/db/schema";
 import { initialsOf } from "@/lib/domain/initials";
 import { normaliseDisplayName } from "./display-name";
+import { mayClaimByEmail } from "./email-fallback";
 import type { AppRole } from "./roles.generated";
 
 export interface SyncInput {
@@ -107,12 +108,29 @@ export async function syncUserFromToken(input: SyncInput): Promise<SyncedUser> {
   return row;
 }
 
-/** Eerst op external_id, en anders op e-mailadres. Zie de toelichting hierboven. */
+/**
+ * Eerst op external_id, en anders op e-mailadres. Zie de toelichting hierboven.
+ *
+ * **Op e-mailadres alleen een rij die nog aan geen echte identiteit hangt** (`mayClaimByEmail`).
+ * Hangt de rij met dat adres aan een andere identiteit, dan is dit een tweede identiteit met dezelfde
+ * e-mailclaim, en die neemt de rij, de rollen en de historie van een ander niet over. Er wordt dan
+ * niet ingelogd, met een melding die zegt wat er speelt, in plaats van een botsing op de unieke index
+ * op `lower(email)` bij het aanmaken van een tweede rij.
+ */
 async function findExisting(externalId: string, email: string): Promise<{ id: string } | undefined> {
   const db = getDb();
   const byExternalId = (await db.select({ id: users.id }).from(users).where(eq(users.externalId, externalId)).limit(1))[0];
   if (byExternalId !== undefined) return byExternalId;
-  return (await db.select({ id: users.id }).from(users).where(sql`lower(${users.email}) = ${email}`).limit(1))[0];
+  const byEmail = (await db.select({ id: users.id, externalId: users.externalId }).from(users).where(sql`lower(${users.email}) = ${email}`).limit(1))[0];
+  if (byEmail === undefined) return undefined;
+  if (mayClaimByEmail(byEmail.externalId, externalId)) return { id: byEmail.id };
+  throw new Error(
+    [
+      "Er staat al een gebruiker met dit e-mailadres, gekoppeld aan een andere identiteit.",
+      "Een tweede identiteit met dezelfde e-mailclaim neemt die rij niet over.",
+      "Is het wel dezelfde persoon, zet dan external_id van die rij op 'dev:<adres>'; de volgende login koppelt hem dan.",
+    ].join(" "),
+  );
 }
 
 /** Voor de dev-login en de wachtwoordlogin: bestaat deze gebruiker, en zo ja, welke is het. */
