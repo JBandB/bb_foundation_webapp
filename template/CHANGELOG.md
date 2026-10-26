@@ -9,7 +9,10 @@ versie na het bijwerken.
 
 ### Wat verandert
 
-- Nog niets.
+- **`docs/THEME.md`, paragraaf 8: van een design system naar dit project.** Wat je uit een design system
+  (Claude Design, Figma, een huisstijlgids) overneemt in `project.config.json`, `public/brand/`,
+  `public/fonts` en `app/project.css`, en wat niet: componenten bouw je niet na. De oude paragraaf 8
+  (voordat je een scherm mergeet) is nu 9.
 
 ### Let op bij bijwerken
 

@@ -145,7 +145,30 @@ niet naar de kleur. Draai daarna `pnpm check:contrast`; staat je token in een te
 voeg dat paar dan toe aan de paren die het project zelf rekent (zie het commentaar bovenin
 `scripts/check-contrast.mjs`).
 
-## 8. Voordat je een scherm mergeet
+## 8. Van een design system naar dit project
+
+Heeft de organisatie een design system, uit Claude Design, Figma of een huisstijlgids, dan neem je
+eruit over wat het template kent, en verder niets. Het design system is de bron van de keuzes; de
+tokens van het template zijn de enige plek waar ze in de code staan.
+
+| Uit het design system | Hier | Let op |
+|---|---|---|
+| De hoofdkleur en de tweede kleur | `brand.colours.primary` en `accent` in `project.config.json` | De generator maakt er beide modi van en stelt een kleur bij die het contrast niet haalt |
+| De achtergrond en de tekstkleur in licht | `surface` en `ink` | Liever bijna-wit en bijna-zwart dan zuiver: dat leest rustiger |
+| De kleuren voor gelukt, let op, fout en mededeling | `success`, `warning`, `danger`, `info` | Moeten als tekst leesbaar zijn op wit; een merkkleur die dat niet is, hoort hier niet |
+| Strak of afgerond | `brand.radius`: `sharp`, `soft` of `round` | Eén waarde voor de hele tool, geen afronding per component |
+| Alleen licht | `brand.darkMode: "off"` | Anders maakt de generator de donkere modus erbij |
+| Het logo | een SVG in `public/brand/`, en `brand.logo` | Een versie die leesbaar is op de donkere rail; nooit natekenen (6) |
+| Merkletters | `public/fonts` en `app/fonts/` (3) | Alleen met een licentie voor het web; anders blijven de open fonts |
+| Iets wat hier niet in past (een eigen tint, een rand) | een eigen token in `app/project.css` (7) | Genoemd naar wat het betekent, in beide modi |
+
+Componenten uit het design system bouw je niet na: de UI-kit in `components/ui/` is de vorm, en een
+afwijking is een besluit met een prijs. Wat een scherm van het design system leent, is de
+samenhang: dezelfde kleuren voor dezelfde betekenis, dezelfde ruimte, dezelfde toon. Leg in kopje 10
+van het projectplan vast welk design system de bron is, zodat Claude bij nieuwe schermen dezelfde
+stijl aanhoudt. Na elke wijziging aan de kleuren: `pnpm template:generate` en `pnpm check:contrast`.
+
+## 9. Voordat je een scherm mergeet
 
 - [ ] Geen hex buiten `app/theme.css`, `app/project.css` en `lib/brand/tokens.ts`; `pnpm lint`
       controleert het.

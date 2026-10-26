@@ -2,7 +2,7 @@
   "lockVersion": 1,
   "source": "https://github.com/JBandB/bb_foundation_webapp.git",
   "version": "1.4.0",
-  "appliedAt": "2026-10-25T19:37:13Z",
+  "appliedAt": "2026-10-26T10:19:11Z",
   "modules": {
     "core": {
       "schemaVersion": 1,
@@ -88,7 +88,7 @@
     "docs/PROJECTPLAN.md": {"module":"core","class":"seed","hash":"241f153387923438236e8f320f50dffbea82f7102648626c68aacb6f543cb9ca","seeded":false,"seededIn":null,"sourceHash":"f832a008c09c22ffa1b9e7a9c94c48eebd7263df7fe567f803efdd01781cc859","shippedHash":"241f153387923438236e8f320f50dffbea82f7102648626c68aacb6f543cb9ca"},
     "docs/ROADMAP.md": {"module":"core","class":"seed","hash":"f3cc9aecb5082bbbe869aaa3a2700e44a56cce228587e06ca078e589996298d4","seeded":false,"seededIn":null,"sourceHash":"11a1dae7ccd425386b354686420c4b9349c78b7a4230745101e9fdbf9c1497bd","shippedHash":"f3cc9aecb5082bbbe869aaa3a2700e44a56cce228587e06ca078e589996298d4"},
     "docs/SPEC.md": {"module":"core","class":"seed","hash":"e82a1bcef03a6832de2abfc6fff6e30a7c62299a07a35b3c6328c91da071be9e","seeded":false,"seededIn":null,"sourceHash":"4e3e6d4e2d5b85cb7975823a7f02a84531683a5acb5d224d143b6ff31ab36b80","shippedHash":"e82a1bcef03a6832de2abfc6fff6e30a7c62299a07a35b3c6328c91da071be9e"},
-    "docs/THEME.md": {"module":"core","class":"owned","hash":"1998c5ccd4f46571dcb3366bc0960ea088c49ae53107acf567e541b96dbe0b66","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "docs/THEME.md": {"module":"core","class":"owned","hash":"37d795d39709de3801a3fdb0e3c54c9afacebfd53b36d0d3e6a0d827052cfb74","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "docs/WERKWIJZE.md": {"module":"core","class":"owned","hash":"aea74ec94bf7e30a85c3ca29a877e88f9ad352923c8b637d2c7b088a15bb5221","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "docs/handleiding/00-checklist.md": {"module":"core","class":"owned","hash":"03c989927cd93c514f9104349bb457dbee7ae89048fdf65ae8a1d65988787ed4","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "docs/handleiding/01-start-hier.md": {"module":"core","class":"owned","hash":"2aeecc8f4db3b5ec2c8b68500475e7737dd883f4463274fe2dc934b13363fd7c","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
@@ -317,7 +317,7 @@
     "scripts/lint-house-rules.mjs": {"module":"core","class":"owned","hash":"714deb6d5c2efdf9c4b708ec6ffabdd47528a6357338d7fe56cd68f3b1c81ec3","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "scripts/smoke-prod.ts": {"module":"core","class":"owned","hash":"f0235ca3592bface502c48df80e5728544dacb033701dc6f0edef5654b71445a","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "scripts/task-prune.ts": {"module":"core","class":"owned","hash":"d5b9a3d8f771b3ee6238d9acb62b45a1d34cf0cbe83934bb3151bea53bb1a595","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
-    "template/CHANGELOG.md": {"module":"core","class":"owned","hash":"70a816d416847918844678355a210c711f78af146f6574a8ffe590d11b68871f","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
+    "template/CHANGELOG.md": {"module":"core","class":"owned","hash":"65017945a1f8bb5946e838f46d0102f91f8ff434915d3b036e7066518ceed7f9","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/README.md": {"module":"core","class":"owned","hash":"94be43de14a899316462f6d230d192df4be0de932e4b7b01ce78b39ab4420f39","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/check-template.mjs": {"module":"core","class":"owned","hash":"4ed7931ca4c301027d677f1064fd10086b605e489af6b3c34409ba1ac148eedd","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
     "template/ci/forbidden-words.txt": {"module":"core","class":"owned","hash":"c69b5fec9d3ad98a9998716179f3968d2a9e33b24f2c3ee0bfddb3ab8c91c01e","seeded":false,"seededIn":null,"sourceHash":null,"shippedHash":null},
