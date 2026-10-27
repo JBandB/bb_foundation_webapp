@@ -1,6 +1,6 @@
 /* template-owned (module files). Wordt overschreven door pnpm template:update; wijzig dit bestand niet. */
 import { describe, expect, it } from "vitest";
-import { blobPathFor, resolveContentType, verifyContent } from "./blob";
+import { blobPathFor, fileNameForType, randomSegment, resolveContentType, verifyContent } from "./blob";
 
 describe("resolveContentType", () => {
   it("vertrouwt de extensie als de browser vaag of fout is", () => {
@@ -32,7 +32,28 @@ describe("verifyContent", () => {
 });
 
 describe("blobPathFor", () => {
-  it("bouwt een pad per doel en entiteit met een veilige naam", () => {
-    expect(blobPathFor("documents", "contract", "abc", "Offerte (v2) €.pdf", new Date("2026-10-03T08:00:00.000Z"))).toBe("documents/contract/abc/2026-10-03T08-00-00-000Z-Offerte__v2___.pdf");
+  it("bouwt een pad per doel en entiteit met een willekeurig stuk en een veilige naam", () => {
+    expect(blobPathFor("documents", "contract", "abc", "Offerte (v2) €.pdf", new Date("2026-10-03T08:00:00.000Z"), "a1b2c3d4")).toBe("documents/contract/abc/2026-10-03T08-00-00-000Z-a1b2c3d4-Offerte__v2___.pdf");
+  });
+
+  it("kiest het willekeurige stuk zelf als het niet wordt meegegeven", () => {
+    const now = new Date("2026-10-03T08:00:00.000Z");
+    expect(blobPathFor("documents", "contract", "abc", "a.pdf", now)).not.toBe(blobPathFor("documents", "contract", "abc", "a.pdf", now));
+    expect(randomSegment()).toMatch(/^[0-9a-f]{8}$/);
+  });
+});
+
+describe("fileNameForType", () => {
+  it("geeft de naam de extensie van het gecontroleerde type", () => {
+    expect(fileNameForType("run.bat", "csv")).toBe("run.csv");
+    expect(fileNameForType("Offerte v2.PDF", "pdf")).toBe("Offerte v2.pdf");
+    expect(fileNameForType("lijst", "csv")).toBe("lijst.csv");
+  });
+
+  it("haalt een pad en stuurtekens weg, en valt terug op document", () => {
+    expect(fileNameForType("C:\\Users\\x\\rapport.pdf", "pdf")).toBe("rapport.pdf");
+    expect(fileNameForType("../../etc/passwd", "csv")).toBe("passwd.csv");
+    expect(fileNameForType("a\u0000b\nc.png", "png")).toBe("abc.png");
+    expect(fileNameForType("...", "pdf")).toBe("document.pdf");
   });
 });

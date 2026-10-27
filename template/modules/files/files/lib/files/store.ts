@@ -10,8 +10,15 @@ import { assertCan, AuthorisationError } from "@/lib/auth/can";
 import { appendAuditLog } from "@/lib/db/audit";
 import type { DbOrTransaction } from "@/lib/db/client";
 import { files } from "@/lib/db/schema";
+import { consumeRateLimit } from "@/lib/domain/rate-limit";
 import { canReadFile, canWriteFile } from "./authorize.project";
 import { uploadBlob, type UploadProblem } from "./blob";
+
+/**
+ * Hoeveel bestanden één persoon per uur mag brengen. Ruim voor gewoon werk; een rem op een script of
+ * een lus die de opslag (en de rekening) volschrijft.
+ */
+export const FILE_UPLOADS_PER_HOUR = 100;
 
 export interface FileScope {
   readonly purpose: string;
@@ -50,6 +57,9 @@ export async function uploadFile(db: DbOrTransaction, actor: Actor, scope: FileS
   assertCan(actor, "files:write");
   if (!(await canWriteFile(actor, scope))) throw new AuthorisationError("files:write");
 
+  const gate = await consumeRateLimit(db, { organisationId: actor.organisationId, key: `files:upload:${actor.id}`, limit: FILE_UPLOADS_PER_HOUR, windowMinutes: 60 });
+  if (!gate.ok) return { ok: false, problem: "tooMany" };
+
   const uploaded = await uploadBlob({ ...scope, file });
   if (!uploaded.ok) return { ok: false, problem: uploaded.problem, detail: uploaded.detail };
 
@@ -62,7 +72,7 @@ export async function uploadFile(db: DbOrTransaction, actor: Actor, scope: FileS
         entityType: scope.entityType,
         entityId: scope.entityId,
         blobPath: uploaded.blobPath,
-        name: file.name.slice(0, 200),
+        name: uploaded.name,
         contentType: uploaded.contentType,
         sizeBytes: uploaded.sizeBytes,
         uploadedBy: actor.id,
@@ -107,6 +117,5 @@ export async function removeFile(db: DbOrTransaction, actor: Actor, id: string):
   return true;
 }
 
-export function isUuid(value: string): boolean {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-}
+/** Sinds v1.5.0 in lib/domain/ids.ts; hier opnieuw geëxporteerd, zodat bestaande imports blijven werken. */
+export { isUuid } from "@/lib/domain/ids";

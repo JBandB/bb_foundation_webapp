@@ -13,7 +13,10 @@
  *   env-template          geen echte waarde in .env.example
  *   server-actions        een "use server"-bestand exporteert alleen functies
  *   client-imports        een clientcomponent haalt geen databasecode binnen
+ *   client-graph          ook niet via een omweg: de hele importboom tot een "use server"-grens
  *   subquery-columns      een kolom in een subquery staat uitgeschreven met tabelnaam
+ *   same-id               een id tegen actor.id met sameId(), niet met ===
+ *   secret-patterns       geen SAS, Entra-secret, webhook, PAT of sleutel als letterlijke waarde
  *   labels-size           geen labelbestand boven 600 regels; splits per domein
  *   no-config-import      project.config.json wordt nergens in de app geïmporteerd
  *   template-ownership    de kop van een bestand klopt met template.lock.json
@@ -34,6 +37,9 @@ import { checkSubqueryColumns } from "./house-rules/subquery-columns.mjs";
 import { checkLabelsSize } from "./house-rules/labels-size.mjs";
 import { checkNoConfigImport } from "./house-rules/no-config-import.mjs";
 import { checkTemplateOwnership } from "./house-rules/template-ownership.mjs";
+import { checkClientGraph } from "./house-rules/client-graph.mjs";
+import { checkSameId } from "./house-rules/same-id.mjs";
+import { checkSecretPatterns } from "./house-rules/secret-patterns.mjs";
 import { PROJECT_PER_FILE_RULES, PROJECT_WHOLE_REPO_RULES } from "./house-rules/project-rules.mjs";
 
 /** Regels die per bestand kijken, met de vorm (rel, text, report). */
@@ -46,11 +52,13 @@ const PER_FILE_RULES = [
   checkLabelsSize,
   checkNoConfigImport,
   checkTemplateOwnership,
+  checkSameId,
+  checkSecretPatterns,
   ...PROJECT_PER_FILE_RULES,
 ];
 
-/** Regels die over de repo als geheel gaan, met de vorm (root, report). */
-const WHOLE_REPO_RULES = [checkTokenDrift, checkEnvTemplate, ...PROJECT_WHOLE_REPO_RULES];
+/** Regels die over de repo als geheel gaan, met de vorm (root, report); een asynchrone regel wordt afgewacht. */
+const WHOLE_REPO_RULES = [checkTokenDrift, checkEnvTemplate, checkClientGraph, ...PROJECT_WHOLE_REPO_RULES];
 
 const root = process.cwd();
 const problems = [];
@@ -66,7 +74,7 @@ for (const rel of files) {
 }
 
 for (const rule of WHOLE_REPO_RULES) {
-  rule(root, report);
+  await rule(root, report);
 }
 
 if (problems.length > 0) {

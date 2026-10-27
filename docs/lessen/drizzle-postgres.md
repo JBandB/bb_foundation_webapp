@@ -252,3 +252,31 @@ opnieuw op de knop drukt, anders blokkeert de sleutel ook het herstel.
 wachtrij) en de unieke index op `idempotency_key`; de outbox van module messaging gebruikt dezelfde
 lease. `pnpm check:jobs` draait twee rondes na elkaar en bewijst dat de tweede niets van de eerste
 krijgt. Patroon `idempotentie-en-lease`.
+
+## L-DRZ-15 Een uuid vergelijkt Postgres zonder hoofdletters, JavaScript niet
+
+**Symptoom.** In een eerder project zette iemand zijn eigen recht, terwijl de code "nooit jezelf"
+zei. Hij stuurde zijn eigen id in hoofdletters mee.
+
+**Oorzaak.** Het id uit het formulier ging ongewijzigd naar de query, en daar is `B57CBC18-...`
+dezelfde rij als `b57cbc18-...`. Het slot ervoor vergeleek met `===` tegen `actor.id`, en dat zei
+"iemand anders".
+
+**Regel.** Een id tegen `actor.id` altijd met `sameId(a, b)`, nooit met `===` of `!==`. Of een id
+de goede vorm heeft, met `isUuid`; of hij van jou is, in de query.
+
+**Afgedwongen door.** `lib/domain/ids.ts` met test, en de huisregel `same-id`.
+
+## L-DRZ-16 De reden van een mislukte query zit in `cause`, de parameters in de melding
+
+**Symptoom.** In de log stond alleen "Failed query: insert into ...", of juist de query met op de
+tweede regel een e-mailadres en een naam. Op een beheerscherm stond de querytekst.
+
+**Oorzaak.** Een mislukte query is een `DrizzleQueryError`: de query en de parameters in `message`,
+de fout van Postgres in `cause`. `String(error)` en `error.message` geven dus de parameters en niet
+de reden.
+
+**Regel.** Naar de log met `errorForLog(error)`, naar een scherm of een kolom die een scherm toont
+met `errorForScreen(error)`. Nooit `error.message` van een databasefout in een `console.error`.
+
+**Afgedwongen door.** `lib/monitoring/error-text.ts` met test; `reportError` maakt de rest schoon.

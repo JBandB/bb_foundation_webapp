@@ -15,6 +15,14 @@ import type { NextConfig } from "next";
  * interne URL's lekt, en browserfeatures die niemand gebruikt. XSS wordt niet door de CSP gedragen maar
  * door de code zelf: geen `dangerouslySetInnerHTML`, tekst wordt nooit als HTML gelezen.
  *
+ * **HSTS en COOP staan in de code**, niet alleen bij de host. Vercel zet HSTS zelf, maar zonder
+ * `includeSubDomains`, en transportbeveiliging hoort niet te hangen aan een platforminstelling die
+ * niemand bewaakt. Twee jaar, met `includeSubDomains`: dat geldt voor de subdomeinen van de host die
+ * de header stuurt, niet voor de rest van het domein erboven. Over http negeert een browser de header,
+ * dus `next start` op localhost merkt er niets van. `Cross-Origin-Opener-Policy: same-origin` knipt de
+ * lijn met een venster dat ons opende of dat wij openen; de inlog bij Microsoft is een redirect en geen
+ * popup, dus daar breekt niets. En `X-Powered-By: Next.js` gaat uit: dat zegt alleen een aanvaller iets.
+ *
  * **In ontwikkeling staat `unsafe-eval` erbij**, want de dev-server van Next draait HMR op eval. De
  * e2e-suite draait tegen `next start` en test dus de echte productieheaders.
  *
@@ -47,6 +55,8 @@ export const TEMPLATE_HEADERS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
 ];
 
 export const ABOUT_DOCUMENTS = ["./RELEASE-NOTES-KORT.md", "./docs/ROADMAP.md", "./docs/SPEC.md"];
@@ -69,6 +79,7 @@ export function withTemplateDefaults(project: NextConfig = {}): NextConfig {
       "/about/**": ABOUT_DOCUMENTS,
       ...project.outputFileTracingIncludes,
     },
+    poweredByHeader: project.poweredByHeader ?? false,
     reactStrictMode: true,
     // Typefouten mogen een build nooit stil passeren. Lint loopt apart in CI,
     // want Next 16 heeft de ingebouwde eslint-stap laten vallen.

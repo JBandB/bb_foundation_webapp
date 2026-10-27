@@ -75,7 +75,9 @@ in een deploy aanstaat.
 gebruiker met gekozen rollen inlogt. Slot 1: niet registreren zonder `AUTH_DEV_LOGIN=1`. Slot 2: de
 module gooit bij het laden tenzij `APP_ENV=local`, zodat een deploy niet start in plaats van stil
 open te staan. Een eerdere versie gooide als `VERCEL_ENV` bestond; dat faalde open op elke andere host,
-en `NODE_ENV` helpt niet omdat de e2e op `next start` draait. Verzonnen rollen niet wegschrijven naar een kolom die de identity provider hoort te
+en `NODE_ENV` helpt niet omdat de e2e op `next start` draait. En `APP_ENV=local` wint nooit van
+een deploy: wie `.env.example` in bulk in Vercel importeerde, zette anders op een preview een inlog
+zonder wachtwoord open (gevonden bij een audit in een eerder project). Verzonnen rollen niet wegschrijven naar een kolom die de identity provider hoort te
 spiegelen. Gevolg: op een preview werkt alleen de echte login. Een eigen
 `CredentialsSignin`-subklasse vraagt `override code` onder `noImplicitOverride`.
 

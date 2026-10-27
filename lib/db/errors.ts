@@ -90,9 +90,10 @@ export function isExclusionViolation(error: unknown, constraint: string): boolea
  * precies wat je wil lezen.
  *
  * **Geen parameters.** Die staan wel in de Drizzle-melding en horen niet in een log: het zijn de
- * gegevens van een gebruiker.
+ * gegevens van een gebruiker. Het detail van Postgres kan dat ook zijn (`Key (email)=(...)`); met
+ * `detail: false` blijft het weg, en zo gebruikt `errorForLog` in lib/monitoring/error-text.ts hem.
  */
-export function describeDbError(error: unknown): string {
+export function describeDbError(error: unknown, options: { readonly detail?: boolean } = {}): string {
   const info = dbErrorInfo(error);
   if (info === undefined) {
     return error instanceof Error ? (error.message.split("\n")[0] ?? "onbekende fout") : String(error);
@@ -101,7 +102,7 @@ export function describeDbError(error: unknown): string {
   const parts = [
     `SQLSTATE ${info.code}`,
     info.message ?? "",
-    info.detail !== undefined && info.detail !== "" ? `(${info.detail})` : "",
+    options.detail !== false && info.detail !== undefined && info.detail !== "" ? `(${info.detail})` : "",
     info.constraint !== undefined && info.constraint !== "" ? `constraint ${info.constraint}` : "",
     info.table !== undefined && info.table !== "" ? `op ${info.table}` : "",
   ];

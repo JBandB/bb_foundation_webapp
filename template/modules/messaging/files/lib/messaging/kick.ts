@@ -6,6 +6,7 @@
  */
 import { after } from "next/server";
 import { getDb } from "@/lib/db/client";
+import { errorForLog } from "@/lib/monitoring/error-text";
 import { organisations } from "@/lib/db/schema";
 import { sendPending } from "./send";
 
@@ -17,7 +18,7 @@ export function kickOutbox(): void {
         const organisation = (await db.select({ id: organisations.id }).from(organisations).limit(1))[0];
         if (organisation !== undefined) await sendPending(db, organisation.id);
       } catch (error) {
-        console.error("outbox: de verzendronde na het antwoord mislukte", error instanceof Error ? error.message : error);
+        console.error("outbox: de verzendronde na het antwoord mislukte", errorForLog(error));
       }
     });
   } catch {

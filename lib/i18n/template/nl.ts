@@ -167,6 +167,8 @@ export const nl = {
     schemaOk: (applied: number, latest: string) => `${applied} migraties, tot en met ${latest}`,
     schemaBehind: (applied: number, expected: number) => `De database loopt achter: ${applied} van ${expected} migraties. Draai de deploy of pnpm db:migrate.`,
     schemaUnknown: "Niet op te vragen.",
+    /** Op een scherm in plaats van een databasefout zonder bruikbare oorzaak; de details staan in de log. */
+    errorDetailsInLog: "Een fout in de database; de details staan in de serverlog.",
     integrationsTitle: "Koppelingen",
     integrationsIntro: "Per koppeling of hij werkt, zonder iets te veranderen.",
     integrationsNone: "Dit project heeft geen koppelingen naar buiten.",

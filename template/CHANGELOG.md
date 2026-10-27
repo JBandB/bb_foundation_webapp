@@ -9,14 +9,77 @@ versie na het bijwerken.
 
 ### Wat verandert
 
-- **`docs/THEME.md`, paragraaf 8: van een design system naar dit project.** Wat je uit een design system
-  (Claude Design, Figma, een huisstijlgids) overneemt in `project.config.json`, `public/brand/`,
-  `public/fonts` en `app/project.css`, en wat niet: componenten bouw je niet na. De oude paragraaf 8
-  (voordat je een scherm mergeet) is nu 9.
+- Nog niets.
 
 ### Let op bij bijwerken
 
 - Nog niets.
+
+## v1.5.0 (27 oktober 2026)
+
+### Wat verandert
+
+Beveiliging uit een audit van een eerder project: de gaten die projecten nu van het template erven.
+
+- **Een deploy is nooit lokaal.** `APP_ENV=local` won van `VERCEL_ENV`, en `.env.example` zet hem
+  samen met `AUTH_DEV_LOGIN=1`. Wie dat bestand in bulk in Vercel importeerde, zette op een preview een
+  inlog zonder wachtwoord open. Nu wint de deploy (`preview` of `production`) en gooit de dev-login bij
+  het laden; `development` van `vercel env pull` blijft lokaal (`lib/domain/deploy-environment.ts`,
+  met test). Handleiding 06 en de les in `authjs.md` zeggen het.
+- **Module messaging: een naam van buiten op één regel.** Een naam met witregels en een adres ertussen
+  werd in de mail aan de beheerders een eigen alinea, en dus een knop naar elke site.
+  `oneLineUntrusted` in `lib/messaging/mail-html.ts` (met test) zet stuurtekens, regelscheiders en
+  witruimte om in één spatie; het hulpformulier op het inlogscherm gebruikt hem voor de naam. Daar
+  komt de grens per adres nu ook vóór het plafond voor de hele installatie, en dat plafond gaat van 5
+  naar 50 per uur: drie bezoekers hielden het enige hulpkanaal anders dicht.
+- **`sameId` voor ids** (`lib/domain/ids.ts`, met test, plus `isUuid`). Postgres vergelijkt een uuid
+  zonder hoofdletters, `===` niet, dus een "nooit jezelf"-slot was te omzeilen met het eigen id in
+  hoofdletters. De module auth-password had dat slot bij deactiveren; dat gebruikt nu `sameId`.
+  `isUuid` uit `lib/files/store.ts` komt nu hiervandaan en wordt daar opnieuw geëxporteerd.
+- **Drie nieuwe huisregels**: `same-id` (een `===` of `!==` tegen `actor.id`), `client-graph` (volgt
+  de imports van een clientcomponent transitief tot een `"use server"`-grens en weigert database,
+  `next-auth`, `node:` of een niet-publieke `process.env` onderweg) en `secret-patterns` (Azure-SAS,
+  Entra-secret, webhooks van Teams en Power Automate, een ingevulde PAT, `AccountKey=`, private keys:
+  wat secretlint mist). De runner wacht nu op een asynchrone regel. Tests in `rules.test.mjs`.
+- **Security headers**: `Strict-Transport-Security` met `includeSubDomains` (twee jaar),
+  `Cross-Origin-Opener-Policy: same-origin`, en `X-Powered-By` uit (`lib/config/next-base.ts`).
+  `pnpm smoke:prod` controleert alle drie.
+- **Fouten zonder parameters** (`lib/monitoring/error-text.ts`, met test): `errorForLog` en
+  `errorForScreen`. De login, de rondes na het antwoord van jobs en messaging, de foutkolom van jobs en
+  outbox, en de gezondheidscontroles op Beheer, Systeem zetten geen ruwe `error.message` meer in de
+  log of op een scherm. `describeDbError` kan het detail van Postgres weglaten (`detail: false`).
+- **Module files**: de bewaarde naam krijgt de extensie van het gecontroleerde type (`fileNameForType`:
+  een `run.bat` die als CSV binnenkwam, heet `run.csv`), het pad een willekeurig stuk, en de PUT naar
+  de opslag overschrijft nooit (`If-None-Match: *`). Een oud Office-formaat (.xls, .doc) wordt altijd
+  geweigerd, want macro's zijn daarin niet te zien, ook als een doel het type noemt. En een rem van
+  100 uploads per uur per persoon (`FILE_UPLOADS_PER_HOUR`). Twee nieuwe meldingen in beide talen.
+- **Lessen**: `L-DRZ-15` (uuid en hoofdletters), `L-DRZ-16` (de reden zit in `cause`) en een regel in
+  `L-NEXT-16` over een test die "de tabel" pakt.
+- **`docs/THEME.md`, paragraaf 8: van een design system naar dit project.** Wat je uit een design system
+  (Claude Design, Figma, een huisstijlgids) overneemt in `project.config.json`, `public/brand/`,
+  `public/fonts` en `app/project.css`, en wat niet: componenten bouw je niet na. De oude paragraaf 8
+  (voordat je een scherm mergeet) is nu 9.
+- **Het template staat op een nieuw adres**: `https://github.com/bosenbrouwer/bb_foundation_webapp.git`
+  in het manifest en de lock. Het oude adres stuurt door.
+
+Bewust niet: `security.txt` had al een `mailto:` als contact, en PKCE bij OAuth speelt pas als een
+module een eigen OAuth-koppeling krijgt (Auth.js doet het bij de inlog zelf).
+
+### Let op bij bijwerken
+
+- **Zet `template.source` in `project.config.json` op het nieuwe adres**
+  (`https://github.com/bosenbrouwer/bb_foundation_webapp.git`). Het oude adres werkt via een
+  doorverwijzing, maar daar wil je niet op leunen. Het template is afgeschermd: wie bijwerkt, heeft
+  leesrecht op die repo nodig, en de eerste keer vraagt git om in te loggen.
+- **Draai `pnpm lint`.** De drie nieuwe huisregels kunnen in eigen code afgaan: een `===` tegen
+  `actor.id` (gebruik `sameId`), een clientcomponent die via een omweg servercode binnenhaalt (zet de
+  waarde in een module zonder serverimport), of een letterlijk geheim (haal het weg en draai het om;
+  is het aantoonbaar geen geheim, zet dan `secretlint-disable-next-line` op de regel erboven).
+- **Staan `APP_ENV=local` en `AUTH_DEV_LOGIN` in Vercel**, dan start een deploy na het bijwerken niet
+  meer. Dat is de bedoeling: haal ze daar weg.
+- **Module files**: een doel in `lib/files/purposes.ts` dat `application/vnd.ms-excel` of
+  `application/msword` noemt, neemt die niet meer aan. Een bestand dat vanaf nu binnenkomt, heet naar
+  zijn gecontroleerde type; oude rijen blijven zoals ze zijn.
 
 ## v1.4.0 (25 oktober 2026)
 

@@ -9,6 +9,13 @@ describe("deployEnvironment", () => {
     expect(deployEnvironment({ APP_ENV: "production", VERCEL_ENV: "preview" })).toBe("production");
   });
 
+  it("laat APP_ENV=local nooit winnen in een deploy van Vercel", () => {
+    expect(deployEnvironment({ APP_ENV: "local", VERCEL_ENV: "preview" })).toBe("preview");
+    expect(deployEnvironment({ APP_ENV: "local", VERCEL_ENV: "production" })).toBe("production");
+    /* `vercel env pull` zet lokaal development: dat is geen deploy, dus lokaal mag. */
+    expect(deployEnvironment({ APP_ENV: "local", VERCEL_ENV: "development" })).toBe("local");
+  });
+
   it("valt terug op VERCEL_ENV", () => {
     expect(deployEnvironment({ VERCEL_ENV: "production" })).toBe("production");
     expect(deployEnvironment({ VERCEL_ENV: "preview" })).toBe("preview");

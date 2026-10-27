@@ -121,6 +121,9 @@ runScript(async () => {
   check("een Content-Security-Policy", (signIn.headers.get("content-security-policy") ?? "").includes("default-src"));
   check("X-Frame-Options DENY", signIn.headers.get("x-frame-options") === "DENY");
   check("X-Content-Type-Options nosniff", signIn.headers.get("x-content-type-options") === "nosniff");
+  check("HSTS met includeSubDomains", (signIn.headers.get("strict-transport-security") ?? "").includes("includeSubDomains"));
+  check("Cross-Origin-Opener-Policy same-origin", signIn.headers.get("cross-origin-opener-policy") === "same-origin");
+  check("geen X-Powered-By", signIn.headers.get("x-powered-by") === null);
 
   console.log(`\n${passed} goed, ${failed} fout.`);
   if (failed > 0) process.exitCode = 1;

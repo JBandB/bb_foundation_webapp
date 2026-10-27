@@ -12,6 +12,7 @@
  */
 import { after } from "next/server";
 import { getDb } from "@/lib/db/client";
+import { errorForLog } from "@/lib/monitoring/error-text";
 import { processJobs } from "./run";
 
 export function kickJobs(system?: string): void {
@@ -20,7 +21,7 @@ export function kickJobs(system?: string): void {
       try {
         await processJobs(getDb(), { system });
       } catch (error) {
-        console.error("jobs: de ronde na het antwoord mislukte", error instanceof Error ? error.message : error);
+        console.error("jobs: de ronde na het antwoord mislukte", errorForLog(error));
       }
     });
   } catch {

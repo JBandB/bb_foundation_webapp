@@ -12,6 +12,7 @@ import { loginProviderById } from "./providers";
 import { parseRoles } from "./roles";
 import { epochSeconds, SESSION_MAX_AGE_SECONDS, sessionExpired } from "./session-age";
 import { actorFromToken, TOKEN_FIELDS } from "./token";
+import { errorForLog } from "@/lib/monitoring/error-text";
 
 type Token = Record<string, unknown>;
 
@@ -28,7 +29,7 @@ async function withReadableFailure<T>(fn: () => Promise<T>): Promise<T> {
   try {
     return await fn();
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = errorForLog(error);
     console.error(
       [
         "Login mislukt bij het synchroniseren van de gebruiker.",

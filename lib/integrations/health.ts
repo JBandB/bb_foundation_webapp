@@ -4,6 +4,7 @@
  * een API) meldt zich aan in het register met één functie die zegt of het werkt, zonder iets te
  * veranderen en zonder lang te wachten.
  */
+import { errorForScreen } from "@/lib/monitoring/error-text";
 
 export type HealthStatus = "ok" | "warning" | "error" | "off";
 
@@ -34,7 +35,7 @@ export async function withTimeout(check: () => Promise<HealthReport>, ms = 4000)
   try {
     return await Promise.race([check(), timeout]);
   } catch (error) {
-    return { status: "error", detail: error instanceof Error ? error.message : String(error) };
+    return { status: "error", detail: errorForScreen(error) };
   } finally {
     if (timer !== undefined) clearTimeout(timer);
   }

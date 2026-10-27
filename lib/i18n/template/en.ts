@@ -171,6 +171,7 @@ export const en = {
     schemaOk: (applied: number, latest: string) => `${applied} migrations, up to ${latest}`,
     schemaBehind: (applied: number, expected: number) => `The database is behind: ${applied} of ${expected} migrations. Run the deploy or pnpm db:migrate.`,
     schemaUnknown: "Could not be read.",
+    errorDetailsInLog: "A database error; the details are in the server log.",
     integrationsTitle: "Integrations",
     integrationsIntro: "Per integration whether it works, without changing anything.",
     integrationsNone: "This project has no external integrations.",

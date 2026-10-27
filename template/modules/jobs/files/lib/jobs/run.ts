@@ -8,6 +8,7 @@
  * programmeerfout en geen storing buiten, en vijf keer proberen maakt hem niet beter.
  */
 import type { DbOrTransaction } from "@/lib/db/client";
+import { errorForScreen } from "@/lib/monitoring/error-text";
 import { ROUND_LIMIT } from "./constants";
 import { handlerKey, type JobHandlers } from "./handler";
 import { JOB_HANDLERS } from "./handlers";
@@ -59,7 +60,7 @@ export async function processJobs(db: DbOrTransaction, options: RunOptions = {})
         waiting += 1;
       }
     } catch (error) {
-      const outcome = await markFailed(db, job.id, error instanceof Error ? error.message : String(error), job.attempts);
+      const outcome = await markFailed(db, job.id, errorForScreen(error), job.attempts);
       if (outcome === "failed") failed += 1;
       else retried += 1;
     }

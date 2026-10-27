@@ -63,7 +63,10 @@ Met inloggen via Microsoft (05) komen erbij, in alle drie de omgevingen:
 Eén plek voor geheimen, met een scheiding per omgeving, is het hele verschil tussen "we weten waar
 het staat" en "iemand heeft het ooit ergens geplakt". `.env.local` is een afgeleide van Vercel en
 geen tweede bron. De dev-login werkt bovendien alleen met `APP_ENV=local` en weigert in elke andere
-omgeving te laden, dus zelfs een vergissing kan hem niet in een deploy aanzetten.
+omgeving te laden. Komt `APP_ENV=local` toch in Vercel terecht, bijvoorbeeld doordat iemand
+`.env.example` in één keer importeert, dan wint de deploy (`VERCEL_ENV` is `preview` of
+`production`) en start de app niet zolang `AUTH_DEV_LOGIN` er ook staat. Een vergissing levert dus
+een mislukte deploy op en nooit een inlog zonder wachtwoord. Haal beide variabelen dan weg.
 
 ## Beveiliging
 

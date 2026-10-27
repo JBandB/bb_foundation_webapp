@@ -137,6 +137,9 @@ Vuistregels: één bestand, één onderwerp; datatabellen apart van logica; sche
   `APP_ENV=local` er daarna weer in.
 - Een route handler die schrijft en op de sessiecookie leunt, begint met `requestOriginVerdict`
   (`lib/domain/request-origin.ts`), vóór de sessie. Server actions krijgen die controle van Next.
+- Een id tegen `actor.id` vergelijk je met `sameId` (`lib/domain/ids.ts`): Postgres let niet op
+  hoofdletters, `===` wel. Een fout naar de log met `errorForLog`, naar een scherm met
+  `errorForScreen` (`lib/monitoring/error-text.ts`), nooit een ruwe `error.message`.
 - Elke cron-taak is ook een `pnpm task:<naam>` script.
 
 ## Lessen en patronen

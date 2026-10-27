@@ -9,8 +9,11 @@ controleert.
 - **Doelen** (`lib/files/purposes.ts`, van het project): per doel de grens en de toegestane types.
   Standaard één doel `documents` met pdf, docx, png en jpg tot vier megabyte.
 - **`uploadFile`** controleert de grens, het type en de eerste bytes van de inhoud (en weigert
-  Office-bestanden met macro's), schrijft naar de container met een PUT en registreert de rij in
-  `files`. Het SAS-token staat in een variabele op de server en bereikt de browser nooit.
+  Office-bestanden met macro's, en de oude formaten .xls en .doc altijd), schrijft naar de container
+  met een PUT die nooit overschrijft (`If-None-Match: *`, een willekeurig stuk in het pad) en
+  registreert de rij in `files`. De bewaarde naam krijgt de extensie van het gecontroleerde type. Eén
+  persoon brengt hoogstens 100 bestanden per uur. Het SAS-token staat in een variabele op de server
+  en bereikt de browser nooit.
 - **Downloaden** via `/api/files/<id>`: 401 zonder sessie, 404 voor wat niet bestaat of niet mag,
   als bijlage met `nosniff` en zonder cache.
 - **Twee sloten**: `files:read` en `files:write` uit de matrix, en de rij-niveau-controle van het

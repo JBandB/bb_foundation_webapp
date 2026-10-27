@@ -6,7 +6,13 @@
  *
  * Wat de opslag in gaat, wordt eerst nagekeken: de grens van het doel, het type volgens de lijst van
  * het doel, en de eerste bytes die bij dat type horen. Een bestand dat niet is wat het zegt, komt er
- * niet in; een Office-bestand met macro's ook niet.
+ * niet in; een Office-bestand met macro's ook niet, en een oud Office-formaat (.xls, .doc) nooit,
+ * want daarin zijn macro's niet te zien.
+ *
+ * Pas na al die controles gaat het bestand de opslag in, en dan zo dat het niets kan overschrijven:
+ * een willekeurig stuk in het pad en een PUT met `If-None-Match: *`. De naam die we bewaren en bij het
+ * downloaden meegeven, krijgt de extensie van het gecontroleerde type: een `run.bat` die als CSV
+ * binnenkwam, heet daarna `run.csv` (in een eerder project gevonden bij een audit).
  */
 import { fetchWithTimeout } from "@/lib/integrations/http";
 import { FILE_PURPOSES } from "./purposes";
@@ -101,16 +107,37 @@ export function verifyContent(bytes: Uint8Array, contentType: string): ContentPr
   return undefined;
 }
 
-export function blobPathFor(purpose: string, entityType: string, entityId: string, filename: string, now: Date): string {
-  const stamp = now.toISOString().replace(/[:.]/g, "-");
-  const safe = filename.replace(/[^\w.-]/g, "_").slice(-80);
-  return `${purpose}/${entityType}/${entityId}/${stamp}-${safe}`;
+/** De oude binaire Office-formaten: een macro zit daar in een structuur die we niet kunnen lezen. */
+const LEGACY_OFFICE: ReadonlySet<string> = new Set(["application/vnd.ms-excel", "application/msword"]);
+
+/**
+ * De naam om te bewaren: de naam zonder pad, stuurtekens en eigen extensie, met de extensie van het
+ * gecontroleerde type erachter. Blijft er geen letter of cijfer over, dan `document`.
+ */
+export function fileNameForType(original: string, extension: string): string {
+  const base = (original.split(/[\\/]/).pop() ?? "")
+    .replace(/\p{Cc}/gu, "")
+    .replace(/\.[^.]*$/, "")
+    .trim()
+    .slice(0, 120);
+  return `${/[\p{L}\p{N}]/u.test(base) ? base : "document"}.${extension}`;
 }
 
-export type UploadProblem = "notConfigured" | "empty" | "tooLarge" | "wrongType" | ContentProblem | "rejected";
+/** Acht willekeurige tekens: twee uploads in dezelfde milliseconde komen nooit op hetzelfde pad. */
+export function randomSegment(): string {
+  return crypto.randomUUID().slice(0, 8);
+}
+
+export function blobPathFor(purpose: string, entityType: string, entityId: string, filename: string, now: Date, random: string = randomSegment()): string {
+  const stamp = now.toISOString().replace(/[:.]/g, "-");
+  const safe = filename.replace(/[^\w.-]/g, "_").slice(-80);
+  return `${purpose}/${entityType}/${entityId}/${stamp}-${random}-${safe}`;
+}
+
+export type UploadProblem = "notConfigured" | "empty" | "tooLarge" | "wrongType" | "oldOffice" | ContentProblem | "rejected" | "tooMany";
 
 export type UploadResult =
-  | { readonly ok: true; readonly blobPath: string; readonly sizeBytes: number; readonly contentType: string }
+  | { readonly ok: true; readonly blobPath: string; readonly name: string; readonly sizeBytes: number; readonly contentType: string }
   | { readonly ok: false; readonly problem: UploadProblem; readonly detail?: string };
 
 export async function uploadBlob(input: { purpose: string; entityType: string; entityId: string; file: File; now?: Date }): Promise<UploadResult> {
@@ -121,16 +148,23 @@ export async function uploadBlob(input: { purpose: string; entityType: string; e
   if (input.file.size > spec.maxBytes) return { ok: false, problem: "tooLarge" };
 
   const contentType = resolveContentType(input.file.name, input.file.type);
-  if (!spec.types.has(contentType)) return { ok: false, problem: "wrongType", detail: [...new Set(spec.types.values())].join(", ") };
+  if (LEGACY_OFFICE.has(contentType)) return { ok: false, problem: "oldOffice" };
+  const extension = spec.types.get(contentType);
+  if (extension === undefined) return { ok: false, problem: "wrongType", detail: [...new Set(spec.types.values())].join(", ") };
 
   const body = await input.file.arrayBuffer();
   const wrong = verifyContent(new Uint8Array(body), contentType);
   if (wrong !== undefined) return { ok: false, problem: wrong };
 
-  const blobPath = blobPathFor(input.purpose, input.entityType, input.entityId, input.file.name, input.now ?? new Date());
-  const response = await fetchWithTimeout(blobUrl(config, blobPath), { method: "PUT", headers: { "x-ms-blob-type": "BlockBlob", "content-type": contentType }, body });
+  const name = fileNameForType(input.file.name, extension);
+  const blobPath = blobPathFor(input.purpose, input.entityType, input.entityId, name, input.now ?? new Date());
+  const response = await fetchWithTimeout(blobUrl(config, blobPath), {
+    method: "PUT",
+    headers: { "x-ms-blob-type": "BlockBlob", "content-type": contentType, "if-none-match": "*" },
+    body,
+  });
   if (!response.ok) return { ok: false, problem: "rejected", detail: await explain(response) };
-  return { ok: true, blobPath, sizeBytes: input.file.size, contentType };
+  return { ok: true, blobPath, name, sizeBytes: input.file.size, contentType };
 }
 
 /** De URL met token om te lezen, alleen voor de server. Undefined als de opslag niet is ingericht. */
@@ -153,6 +187,7 @@ export async function explain(response: Response): Promise<string> {
     AuthorizationPermissionMismatch: "het token mist een recht; voor uploaden zijn Create en Write nodig",
     AuthorizationFailure: "het token mist een recht; voor uploaden zijn Create en Write nodig",
     ContainerNotFound: "de container bestaat niet onder deze naam",
+    BlobAlreadyExists: "er staat al een bestand op dit pad, en een upload overschrijft nooit; probeer het opnieuw",
     InvalidResourceName: "een containernaam mag alleen kleine letters, cijfers en streepjes bevatten",
   };
   const hint = hints[code];

@@ -12,6 +12,7 @@ import { ADMIN_ROLES, isAppRole, parseRoles, type AppRole } from "@/lib/auth/rol
 import { appendAuditLog } from "@/lib/db/audit";
 import type { DbOrTransaction } from "@/lib/db/client";
 import { credentials, users } from "@/lib/db/schema";
+import { sameId } from "@/lib/domain/ids";
 import { labels } from "@/lib/i18n/labels";
 import { enqueueKind } from "@/lib/messaging/enqueue-kind";
 import { accountById, type AccountRow } from "./accounts";
@@ -130,7 +131,8 @@ export async function setRoles(db: DbOrTransaction, actor: Actor, userId: string
 
 export async function setActive(db: DbOrTransaction, actor: Actor, userId: string, active: boolean): Promise<AdminResult> {
   assertCan(actor, "admin:access");
-  if (userId === actor.id && !active) return { ok: false, problem: "self" };
+  /* Met sameId: het id komt uit het formulier, en in hoofdletters is het voor Postgres dezelfde rij. */
+  if (sameId(userId, actor.id) && !active) return { ok: false, problem: "self" };
   const account = await accountById(db, userId);
   if (account === undefined || account.organisationId !== actor.organisationId) return { ok: false, problem: "notFound" };
   if (!active && (await isLastAdmin(db, actor.organisationId, userId))) return { ok: false, problem: "lastAdmin" };

@@ -88,3 +88,18 @@ export function quoteUntrusted(text: string): string {
     .map((line) => (line.trim() === "" ? ">" : `> ${line}`))
     .join("\n");
 }
+
+/**
+ * Een kort veld van buiten (een naam, een onderwerp) op één regel, voor midden in een zin.
+ *
+ * `quoteUntrusted` beschermt een bericht, maar niet de naam die ervoor staat. Een naam met witregels
+ * en een adres ertussen werd zo een eigen alinea met alleen dat adres, en dus een knop in onze mail
+ * naar elke site (in een eerder project gevonden bij een audit). Op één regel staat het adres altijd
+ * tussen andere woorden, en dan is het tekst. Stuurtekens en de Unicode-regelscheiders gaan er ook uit.
+ */
+export function oneLineUntrusted(text: string): string {
+  return text
+    .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}

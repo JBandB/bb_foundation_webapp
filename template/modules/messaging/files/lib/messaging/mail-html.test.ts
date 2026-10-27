@@ -1,6 +1,6 @@
 /* template-owned (module messaging). Wordt overschreven door pnpm template:update; wijzig dit bestand niet. */
 import { describe, expect, it } from "vitest";
-import { escapeHtml, mailHtml, quoteUntrusted } from "./mail-html";
+import { escapeHtml, mailHtml, oneLineUntrusted, quoteUntrusted } from "./mail-html";
 
 const shell = { buttonLabel: "Openen", footer: "Een voet." };
 
@@ -20,5 +20,18 @@ describe("mailHtml", () => {
 
   it("zet tekst van buiten als citaat, regel voor regel", () => {
     expect(quoteUntrusted("eerste\n\nhttps://kwaad.invalid")).toBe("> eerste\n>\n> https://kwaad.invalid");
+  });
+});
+
+describe("oneLineUntrusted", () => {
+  it("zet witregels, tabs en stuurtekens om in één spatie", () => {
+    expect(oneLineUntrusted("Anna\n\nhttps://kwaad.invalid\r\n\tde Vries")).toBe("Anna https://kwaad.invalid de Vries");
+    expect(oneLineUntrusted("a\u2028b\u0000c")).toBe("a b c");
+  });
+
+  it("laat een naam als alinea nooit een knop worden", () => {
+    const name = oneLineUntrusted("Anna\n\nhttps://kwaad.invalid/aanmelden\n\nde Vries");
+    const html = mailHtml(`${name} (anna@voorbeeld.invalid) kan niet inloggen:`, shell);
+    expect(html).not.toContain('href="https://kwaad.invalid');
   });
 });

@@ -6,6 +6,7 @@
  */
 import type { DbOrTransaction } from "@/lib/db/client";
 import { labels } from "@/lib/i18n/labels";
+import { errorForScreen } from "@/lib/monitoring/error-text";
 import { bundleMail } from "./mail-bundle";
 import { mailHtml } from "./mail-html";
 import { claimPending, countPending, markFailed, markSent } from "./outbox";
@@ -41,7 +42,7 @@ export async function sendPending(db: DbOrTransaction, organisationId: string, l
       await markSent(db, message.id);
       sent += 1;
     } catch (error) {
-      await markFailed(db, message.id, message.attempts, error instanceof Error ? error.message : String(error));
+      await markFailed(db, message.id, message.attempts, errorForScreen(error));
       failed += 1;
     }
   }
@@ -63,7 +64,7 @@ export async function sendPending(db: DbOrTransaction, organisationId: string, l
       for (const id of bundle.ids) {
         const message = byId.get(id);
         if (message === undefined) continue;
-        await markFailed(db, id, message.attempts, error instanceof Error ? error.message : String(error));
+        await markFailed(db, id, message.attempts, errorForScreen(error));
         failed += 1;
       }
     }

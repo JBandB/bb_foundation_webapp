@@ -258,6 +258,8 @@ gebeurtenis bestaat (`waitFor({ state: "visible", timeout })`), niet op `network
 `waitForURL` met een patroon dat alleen de bestemming matcht, en een ruime timeout voor zware
 schermen. Na een opslaande actie wachten op het serverantwoord voor je herlaadt. Doen wat een
 gebruiker doet: Enter in plaats van `locator.blur()`, de muis in stappen en een paar pixels binnen
-een grens. UI-teksten in tests uit `lib/i18n` lezen, nooit letterlijk.
+een grens. UI-teksten in tests uit `lib/i18n` lezen, nooit letterlijk. Een test die "de tabel" pakt
+(`getByRole("table")`) breekt zodra een scherm een tweede tabel krijgt: filter op een kolomkop
+(`getByRole("table").filter({ has: page.getByRole("columnheader", { name }) })`).
 
 **Afgedwongen door.** De patronen in `e2e/helpers.ts` en de owned specs; verder afspraak.
