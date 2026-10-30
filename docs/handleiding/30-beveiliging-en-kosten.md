@@ -13,8 +13,10 @@ zodat je het in een kwartier kunt nalopen. Doe dat maandelijks (kosten en verval
 | Rechten | Een matrix in de code; elke mutatie controleert het recht in de server action en het filter zit in de query |
 | Sessies | Een JWT van acht uur, getekend met `AUTH_SECRET`; wisselen logt iedereen uit |
 | Geheimen | Alleen in Vercel (Sensitive) en `.env.local`; de huisregel weigert een waarde in `.env.example` |
+| Database | De app verbindt op productie als de rol van de app (geen DDL, de audit log alleen aanvullen), elke tabel heeft Row Level Security met één regel voor die rol, en `pnpm check:grants` bewijst het |
 | Audit | Elke mutatie een regel die nooit meer verandert, met wie, wat, wanneer en vanwaar |
-| Buitenkant | Security headers (CSP, nosniff, geen framing), cronroutes dicht zonder token, downloads via de server met het recht erbij |
+| Server actions | Elke action begint met de sessie, vóór de invoer (huisregel `session-first`); alles wat van buiten te raken is, heeft een rem per adres of per account |
+| Buitenkant | Security headers (een CSP met een nonce per verzoek, zodat alleen onze eigen scripts draaien; nosniff; geen framing), cronroutes dicht zonder token, downloads via de server met het recht erbij |
 | Mail en bestanden | Tekst van buiten als citaat; de inhoud van een bestand nagekeken voordat hij de opslag in gaat |
 | AI | Alleen de velden van een prompt gaan mee, als gegevens; elke aanroep via de server met een recht; de inhoud wordt niet bewaard |
 | Dev-login | Alleen lokaal, met `APP_ENV=local`; weigert in elke andere omgeving te laden |
@@ -34,6 +36,42 @@ zodat je het in een kwartier kunt nalopen. Doe dat maandelijks (kosten en verval
 - [ ] `public/.well-known/security.txt` klopt (het adres waar iemand een lek kan melden).
 - [ ] De pull requests van Dependabot meenemen in een ronde, en een rode audit of geheimenscan in de
       CI meteen oppakken (02).
+- [ ] `DATABASE_URL_APP` staat op Production en `pg_stat_activity` toont de inlogrol van de app (04).
+- [ ] De Data API van Neon staat uit op elke branch. Controle in de SQL Editor: `select relname from
+      pg_class where relrowsecurity and relnamespace = 'public'::regnamespace;` noemt elke tabel, en
+      `select count(*) from pg_policies where policyname = 'app_rw_all';` evenveel. Een tabel met slot
+      en zonder regel is voor de app leeg.
+- [ ] Het herstelvenster van Neon is bekend (op Free hoogstens zes uur, stand oktober 2026), en bij
+      geld- of personeelsgegevens staat er een tweede kopie buiten Neon.
+
+## Het wachtwoord van de eigenaar draaien
+
+Bij een Neon-project dat via de Vercel Marketplace is afgenomen (de organisatie heet in Neon "Vercel:
+..."), beheert de integratie `DATABASE_URL` en `DATABASE_URL_UNPOOLED`, en die zijn met de hand niet te
+wijzigen. Twee knoppen lijken bedoeld om het wachtwoord van de eigenaar te draaien en zijn allebei
+onveilig gebleken: **gebruik niet Rotate secrets** in Vercel (Storage), die pakt volgens meerdere
+meldingen in 2026 de laatst aangemaakte branch in plaats van productie; en **Reset password** in Neon
+alleen maakt het oude wachtwoord meteen ongeldig terwijl Vercel het nieuwe niet overneemt. Zo wel:
+
+1. Neon, **Connect**, de productiebranch, rol `neondb_owner`, **Connection pooling uit** (de host
+   heeft dan geen `-pooler`), kopiëren. Vercel, Settings, Environment Variables, **alleen
+   Production**, Sensitive: `DATABASE_URL_OWNER` = die string, met het huidige wachtwoord.
+   **Redeploy** productie.
+   **Controle:** het buildlog toont "Migreren vanuit omgeving production naar endpoint ep-..." met het
+   endpoint van productie en de deploy slaagt. Wijst de string naar een andere branch, dan weigert
+   `db:deploy` met "Er is niets gemigreerd".
+2. Neon, **Roles**, de productiebranch, bij `neondb_owner` **Reset password**. Kopieer het nieuwe
+   wachtwoord meteen.
+3. Vercel, `DATABASE_URL_OWNER` (Production): vervang het wachtwoord (tussen de dubbele punt na
+   `neondb_owner` en de `@`). **Redeploy** productie, en dezelfde controle als in stap 1.
+4. Wat daarna niet meer klopt, en niet erg is: de twee variabelen van de integratie op Production
+   houden het oude wachtwoord, maar in productie leest niets ze meer. De app gebruikt
+   `DATABASE_URL_APP`, de migraties `DATABASE_URL_OWNER`. Controleer bij de eerstvolgende pull request
+   of de preview nog bouwt.
+
+Buiten productie telt `DATABASE_URL_OWNER` niet, ook niet als iemand hem per ongeluk zet: een vaste
+waarde zou anders elke preview en elk script op productie zetten. `pnpm doctor` zegt het als hij in
+`.env.local` staat.
 
 ## Kosten: waar het plafond staat
 

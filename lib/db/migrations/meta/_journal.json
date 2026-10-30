@@ -15,6 +15,20 @@
       "when": 1790943939890,
       "tag": "0001_core_guards",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793304137325,
+      "tag": "0002_template_core_2",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793304156801,
+      "tag": "0003_template_core_2_custom",
+      "breakpoints": true
     }
   ]
 }

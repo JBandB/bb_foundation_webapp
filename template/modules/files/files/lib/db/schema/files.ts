@@ -12,6 +12,7 @@
 import { index, integer, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
 import { primaryKeyColumn, softDelete, timestamps } from "./columns";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 import { users } from "./users";
 
 export const files = pgTable(
@@ -33,7 +34,7 @@ export const files = pgTable(
     ...timestamps,
     ...softDelete,
   },
-  (t) => [unique("files_blob_path").on(t.blobPath), index("files_entity_idx").on(t.entityType, t.entityId, t.deletedAt)],
+  (t) => [unique("files_blob_path").on(t.blobPath), index("files_entity_idx").on(t.entityType, t.entityId, t.deletedAt), appRowAccess()],
 );
 
 export type FileRow = typeof files.$inferSelect;

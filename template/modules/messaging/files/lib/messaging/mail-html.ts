@@ -1,9 +1,17 @@
 /* template-owned (module messaging). Wordt overschreven door pnpm template:update; wijzig dit bestand niet. */
 /**
  * Een mail als HTML, uit dezelfde beperkte markdown als de schermen (vet, cursief, lijsten, één
- * koppeling op een regel wordt een knop). Tabellen en inline-stijlen, want mailclients kennen geen
- * stylesheet; de kleuren komen uit de merkkleuren van het project, het merk is tekst en geen
- * plaatje (een geblokkeerde afbeelding is een lege kop).
+ * koppeling van onszelf op een regel wordt een knop). Tabellen en inline-stijlen, want mailclients
+ * kennen geen stylesheet; de kleuren komen uit de merkkleuren van het project, het merk is tekst en
+ * geen plaatje (een geblokkeerde afbeelding is een lege kop).
+ *
+ * **Alleen ons eigen adres wordt een knop.** Tot deze versie werd elke alinea met alleen een
+ * https-adres een knop met ons woord erop. Wie zijn tekst met witregels vult en er een adres tussen
+ * zet, kreeg zo in een mail van ons een knop naar zijn eigen site: phishing met onze afzender.
+ * `quoteUntrusted` en `oneLineUntrusted` vangen dat voor tekst van buiten, maar de regel hier is de
+ * grens die altijd geldt: een adres op `productionUrl` uit de configuratie of op `AUTH_URL` (lokaal
+ * en in de e2e) wordt een knop, elk ander adres blijft zichtbare tekst. Onze eigen koppelingen komen
+ * uit `appOrigin()`, dus die halen de toets.
  */
 import { brandColors } from "@/lib/brand/tokens";
 import { parseRich, type RichSpan } from "@/lib/domain/rich-text";
@@ -30,10 +38,30 @@ function spansToHtml(spans: readonly RichSpan[]): string {
     .join("");
 }
 
+/** De adressen die van onszelf zijn: het productieadres uit de configuratie en AUTH_URL. Leeg als geen van beide bekend is. */
+function ownOrigins(): Set<string> {
+  const origins = new Set<string>();
+  for (const base of [PROJECT.productionUrl, process.env.AUTH_URL]) {
+    if (base === null || base === undefined || base.trim() === "") continue;
+    try {
+      origins.add(new URL(base).origin);
+    } catch {
+      /* Geen geldig adres, dus ook geen eigen adres. */
+    }
+  }
+  return origins;
+}
+
+/** Een alinea die alleen een adres van onszelf is. Die wordt een knop in plaats van een regel tekens. */
 function soleLink(spans: readonly RichSpan[]): string | undefined {
   if (spans.length !== 1) return undefined;
   const text = (spans[0]?.text ?? "").trim();
-  return /^https:\/\/[^\s<>"']+$/.test(text) ? text : undefined;
+  if (!/^https:\/\/[^\s<>"']+$/.test(text)) return undefined;
+  try {
+    return ownOrigins().has(new URL(text).origin) ? text : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 const FONT = "font-family:Segoe UI,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55";

@@ -8,6 +8,7 @@ import { checkNoEmDash } from "./no-em-dash.mjs";
 import { checkSameId } from "./same-id.mjs";
 import { checkSecretPatterns } from "./secret-patterns.mjs";
 import { checkServerActions } from "./server-actions.mjs";
+import { checkSessionFirst } from "./session-first.mjs";
 import { checkLabelsSize } from "./labels-size.mjs";
 import { checkNoConfigImport } from "./no-config-import.mjs";
 import { templateOwnershipRule } from "./template-ownership.mjs";
@@ -43,6 +44,38 @@ describe("server-actions", () => {
 
   it("negeert bestanden zonder use server", () => {
     expect(run(checkServerActions, "lib/x.ts", "export const X = 1;")).toEqual([]);
+  });
+});
+
+describe("session-first", () => {
+  const header = '"use server";\nimport { requireActor } from "@/lib/auth/session";\n\n';
+
+  it("laat een action door die met de sessie begint, met of zonder const, en voorbij commentaar en een returntype met accolades", () => {
+    const text = [
+      header,
+      "export async function a(form: FormData): Promise<{ ok: boolean }> {\n  /* eerst wie */\n  const actor = await requireActor();\n  return { ok: true };\n}\n",
+      "export async function b(): Promise<void> {\n  // niets\n  await requireSession();\n}\n",
+      "export async function c(input: { id: string }) {\n  const { organisationId } = await requireActor(\"admin\");\n  return organisationId;\n}\n",
+    ].join("\n");
+    expect(run(checkSessionFirst, "app/actions.ts", text)).toEqual([]);
+  });
+
+  it("weigert een action die eerst naar de invoer kijkt, en noemt de naam", () => {
+    const text = `${header}export async function save(form: FormData): Promise<void> {\n  const text = String(form.get("text") ?? "");\n  const actor = await requireActor();\n  void actor;\n  void text;\n}\n`;
+    const found = run(checkSessionFirst, "app/actions.ts", text);
+    expect(found).toHaveLength(1);
+    expect(found[0]).toContain("app/actions.ts:4 save begint niet met de sessie");
+  });
+
+  it("laat een bewust anonieme action door, maar alleen met een reden", () => {
+    const anonymous = `${header}/** session-first: inloggen heeft nog geen sessie. */\nexport async function signInAction(form: FormData) {\n  await signIn(form);\n}\n`;
+    expect(run(checkSessionFirst, "app/sign-in/actions.ts", anonymous)).toEqual([]);
+    const withoutReason = `${header}// session-first:\nexport async function signInAction(form: FormData) {\n  await signIn(form);\n}\n`;
+    expect(run(checkSessionFirst, "app/sign-in/actions.ts", withoutReason)).toHaveLength(1);
+  });
+
+  it("negeert bestanden zonder use server", () => {
+    expect(run(checkSessionFirst, "lib/x.ts", "export async function x() {\n  return 1;\n}\n")).toEqual([]);
   });
 });
 

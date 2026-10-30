@@ -13,7 +13,9 @@
 
 import { Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
+import { ownerUrl } from "../../lib/db/owner-url";
 import * as schema from "../../lib/db/schema";
+import { productionTargetMessage, productionTargetVerdict } from "./production-guard";
 
 /**
  * Drizzle op een directe verbinding. Bestaat als functie zodat het type van de db-instantie op één
@@ -25,9 +27,13 @@ export function scriptDb(pool: Pool) {
 
 export type ScriptDb = ReturnType<typeof scriptDb>;
 
+/**
+ * De directe verbinding als eigenaar: in productie `DATABASE_URL_OWNER` als die er staat, anders
+ * `DATABASE_URL_UNPOOLED`. Zie `lib/db/owner-url.ts`.
+ */
 export function directUrl(): string {
-  const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
-  if (url === undefined || url === "") {
+  const url = ownerUrl();
+  if (url === undefined) {
     throw new Error("DATABASE_URL_UNPOOLED ontbreekt. Zet hem in .env.local, zie docs/handleiding/04-neon.md.");
   }
   return url;
@@ -49,6 +55,17 @@ export function describeTarget(url: string): string {
 export function isProductionEndpoint(endpoint: string): boolean {
   const production = process.env.PRODUCTION_DB_ENDPOINT;
   return production !== undefined && production !== "" && production === endpoint;
+}
+
+/**
+ * Weigert als een productiedeploy naar een andere database dan productie wijst. Het spiegelbeeld van
+ * de preview-guard in `db-deploy.ts`; de regel en de melding staan in `production-guard.ts`.
+ */
+export function assertProductionTarget(url: string): void {
+  const endpoint = describeTarget(url);
+  const production = process.env.PRODUCTION_DB_ENDPOINT ?? "";
+  if (productionTargetVerdict(endpoint, production) === "allowed") return;
+  throw new Error(productionTargetMessage(endpoint, production));
 }
 
 /** Opent een verbinding, geeft hem aan de functie, en sluit hem altijd weer. */

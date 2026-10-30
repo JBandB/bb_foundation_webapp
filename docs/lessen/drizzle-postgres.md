@@ -280,3 +280,37 @@ de reden.
 met `errorForScreen(error)`. Nooit `error.message` van een databasefout in een `console.error`.
 
 **Afgedwongen door.** `lib/monitoring/error-text.ts` met test; `reportError` maakt de rest schoon.
+
+## L-DRZ-17 Een regel op een tabel laat drizzle het slot zelf zetten
+
+**Symptoom.** (voorkomen) Row Level Security met de hand in SQL per tabel, en een nieuwe tabel die
+het slot mist zonder dat iets het meldt.
+
+**Oorzaak.** Drizzle kent policies en rollen als onderdeel van het schema, maar alleen als je ze
+daar zet.
+
+**Regel.** `pgPolicy(...)` in het blok met indexen van elke `pgTable` (hier `appRowAccess()`); de
+gegenereerde migratie bevat dan `ENABLE ROW LEVEL SECURITY` en `CREATE POLICY`. De rol als
+`pgRole(...)` in het schema met `entities.roles` in `drizzle.config.ts`, zodat de migratie hem
+aanmaakt vóór de regels die naar hem verwijzen; voor een rol die een eigen migratie al maakte,
+`pgRole(...).existing()`. Wat de rol mag (grants, standaardrechten) blijft een custom migratie. Een
+test die alle geëxporteerde tabellen afloopt (`is(value, PgTable)`), vindt de tabel zonder regel bij
+de PR die hem toevoegt.
+
+**Afgedwongen door.** `lib/db/schema/rls.ts` en `rls.test.ts`; `pnpm check:grants` tegen de
+database.
+
+## L-DRZ-18 Een enumwaarde is niet terug te draaien; een koppeling krijgt een eigen tabel
+
+**Symptoom.** (voorkomen) Een algemene tabel `external_refs` met een enum voor de leverancier, om
+personen aan een extern systeem te koppelen.
+
+**Oorzaak.** Postgres kent geen `DROP VALUE` op een enum: een waarde weghalen is het type herbouwen,
+met elke view en kolom die eraan hangt. En een algemene tabel zonder foreign key naar `users` kent
+het register van persoonsgegevens niet, dus de export en het anonimiseren missen hem.
+
+**Regel.** Een waardelijst als tekst met een check constraint, niet als enum. Een koppeling tussen een
+persoon en een extern systeem als eigen tabel met een foreign key naar `users` en twee unieke
+indexen (één op één), zodat het register en het anonimiseren hem vanzelf kennen.
+
+**Afgedwongen door.** Alleen afspraak, en de review van elke migratie met een enum erin.

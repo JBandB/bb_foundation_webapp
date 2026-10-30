@@ -12,9 +12,15 @@
  * `dangerouslySetInnerHTML` het scherm op. Deze parser geeft een structuur, en de weergave tekent hem
  * als JSX.
  *
- * **Wat het kent:** `#` tot `####`, alinea's, opsommingen (met of zonder nummer), tabellen met een
- * scheidingsregel, en fenced code. Wat het niet kent: links, afbeeldingen, citaten, geneste lijsten.
- * Een parser die meer kan dan er in de bron staat is een parser die je niet kunt bewijzen.
+ * **Wat het kent:** `#` tot `####`, alinea's, opsommingen (met of zonder nummer, en een regel die
+ * ingesprongen doorloopt), tabellen met een scheidingsregel, en fenced code. Wat het niet kent:
+ * links, afbeeldingen, citaten, geneste lijsten. Een parser die meer kan dan er in de bron staat is
+ * een parser die je niet kunt bewijzen.
+ *
+ * **Een punt dat over twee regels doorloopt** (een regel die met twee of meer spaties begint terwijl
+ * een lijst open staat) hoort bij het vorige punt. Vóór die regel sloot zo'n regel de lijst en werd
+ * hij een losse alinea; in een eerder project stond daardoor elk afgebroken punt van "Wat er nieuw
+ * is" in twee stukken op het scherm, honderden keren.
  */
 
 import { parseSpans, type RichSpan } from "./rich-text";
@@ -73,7 +79,8 @@ export function parseDoc(text: string): DocBlock[] {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
 
   let paragraph: string[] = [];
-  let list: { ordered: boolean; items: DocSpan[][] } | undefined;
+  /* De punten blijven tekst tot de lijst sluit, zodat een vervolgregel er nog bij kan. */
+  let list: { ordered: boolean; items: string[] } | undefined;
 
   const closeParagraph = (): void => {
     if (paragraph.length === 0) return;
@@ -83,7 +90,7 @@ export function parseDoc(text: string): DocBlock[] {
 
   const closeList = (): void => {
     if (list === undefined) return;
-    blocks.push({ kind: "list", ordered: list.ordered, items: list.items });
+    blocks.push({ kind: "list", ordered: list.ordered, items: list.items.map(parseDocSpans) });
     list = undefined;
   };
 
@@ -161,7 +168,14 @@ export function parseDoc(text: string): DocBlock[] {
         closeList();
         list = { ordered: point.ordered, items: [] };
       }
-      list.items.push(parseDocSpans(point.text));
+      list.items.push(point.text);
+      continue;
+    }
+
+    /* Een ingesprongen regel onder een punt loopt dat punt door. */
+    const last = list?.items.length ?? 0;
+    if (list !== undefined && last > 0 && /^\s{2,}\S/.test(line)) {
+      list.items[last - 1] = `${list.items[last - 1] ?? ""} ${line.trim()}`;
       continue;
     }
 

@@ -263,3 +263,56 @@ een grens. UI-teksten in tests uit `lib/i18n` lezen, nooit letterlijk. Een test 
 (`getByRole("table").filter({ has: page.getByRole("columnheader", { name }) })`).
 
 **Afgedwongen door.** De patronen in `e2e/helpers.ts` en de owned specs; verder afspraak.
+
+## L-NEXT-17 Middleware heet `proxy.ts`, en een nonce-CSP maakt elke pagina dynamisch
+
+**Symptoom.** (voorkomen) Twee `Content-Security-Policy`-headers naast elkaar, allebei afgedwongen
+door de browser; na het invoeren van een nonce verdween elke pagina uit de lijst van statische
+routes in de build; de service worker werd geweigerd.
+
+**Oorzaak.** In Next 16 heet middleware `proxy.ts`. Een nonce is per verzoek, dus elke pagina die de
+header krijgt, wordt dynamisch. Onder `'strict-dynamic'` telt `'self'` in `script-src` niet meer,
+ook niet voor een worker.
+
+**Regel.** Eén CSP: uit `proxy.ts` per verzoek (`x-nonce` op het verzoek, de header op het
+antwoord), en de vaste CSP-header uit `next.config.ts` weg. `script-src 'self' 'nonce-...'
+'strict-dynamic'` (in ontwikkeling plus `'unsafe-eval'`), `style-src` houdt `'unsafe-inline'`
+(React zet `style`-attributen), `worker-src 'self'` uitdrukkelijk, `object-src 'none'`. De matcher
+slaat `/api`, `_next/static`, `_next/image`, alles met een extensie en prefetches over. Na de eerste
+uitrol één ronde door elk scherm.
+
+**Afgedwongen door.** `proxy.ts` en `lib/security/csp.ts` met test; de vaste CSP is uit
+`lib/config/next-base.ts` gehaald. De e2e `05b-csp.spec.ts` eist één CSP-header.
+
+## L-NEXT-18 Onder `'strict-dynamic'` dragen de chunks die Next zelf invoegt geen nonce
+
+**Symptoom.** (voorkomen) Een e2e die elk `<script>` op de pagina op een nonce toetst, faalt op de
+chunks die Next na het laden zelf invoegt.
+
+**Oorzaak.** Dat hoort zo: onder `'strict-dynamic'` erven die chunks het vertrouwen van het script
+dat ze laadt, en dat script draagt de nonce wel.
+
+**Regel.** Toets de scripttags in de HTML van de server (daar staat de nonce op elk `<script>`), een
+andere nonce per verzoek, en de meldingen van de browser (geen weigering in de console). De chunks
+daarna laat je met rust.
+
+**Afgedwongen door.** De e2e `05b-csp.spec.ts`: de nonce op elk `<script>` in de HTML van de server,
+een andere nonce per verzoek, en geen weigering in de console na het laden en het klikken.
+
+## L-NEXT-19 Middleware is geen beveiligingsgrens, en dat is drie keer bewezen
+
+**Symptoom.** (voorkomen) Een app die alleen in middleware controleert of iemand is ingelogd, is
+met één header te omzeilen.
+
+**Oorzaak.** In maart 2025 (CVE-2025-29927, `x-middleware-subrequest`), in 2026 opnieuw
+(CVE-2026-45109) en in juli 2026 met Turbopack (CVE-2026-64642) was de middleware van Next.js te
+omzeilen. Middleware draait vóór de route en kan door een fout in het framework worden overgeslagen;
+de route zelf niet.
+
+**Regel.** Elke pagina, server action en route handler controleert zelf sessie en recht
+(CLAUDE.md regel 11). `proxy.ts` zet alleen de CSP en weigert niets. En de patchversie van Next
+bijhouden: in 2026 kwamen de kritieke fixes in 15.5.18, 16.2.6, 16.3.3 en 16.4.1 (stand oktober
+2026; controleer de advisory).
+
+**Afgedwongen door.** De huisregel `session-first` en `requireSession()` op elke plek; `proxy.ts`
+heeft geen autorisatie. De versie bewaakt Dependabot met `pnpm audit --prod` in de CI.

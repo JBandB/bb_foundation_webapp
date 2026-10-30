@@ -20,6 +20,7 @@
 import { index, integer, jsonb, pgEnum, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { primaryKeyColumn, timestamps } from "./columns";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 
 export const jobStatus = pgEnum("job_status", ["pending", "waiting", "done", "failed"]);
 
@@ -58,6 +59,7 @@ export const jobs = pgTable(
     /** Wat een ronde oppakt: alles wat nog niet klaar is, oudste eerst. */
     index("jobs_pending_idx").on(t.status, t.createdAt),
     index("jobs_entity_idx").on(t.entityType, t.entityId),
+    appRowAccess(),
   ],
 );
 

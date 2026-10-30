@@ -14,6 +14,7 @@
 import { index, pgTable, text, uuid } from "drizzle-orm/pg-core";
 import { primaryKeyColumn, timestamps } from "./columns";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 import { users } from "./users";
 
 export const toolFeedback = pgTable(
@@ -37,7 +38,7 @@ export const toolFeedback = pgTable(
 
     ...timestamps,
   },
-  (t) => [index("tool_feedback_user_idx").on(t.userId, t.createdAt)],
+  (t) => [index("tool_feedback_user_idx").on(t.userId, t.createdAt), appRowAccess()],
 );
 
 export type ToolFeedback = typeof toolFeedback.$inferSelect;

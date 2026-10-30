@@ -23,8 +23,10 @@ je lokaal op met `vercel env pull`. En: een gewijzigde variabele werkt pas in ee
 |---|---|---|---|---|---|
 | `DATABASE_URL` | door de Neon-integratie | door de integratie | de pooled string van `dev` | ja | 04 |
 | `DATABASE_URL_UNPOOLED` | door de integratie | door de integratie | de direct string van `dev` | ja | 04 |
+| `DATABASE_URL_APP` | de pooled string met de inlogrol van de app, na de eerste deploy | nee | alleen in `.env.local`, geschreven door `pnpm db:app-login` | ja | 04 en 07 |
+| `DATABASE_URL_OWNER` | de direct string van de eigenaar, alleen als je het wachtwoord gaat draaien | nee | nee | ja | 30 |
 | `AUTH_SECRET` | waarde A | waarde B | waarde B | ja | hieronder |
-| `PRODUCTION_DB_ENDPOINT` | het endpoint-id van productie | dezelfde | nee | nee | 04 |
+| `PRODUCTION_DB_ENDPOINT` | het endpoint-id van productie | dezelfde | dezelfde | nee | 04 |
 | `CRON_SECRET` | een hexwaarde | nee | nee | ja | hieronder |
 | `AUTH_DEV_LOGIN` | **nooit** | **nooit** | alleen in `.env.local`: `1` | | 07 |
 | `SEED_TARGET` | nee | nee | alleen in `.env.local`: het endpoint-id van `dev` | | 07 |
@@ -50,13 +52,19 @@ Met inloggen via Microsoft (05) komen erbij, in alle drie de omgevingen:
    integratie stuk zodra Neon een branch verplaatst.
    **Controle:** de Development-regel bevat `-pooler` bij de eerste en niet bij de tweede, en beide
    eindigen op `?sslmode=require`.
-4. Zet `PRODUCTION_DB_ENDPOINT` voor Production en Preview op het endpoint-id van de productiebranch.
-   **Controle:** een preview-deploy slaagt; zonder deze variabele weigert hij met uitleg.
+4. Zet `PRODUCTION_DB_ENDPOINT` voor alle drie de omgevingen op het endpoint-id van de
+   productiebranch. In Development is hij er voor `pnpm db:app-login`, dat nooit een rol op productie
+   mag zetten en daarom moet weten welk endpoint dat is.
+   **Controle:** een preview-deploy slaagt; zonder deze variabele weigert hij met uitleg, en
+   `vercel env pull` zet hem in `.env.local`.
 5. Zet de variabelen van je inlogmethode (05) en van de modules die je gebruikt (20 tot 22).
    **Controle:** `pnpm template:apply` drukt de lijst af; elke naam daarin staat in Vercel, behalve
    wat "alleen lokaal" zegt.
 6. **Deployments, Redeploy** van de laatste productiedeploy, zodat de variabelen gelden.
    **Controle:** het inlogscherm laadt en Beheer, Systeem (na inloggen) is groen.
+7. Na de eerste deploy (08): de rol van de app op productie en `DATABASE_URL_APP`, zie 04. Een
+   variabele die alleen op Production staat, draai je terug door hem weg te halen en opnieuw uit te
+   rollen; dat is bij deze twee ook de eerste hulp als iets niet werkt.
 
 ## Waarom zo
 

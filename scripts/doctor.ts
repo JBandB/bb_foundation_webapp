@@ -104,7 +104,7 @@ runScript(async () => {
     envLocal: tracked !== undefined && tracked !== "" ? "tracked" : existsSync(".env.local") ? "present" : "missing",
     env: process.env,
     envVars: envVars(readJson("template/manifest.json"), lock?.modules ?? ["core"]),
-    endpoints: { pooled: endpoint("DATABASE_URL"), direct: endpoint("DATABASE_URL_UNPOOLED") },
+    endpoints: { pooled: endpoint("DATABASE_URL"), direct: endpoint("DATABASE_URL_UNPOOLED"), app: endpoint("DATABASE_URL_APP") },
     vercelLinked: existsSync(".vercel/project.json"),
     git: gitFacts(),
   };

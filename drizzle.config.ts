@@ -5,6 +5,10 @@ import type { Config } from "drizzle-kit";
  * Migraties lopen over de directe verbinding, niet over de pooler. Zie de toelichting in
  * lib/db/client.ts. Genereren (`pnpm db:generate`) leest alleen bestanden en heeft geen echte
  * verbinding nodig; `pnpm check:drift` geeft daarom een adres mee waar niets luistert.
+ *
+ * `entities.roles`: drizzle beheert de rol van de app (`appRole` in lib/db/schema/rls.ts), zodat de
+ * gegenereerde migratie hem aanmaakt vóór de regels die naar hem verwijzen. De eigen rollen van Neon
+ * blijven buiten beeld.
  */
 const url = process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL;
 
@@ -20,6 +24,7 @@ export default {
   out: "./lib/db/migrations",
   dialect: "postgresql",
   dbCredentials: { url },
+  entities: { roles: { provider: "neon" } },
   strict: true,
   verbose: true,
 } satisfies Config;

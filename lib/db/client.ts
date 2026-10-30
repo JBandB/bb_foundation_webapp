@@ -7,6 +7,14 @@
  * via de scripts op `DATABASE_URL_UNPOOLED`, want DDL over een transaction-mode pooler gaat op
  * onvoorspelbare punten mis. Dat is geen tweede codepad naar de data, het is een ander kanaal voor DDL.
  *
+ * **Met de rol van de app, als die er is.** `DATABASE_URL_APP` is de pooled verbinding van een
+ * inlogrol die lid is van `app_rw`: lezen en schrijven, geen DDL, de audit log alleen aanvullen, en
+ * door het slot op elke tabel heen (lib/db/schema/rls.ts). Een eigen variabele en niet `DATABASE_URL`
+ * omzetten, want die beheert de Neon-integratie in Vercel en hem met de hand overschrijven breekt de
+ * integratie. Staat hij er niet, dan blijft het `DATABASE_URL`, de eigenaar. Op productie zet je hem
+ * met de hand (docs/handleiding/04-neon.md), lokaal schrijft `pnpm db:app-login` hem in `.env.local`,
+ * zodat `next dev` en de e2e net als productie werken. `pnpm check:grants` bewijst de rechten.
+ *
  * Waarom een functie en niet een geëxporteerde `db`-constante: een constante wordt bij het importeren
  * van deze module opgebouwd, en dan heeft alles wat hier indirect naar verwijst een DATABASE_URL nodig
  * op het moment van importeren. Een `next build` importeert elke pagina om de routes te bepalen, dus
@@ -26,6 +34,12 @@ function required(name: string): string {
   return value;
 }
 
+/** De verbinding van de app: de rol van de app als die gezet is, anders de gewone. */
+function appUrl(): string {
+  const app = process.env["DATABASE_URL_APP"];
+  return app !== undefined && app.trim() !== "" ? app : required("DATABASE_URL");
+}
+
 /**
  * Een Pool en niet de HTTP-driver, want een mutatie met een auditregel erbij moet in één transactie,
  * of helemaal niet.
@@ -34,7 +48,7 @@ let cached: ReturnType<typeof createDb> | undefined;
 let cachedPool: Pool | undefined;
 
 function createDb() {
-  const pool = new Pool({ connectionString: required("DATABASE_URL") });
+  const pool = new Pool({ connectionString: appUrl() });
   cachedPool = pool;
   return drizzle({ client: pool, schema });
 }

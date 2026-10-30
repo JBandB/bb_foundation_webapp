@@ -150,3 +150,66 @@ bewijst dat er iets aankomt en dat de schoonmaak werkt.
 **Afgedwongen door.** `lib/monitoring/report.ts` (`scrubMessage`, `reportError`) met zijn test en
 `instrumentation.ts`. Het doorsturen is de gereserveerde module monitoring-sentry (patroon
 `sentry-envelope`).
+
+## L-WERK-09 Een check die ">= 0" eist, bewijst niets
+
+**Symptoom.** De check op de rechten van de rol van de app was groen, terwijl die rol op productie
+nul rijen zag en het inloggen omviel (L-NEON-09).
+
+**Oorzaak.** De bewering "lezen lukt" is ook waar bij nul rijen. Een check die niet zegt wat hij
+verwacht te zien, ziet alles als goed.
+
+**Regel.** Eis "meer dan nul" en "gelijk aan wat de eigenaar ziet". Bewijs ook de negatieve kant:
+een rol met leesrecht en zonder regel ziet niets. Een check zonder een getal dat fout kan zijn, is
+een wens.
+
+**Afgedwongen door.** `scripts/check-grants.ts`, sectie 3 en 4.
+
+## L-WERK-10 Wat als eigenaar draait, test de rechten van productie niet
+
+**Symptoom.** Lokaal en in de e2e werkte alles; productie faalde op een recht dat de rol van de app
+miste.
+
+**Oorzaak.** Alles behalve productie verbond als eigenaar, en de eigenaar gaat langs elk recht en
+elk slot. Een gat valt dan pas in productie op.
+
+**Regel.** Lokaal en in de e2e als de rol van de app: `pnpm db:app-login` maakt een inlogrol op de
+dev-branch en zet `DATABASE_URL_APP` in `.env.local`. Scripts, checks en de fixtures van de e2e
+blijven als eigenaar werken, want die doen DDL en zetten testdata klaar. Na elke `vercel env pull`
+opnieuw, want die overschrijft `.env.local`.
+
+**Afgedwongen door.** `scripts/db-app-login.ts`; `pnpm doctor` zegt LATER zolang de variabele
+ontbreekt; handleiding 07.
+
+## L-WERK-11 "Het werkt" bewijst niet welke rol er verbindt
+
+**Symptoom.** Na het zetten van `DATABASE_URL_APP` op productie leek alles in orde. Dat zegt niets:
+een terugval op de eigenaar werkt ook.
+
+**Oorzaak.** De app kiest stil de gewone verbinding als de eigen variabele ontbreekt of leeg is, en
+niets op het scherm verraadt welke rol er verbindt.
+
+**Regel.** In de SQL Editor kijken: `select usename, count(*) from pg_stat_activity where usename is
+not null group by usename;` moet de inlogrol van de app noemen. Die controle staat in de
+handleidingstap, niet alleen in het hoofd van wie het zette.
+
+**Afgedwongen door.** Alleen afspraak: handleiding 04, de controle onder "De rol van de app op
+productie".
+
+## L-WERK-12 Een nieuwe pakketversie pas na een week
+
+**Symptoom.** (voorkomen) Een gekaapt npm-pakket draait met jouw sleutels op de laptop en in de CI
+voordat iemand het heeft gemerkt.
+
+**Oorzaak.** De npm-wormen van 2025 en 2026 (Shai-Hulud en zijn opvolgers) kaapten honderden
+pakketten via gestolen maintainer-accounts en verspreidden zich via `postinstall` en GitHub Actions.
+De gekaapte versies waren meestal binnen een dag teruggetrokken; wie de nieuwste versie meteen
+installeert, haalt ze precies in die dag binnen.
+
+**Regel.** `minimumReleaseAge: 10080` in `pnpm-workspace.yaml` (een week, ook voor wat indirect
+binnenkomt), dezelfde week als de `cooldown` van Dependabot, en `allowBuilds` als de enige lijst
+van pakketten die een install-script mogen draaien. Een security-update die je eerder nodig hebt,
+zet je tijdelijk in `minimumReleaseAgeExclude`, met de reden erbij, en haal je daarna weer weg.
+
+**Afgedwongen door.** `pnpm-workspace.yaml` (`minimumReleaseAge`, `allowBuilds`),
+`.github/dependabot.yml` (`cooldown`), `pnpm install --frozen-lockfile` in de CI.

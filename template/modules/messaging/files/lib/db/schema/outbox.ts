@@ -21,6 +21,7 @@ import { sql } from "drizzle-orm";
 import { boolean, check, index, integer, pgEnum, pgTable, primaryKey, smallint, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { primaryKeyColumn, timestamps } from "./columns";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 
 export const outboxChannel = pgEnum("outbox_channel", ["mail", "teams"]);
 export const outboxStatus = pgEnum("outbox_status", ["pending", "sent", "failed"]);
@@ -50,6 +51,7 @@ export const outbox = pgTable(
     unique("outbox_idempotency_key").on(t.idempotencyKey),
     index("outbox_pending_idx").on(t.status, t.createdAt),
     check("outbox_mail_has_address", sql`${t.channel} <> 'mail' or ${t.toEmail} is not null`),
+    appRowAccess(),
   ],
 );
 
@@ -73,6 +75,7 @@ export const notificationSettings = pgTable(
   (t) => [
     primaryKey({ columns: [t.organisationId, t.kind] }),
     check("notification_threshold_positive", sql`${t.thresholdValue} is null or ${t.thresholdValue} > 0`),
+    appRowAccess(),
   ],
 );
 

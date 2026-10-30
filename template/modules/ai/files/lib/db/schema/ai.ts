@@ -19,6 +19,7 @@ import { sql } from "drizzle-orm";
 import { bigint, boolean, char, check, date, index, integer, pgEnum, pgTable, primaryKey, text, uuid } from "drizzle-orm/pg-core";
 import { primaryKeyColumn, timestamps } from "./columns";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 import { users } from "./users";
 
 export const aiEffort = pgEnum("ai_effort", ["low", "medium", "high"]);
@@ -42,6 +43,7 @@ export const aiPromptSettings = pgTable(
     primaryKey({ columns: [t.organisationId, t.promptKey] }),
     check("ai_daily_limit_range", sql`${t.dailyLimit} between 0 and 10000`),
     check("ai_enabled_has_model", sql`not ${t.enabled} or ${t.model} is not null`),
+    appRowAccess(),
   ],
 );
 
@@ -57,7 +59,7 @@ export const aiModelPrices = pgTable(
     currency: char("currency", { length: 3 }).notNull().default("USD"),
     ...timestamps,
   },
-  (t) => [primaryKey({ columns: [t.organisationId, t.model] }), check("ai_prices_not_negative", sql`${t.inputCentsPerMtok} >= 0 and ${t.outputCentsPerMtok} >= 0`)],
+  (t) => [primaryKey({ columns: [t.organisationId, t.model] }), check("ai_prices_not_negative", sql`${t.inputCentsPerMtok} >= 0 and ${t.outputCentsPerMtok} >= 0`), appRowAccess()],
 );
 
 export const aiRequests = pgTable(
@@ -90,6 +92,7 @@ export const aiRequests = pgTable(
     index("ai_requests_user_day_idx").on(t.organisationId, t.userId, t.promptKey, t.day),
     index("ai_requests_created_idx").on(t.organisationId, t.createdAt),
     check("ai_requests_tokens_not_negative", sql`${t.inputTokens} >= 0 and ${t.outputTokens} >= 0`),
+    appRowAccess(),
   ],
 );
 

@@ -15,6 +15,108 @@ versie na het bijwerken.
 
 - Nog niets.
 
+## v1.7.0 (29 oktober 2026)
+
+### Wat verandert
+
+- **De CSP draagt een nonce per verzoek.** `proxy.ts` (zo heet middleware in Next 16) maakt per
+  verzoek een nonce en zet de policy uit `lib/security/csp.ts` op het verzoek en op het antwoord;
+  Next zet de nonce op zijn eigen scripts. `script-src 'self' 'nonce-...' 'strict-dynamic'`, zonder
+  `'unsafe-inline'`: een script dat niet van ons is, draait niet, ook niet als er ergens HTML
+  ontsnapt. `style-src` houdt `'unsafe-inline'` (React zet `style`-attributen), `worker-src 'self'`
+  staat er uitdrukkelijk, `object-src 'none'` en `manifest-src 'self'` zijn nieuw. De vaste CSP uit
+  `lib/config/next-base.ts` is weg; de andere headers blijven daar. Besluit D14.
+- **e2e `05b-csp.spec.ts`:** de header, een andere nonce per verzoek, de nonce op elk `<script>` in
+  de HTML van de server, één CSP-header, geen weigering in de console, en een paneel dat opengaat
+  (gehydrateerd) op het inlogscherm en vier schermen achter de inlog.
+- **CLAUDE.md, handleiding 30, `docs/modules/core.md`** en de lessen L-NEXT-17 en 18 zeggen het.
+- **De supply chain:** `minimumReleaseAge: 10080` in `pnpm-workspace.yaml`, een week wachttijd op
+  elke nieuwe pakketversie, ook indirect; dezelfde week als de cooldown van Dependabot. Les
+  L-WERK-12 zegt waarom (de npm-wormen van 2025 en 2026).
+- **Module auth-password: geen reset poisoning.** `appOrigin()` bouwt de koppeling in een mail niet
+  meer uit `Host` of `X-Forwarded-Host`, behalve op Vercel (dat die header zelf zet) en lokaal.
+  Zonder `AUTH_URL` of `productionUrl` op een andere host weigert hij.
+- **Les L-NEXT-19:** middleware is geen beveiligingsgrens; in anderhalf jaar drie keer omzeild.
+
+### Let op bij bijwerken
+
+- Elke pagina wordt dynamisch gerenderd (de nonce is per verzoek); de route-lijst van de build toont
+  niets meer als statisch. Voor een app achter een inlog verandert dat niets wezenlijks.
+- Klik na de eerste uitrol één keer door elk scherm, met de console open: een script dat de nonce
+  mist, faalt stil. Een eigen `<script>` of `next/script` in het project krijgt de nonce uit
+  `(await headers()).get("x-nonce")`.
+- `pnpm install` weigert voortaan een versie die jonger is dan een week, ook als je hem zelf in
+  `package.json` zet. Heb je een security-update eerder nodig, zet het pakket dan tijdelijk in
+  `minimumReleaseAgeExclude` in `pnpm-workspace.yaml`, met de reden erbij.
+- Draait het project niet op Vercel en is `productionUrl` leeg: zet `AUTH_URL` in de omgeving,
+  anders weigert de module auth-password een uitnodiging of herstelmail te maken.
+- Had het project een eigen `middleware.ts` of `proxy.ts`: voeg de nonce en de header toe aan die
+  van jou, of neem `proxy.ts` over met `pnpm template:adopt proxy.ts`. Twee bestanden kunnen niet
+  naast elkaar bestaan.
+- Een eigen CSP-header in `next.config.ts`: weghalen, anders dwingt de browser allebei af.
+
+## v1.6.0 (29 oktober 2026)
+
+### Wat verandert
+
+De databaseronde en de rand, uit lessen van een eerder project van 29 oktober 2026: wat er misging
+toen de app daar als zijn eigen rol ging verbinden, en wat het aanvalsscript daarna nog vond.
+
+- **De rol van de app.** De migraties van core maken `app_rw`: lezen en schrijven in `public`, de
+  migratiestand lezen, de audit log alleen aanvullen, geen DDL. De app verbindt ermee via
+  `DATABASE_URL_APP` (`lib/db/client.ts`), op productie met de hand gezet (handleiding 04) en lokaal
+  door `pnpm db:app-login`, zodat `next dev` en de e2e net als productie werken. `pnpm check:grants`
+  bewijst de rechten, en met een tijdelijke rol zonder regel dat het slot dicht is. Besluit D13.
+- **Row Level Security op elke tabel, met één regel.** `appRowAccess()` uit `lib/db/schema/rls.ts`
+  staat op elke tabel van core en van elke module; drizzle zet het slot en de regel zelf in de
+  migratie (`entities.roles` in `drizzle.config.ts`), en `rls.test.ts` faalt bij een tabel zonder.
+  Een Data API die iemand aanzet, een rol die erbij komt of een gelekte verbinding zonder de rol van
+  de app ziet daarna niets. CLAUDE.md regel 16.
+- **De eigenaar met een eigen variabele.** `ownerUrl()` (`lib/db/owner-url.ts`) kiest in productie
+  `DATABASE_URL_OWNER`, elders telt die niet; zo is het wachtwoord van de eigenaar te draaien zonder
+  de knoppen van de Neon-integratie (handleiding 30). `pnpm db:deploy` weigert in productie als de
+  verbinding naar een ander endpoint dan `PRODUCTION_DB_ENDPOINT` wijst
+  (`scripts/lib/production-guard.ts`, met test).
+- **Huisregel `session-first`.** In een `"use server"`-bestand begint elke geëxporteerde functie met
+  `await requireActor()` of `requireSession()`, vóór elke blik op de invoer. Een bewust anonieme
+  action krijgt een commentaar met `session-first:` en de reden; de actions van het template
+  hebben die. CLAUDE.md regel 11.
+- **Module messaging: een knop alleen naar het eigen adres.** Een alinea met alleen een koppeling
+  wordt nog een knop als het adres op `productionUrl` uit `project.config.json` of op `AUTH_URL`
+  staat; een ander adres blijft tekst.
+- **Over de tool: een punt dat doorloopt.** Een ingesprongen regel onder een opsommingspunt hoort
+  bij dat punt (`lib/domain/doc-markdown.ts`); vóór deze versie werd hij een losse alinea.
+- **`pnpm doctor`** zegt LATER zolang `DATABASE_URL_APP` ontbreekt, ACTIE als die naar een andere
+  branch wijst, en LATER als `DATABASE_URL_OWNER` lokaal staat.
+- **CLAUDE.md:** regel 5 (geen gezondheid of vrije tekst in de audit log), 11, 16 en 17 (een rem op
+  alles wat van buiten te raken is, per adres of per account, geteld vóór het werk), en "handwerk,
+  één stap per bericht".
+- **Handleiding 04, 06, 07, 30 en de checklist:** de Data API uit, de productiebranch beschermd, het
+  herstelvenster van Free (zes uur), de rol van de app op productie met de controle in
+  `pg_stat_activity`, de drie variabelen en wie ze leest, `PRODUCTION_DB_ENDPOINT` ook in
+  Development, en het draaien van het wachtwoord van de eigenaar zonder Rotate secrets.
+- **Twaalf lessen** in `docs/lessen/`: L-NEON-09 tot 11, L-DRZ-17 en 18, L-WERK-09 tot 11,
+  L-NEXT-17 en 18, L-AUTH-07, L-WIN-07; L-NEON-07 en L-VRC-06 bijgewerkt.
+- **Apply:** de driftcontrole loopt vóór het overschrijven van de bestanden, zodat een module die
+  al een schema had een nieuwe schemaversie kan krijgen (core 1 naar 2).
+
+### Let op bij bijwerken
+
+- `pnpm template:update` genereert in je project twee migraties voor core, `template_core_2` (de
+  rol, het slot en de regel op elke tabel die het schema dan kent) en `template_core_2_custom` (de
+  rechten), met hun terugweg. Lees ze, draai `pnpm db:roundtrip` op je dev-branch en commit ze.
+- Eigen tabellen: `rls.test.ts` wijst elke tabel zonder `appRowAccess()` aan. Zet hem in het blok
+  met indexen, `pnpm db:generate --name=<naam>`, schrijf de terugweg (`DROP POLICY` en `DISABLE ROW
+  LEVEL SECURITY` per tabel).
+- Zet `PRODUCTION_DB_ENDPOINT` ook in Vercel voor Development en in `.env.local`, en draai
+  `pnpm db:app-login` (handleiding 07). Na elke `vercel env pull` opnieuw.
+- Op productie, na de uitrol: de inlogrol en `DATABASE_URL_APP` (handleiding 04, "De rol van de
+  app op productie"). Zonder die variabele werkt de app als eigenaar, zoals voorheen.
+- Een eigen server action die eerst naar de invoer keek, wijst de huisregel `session-first` aan: zet
+  de sessie vooraan, of markeer hem met `session-first:` en de reden.
+- Module messaging: zonder `productionUrl` in `project.config.json` en zonder `AUTH_URL` wordt geen
+  enkele koppeling in een mail meer een knop. Zet `productionUrl` zodra het adres bekend is.
+
 ## v1.5.0 (27 oktober 2026)
 
 ### Wat verandert

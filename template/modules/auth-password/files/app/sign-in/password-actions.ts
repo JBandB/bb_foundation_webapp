@@ -20,6 +20,8 @@ import { PROJECT } from "@/lib/project/config.generated";
  * de instelpagina met de QR-code. Vroeger kwam die koppeling per mail, en zonder ingerichte mail
  * sloot de eerste beheerder zichzelf buiten. `issueMfaSetupToken` controleert het wachtwoord zelf
  * opnieuw voordat er een token komt; klopt er iets niet meer, dan is de uitkomst gewoon mislukt.
+ *
+ * session-first: inloggen heeft nog geen sessie; de rem per adres zit in de provider (lockout.ts).
  */
 export async function signInWithPassword(_previous: FormState, form: FormData): Promise<FormState> {
   const email = String(form.get("email") ?? "");

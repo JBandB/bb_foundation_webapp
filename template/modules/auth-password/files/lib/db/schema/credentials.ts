@@ -14,6 +14,7 @@
 import { boolean, index, integer, pgEnum, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 import { primaryKeyColumn, timestamps } from "./columns";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 import { users } from "./users";
 
 export const credentials = pgTable("credentials", {
@@ -31,7 +32,7 @@ export const credentials = pgTable("credentials", {
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
   passwordChangedAt: timestamp("password_changed_at", { withTimezone: true }).notNull().defaultNow(),
   ...timestamps,
-});
+}, () => [appRowAccess()]);
 
 export type Credentials = typeof credentials.$inferSelect;
 
@@ -53,7 +54,7 @@ export const authTokens = pgTable(
     usedAt: timestamp("used_at", { withTimezone: true }),
     ...timestamps,
   },
-  (t) => [unique("auth_tokens_token_hash").on(t.tokenHash), index("auth_tokens_user_idx").on(t.userId, t.kind)],
+  (t) => [unique("auth_tokens_token_hash").on(t.tokenHash), index("auth_tokens_user_idx").on(t.userId, t.kind), appRowAccess()],
 );
 
 export type AuthTokenKind = (typeof authTokenKind.enumValues)[number];

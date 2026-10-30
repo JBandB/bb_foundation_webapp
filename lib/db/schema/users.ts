@@ -12,6 +12,7 @@ import { sql } from "drizzle-orm";
 import { boolean, index, pgTable, text, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { primaryKeyColumn, softDelete, timestamps } from "./columns";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 
 export const users = pgTable(
   "users",
@@ -65,6 +66,7 @@ export const users = pgTable(
     uniqueIndex("users_organisation_email_key").on(t.organisationId, sql`lower(${t.email})`),
 
     index("users_organisation_idx").on(t.organisationId),
+    appRowAccess(),
   ],
 );
 

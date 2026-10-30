@@ -119,8 +119,10 @@ als eigenaar niet tegen, daar zijn backup en point-in-time restore voor. Eindsta
 applicatierol zonder DDL en zonder update of delete op de log.
 
 **Afgedwongen door.** De trigger in `lib/db/migrations/0001_core_guards.sql`; `pnpm check:core`
-bewijst dat update en delete falen. De aparte applicatierol zit niet in het template: een project
-dat hem wil, maakt hem in de Neon-console en zet die string in `DATABASE_URL`.
+bewijst dat update en delete falen. De aparte applicatierol zit sinds v1.6.0 in het template:
+`app_rw` uit de custom migratie van core (geen DDL, geen update of delete op de log), de inlogrol
+per omgeving via `DATABASE_URL_APP`, en `pnpm check:grants` bewijst het. Zie L-NEON-09 en
+L-WERK-10.
 
 ## L-NEON-08 De serverless driver en andere Neon-eigenaardigheden
 
@@ -139,3 +141,57 @@ ad-hoc pool.
 
 **Afgedwongen door.** Code: `lib/db/client.ts` (`closeDb`) en `scripts/lib/connection.ts`
 (`withDirectDb` sluit altijd).
+
+## L-NEON-09 Een aangezette Data API zet het slot op elke tabel, zonder regel
+
+**Symptoom.** Zodra de app als zijn eigen rol verbond (`DATABASE_URL_APP`), viel het inloggen om
+met "er is nog geen organisatie in de database". Als eigenaar werkte alles, op dev ook.
+
+**Oorzaak.** Iemand had ooit de Data API van Neon aangezet op de productiedatabase. Die zet Row
+Level Security op bijna elke tabel, zonder één regel. Een tabeleigenaar gaat altijd langs het slot
+en merkt niets; elke andere rol ziet nul rijen. De check op de rechten zag het ook niet, want die
+eiste ">= 0 rijen" (L-WERK-09).
+
+**Regel.** Het slot op elke tabel, met precies één regel die de rol van de app alle rijen geeft
+(`appRowAccess()`, CLAUDE.md regel 16). Dan ziet elke andere rol niets, ook een Data API die weer
+aangaat. De Data API niet aanzetten; staat hij aan en gebruik je hem niet, dan uit op elke branch,
+en de rollen `authenticator`, `anonymous` en `authenticated` en de schema's `auth` en `pgrst`
+opruimen. De controle: `pg_class.relrowsecurity` naast `pg_policies`, op elke database en branch.
+
+**Afgedwongen door.** `lib/db/schema/rls.test.ts` (elke tabel de regel), `pnpm check:grants`
+(slot, regel, evenveel rijen als de eigenaar en meer dan nul, en een rol zonder regel ziet niets),
+handleiding 04 en 30.
+
+## L-NEON-10 Rotate secrets en Reset password zijn geen paar
+
+**Symptoom.** (voorkomen) Het wachtwoord van `neondb_owner` moest draaien bij een Neon-project dat
+via de Vercel Marketplace was afgenomen.
+
+**Oorzaak.** De integratie beheert `DATABASE_URL` en `DATABASE_URL_UNPOOLED`, en die zijn met de
+hand niet te wijzigen. "Rotate secrets" in Vercel pakt volgens meerdere meldingen in 2026 de laatst
+aangemaakte branch in plaats van productie (bij één gebruiker stond productie daarna op een
+stagingbranch); "Reset password" in Neon maakt het oude wachtwoord meteen ongeldig, en Vercel neemt
+het nieuwe niet over.
+
+**Regel.** Een eigen variabele voor de eigenaar, `DATABASE_URL_OWNER`, alleen op Production, gelezen
+door `ownerUrl()`; buiten productie telt hij niet. Draaien is dan: de variabele zetten met het
+huidige wachtwoord en uitrollen, Reset password in Neon, de variabele bijwerken, uitrollen. Nooit
+Rotate secrets. En `db:deploy` weigert in productie als de verbinding naar een ander endpoint dan
+`PRODUCTION_DB_ENDPOINT` wijst, want een met de hand geplakte waarde kan fout zijn.
+
+**Afgedwongen door.** `lib/db/owner-url.ts` met test, `assertProductionTarget` in
+`scripts/db-deploy.ts` (`scripts/lib/production-guard.ts` met test), handleiding 30.
+
+## L-NEON-11 Het herstelvenster van Free is hoogstens zes uur
+
+**Symptoom.** (voorkomen) Een fout die later dan zes uur na het ontstaan wordt ontdekt, is op het
+plan Free niet terug te zetten.
+
+**Oorzaak.** Free geeft een herstelvenster van hoogstens zes uur en 100 CU-uur rekentijd per maand
+(stand oktober 2026). Launch heeft geen maandminimum.
+
+**Regel.** Het venster kennen en in de checklist zetten. Een wekelijkse `pg_dump` naar een plek
+buiten Neon werkt ook op Free en kost bij Neon niets extra: dat is het goedkoopste gat om te
+dichten, en bij geld- of personeelsgegevens geen optie maar een eis.
+
+**Afgedwongen door.** Alleen afspraak: handleiding 04 en 30. De back-upworkflow is een eigen module.

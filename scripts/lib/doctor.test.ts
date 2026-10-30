@@ -19,7 +19,7 @@ const GOOD: DoctorFacts = {
     { module: "core", name: "CRON_SECRET", where: "vercel", secret: true, guide: "docs/handleiding/23-crons-en-taken.md" },
     { module: "ai", name: "ANTHROPIC_API_KEY", where: "both", secret: true, guide: "docs/handleiding/24-claude-api.md" },
   ],
-  endpoints: { pooled: "ep-dev-1", direct: "ep-dev-1" },
+  endpoints: { pooled: "ep-dev-1", direct: "ep-dev-1", app: "ep-dev-1" },
   vercelLinked: true,
   git: { userName: "Tester", userEmail: "tester@example.org", hooksPath: ".githooks", branch: "release/next" },
 };
@@ -68,10 +68,10 @@ describe("pnpm doctor", () => {
   });
 
   it("de database: verschillende branches, productie, SEED_TARGET ernaast of een kapotte string", () => {
-    expect(levels(diagnose({ ...GOOD, endpoints: { pooled: "ep-dev-1", direct: "ep-main-2" } }), "action")[0]).toContain("verschillende branches");
+    expect(levels(diagnose({ ...GOOD, endpoints: { pooled: "ep-dev-1", direct: "ep-main-2", app: undefined } }), "action")[0]).toContain("verschillende branches");
     expect(levels(diagnose({ ...GOOD, env: { ...GOOD.env, PRODUCTION_DB_ENDPOINT: "ep-dev-1" } }), "action")[0]).toContain("is productie");
     expect(levels(diagnose({ ...GOOD, env: { ...GOOD.env, SEED_TARGET: "ep-other-3" } }), "action")[0]).toContain("SEED_TARGET (ep-other-3)");
-    expect(levels(diagnose({ ...GOOD, endpoints: { pooled: INVALID_ENDPOINT, direct: "ep-dev-1" } }), "action")[0]).toContain("geen geldige");
+    expect(levels(diagnose({ ...GOOD, endpoints: { pooled: INVALID_ENDPOINT, direct: "ep-dev-1", app: undefined } }), "action")[0]).toContain("geen geldige");
   });
 
   it("git: wie je bent en de hook zijn acties, op main staan is later", () => {
@@ -79,6 +79,14 @@ describe("pnpm doctor", () => {
     expect(levels(findings, "action")).toEqual(["Git weet niet wie je bent", "De commit-hook staat uit"]);
     expect(levels(findings, "later")).toEqual(["Je staat op main"]);
     expect(levels(diagnose({ ...GOOD, git: undefined }), "action")).toEqual(["Dit is geen git-werkmap, of git ontbreekt"]);
+  });
+
+  it("de rol van de app: zonder is later, op een andere branch een actie, en de eigenaar hoort lokaal niet", () => {
+    expect(levels(diagnose({ ...GOOD, endpoints: { ...GOOD.endpoints, app: undefined } }), "later")).toEqual(["De app werkt lokaal als eigenaar van de database (geen DATABASE_URL_APP)"]);
+    expect(levels(diagnose(GOOD), "later")).toEqual([]);
+    expect(levels(diagnose({ ...GOOD, endpoints: { ...GOOD.endpoints, app: "ep-main-2" } }), "action")[0]).toContain("DATABASE_URL_APP (ep-main-2)");
+    expect(levels(diagnose({ ...GOOD, endpoints: { ...GOOD.endpoints, app: INVALID_ENDPOINT } }), "action")[0]).toContain("DATABASE_URL_APP is geen geldige");
+    expect(levels(diagnose({ ...GOOD, env: { ...GOOD.env, DATABASE_URL_OWNER: "x" } }), "later")).toContain("DATABASE_URL_OWNER staat in .env.local, maar telt alleen in productie");
   });
 
   it("de dev-login met een andere APP_ENV dan local is een actie", () => {

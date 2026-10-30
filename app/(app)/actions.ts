@@ -12,6 +12,8 @@ import { loadTheme, saveTheme } from "@/lib/domain/preferences";
  * Uitloggen. Een server action en geen `onClick`, zodat de knop ook werkt zonder JavaScript en de
  * sessiecookie op de server wordt weggegooid. `redirectTo` gaat naar de inlogpagina en niet naar `/`,
  * want `/` stuurt door naar het beginscherm en dat stuurt je meteen weer naar de inlog: een flikkering.
+ *
+ * session-first: uitloggen zonder sessie doet niets en lekt niets; de huisregel slaat deze action over.
  */
 export async function signOutAction(): Promise<void> {
   await signOut({ redirectTo: SIGN_IN_PATH });

@@ -15,6 +15,7 @@
 
 import { index, integer, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 
 export const rateLimits = pgTable(
   "rate_limits",
@@ -30,5 +31,6 @@ export const rateLimits = pgTable(
     primaryKey({ columns: [t.key, t.windowStart] }),
     /** Voor het opruimen: alles ouder dan gisteren mag weg. */
     index("rate_limits_window_idx").on(t.windowStart),
+    appRowAccess(),
   ],
 );

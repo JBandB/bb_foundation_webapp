@@ -20,8 +20,10 @@
    de tijdzone uit de config via `Intl`, nooit via de serverklok.
 4. **Geen `localStorage` of `sessionStorage` voor domeindata of voorkeuren.** Voorkeuren staan in
    `user_preferences`, per persoon.
-5. **De audit log is append-only**, afgedwongen met een trigger en niet alleen met `REVOKE`, want de
-   app verbindt als eigenaar. Loggen gebeurt in dezelfde transactie als de mutatie.
+5. **De audit log is append-only**, afgedwongen met een trigger en niet alleen met `REVOKE`: lokaal
+   verbindt de app als eigenaar, en de rol van de app mag hem alleen aanvullen. Loggen gebeurt in
+   dezelfde transactie als de mutatie. Geen gezondheidsgegeven en geen vrije tekst over een persoon
+   in `before` of `after`: wat daar staat, is nooit meer op te schonen.
 6. **Elke schrijfactie naar buiten is idempotent**: via `outbox` of `jobs`, met een unieke
    idempotency key en een lease (`claimed_until`, `for update skip locked`). Nooit rechtstreeks
    vanuit een server action.
@@ -35,9 +37,10 @@
    één terugpijl via `BackLink`, en meer dan drie onderwerpen splitst in tabbladen met echte routes.
 10. **Eén codepad naar de database.** `getDb()` is lui, geen mocks, geen in-memory fallback; lokaal
     tegen een Neon dev-branch, DDL over de ongepoolde verbinding.
-11. **Elke mutatie is een server action** die begint met `requireSession()` en een expliciete
-    `can()`. Route handlers alleen voor cron en webhooks. Autorisatie zit in de query, nooit in de
-    UI: `display:none` is geen autorisatie.
+11. **Elke mutatie is een server action** die begint met `requireSession()` of `requireActor()` als
+    eerste regel, vóór elke blik op de invoer (de huisregel `session-first` controleert dat), en een
+    expliciete `can()`. Route handlers alleen voor cron en webhooks. Autorisatie zit in de query,
+    nooit in de UI: `display:none` is geen autorisatie.
 12. **Elke migratie heeft een geteste terugweg**, een gedraaide migratie wordt nooit gewijzigd, een
     nieuwe enumwaarde en het gebruik ervan staan in twee migraties, en hernoemen is uitbreiden en
     inkrimpen in stappen. Zie `lib/db/migrations/README.md`.
@@ -50,6 +53,16 @@
 15. **Zit er geld of duur in dit project, dan is geld `amount_cents bigint` plus `currency char(3)`
     en duur een geheel aantal minuten.** Nooit een float; afronden gebeurt één keer, op het niveau
     waar het ertoe doet. Zie `docs/patronen/`.
+16. **Elke tabel draagt Row Level Security met één regel: de rol van de app mag alle rijen.** Zet
+    `appRowAccess()` uit `lib/db/schema/rls.ts` in het blok met indexen van elke nieuwe `pgTable`;
+    drizzle zet het slot dan zelf in de migratie, en `rls.test.ts` faalt zonder. Een tabel met slot
+    en zonder regel is voor de app leeg, en dat ziet geen test die als eigenaar draait. Wie wat mag
+    binnen de app, blijft de app regelen.
+17. **Alles wat van buiten te raken is, heeft een rem** via `consumeRateLimit`
+    (`lib/domain/rate-limit.ts`): inloggen, codes, herstel, hulpformulieren, en elke action die rijen
+    maakt of naar buiten schrijft, ook voor wie is ingelogd. De sleutel is het adres voor wie niet is
+    ingelogd en het account voor wie dat wel is; de teller telt vóór het werk en ongeacht de uitkomst,
+    en de weigering zegt wanneer het weer kan.
 
 ## Stack
 
@@ -57,6 +70,9 @@ Next.js (App Router) + TypeScript, Neon Postgres (EU) via Drizzle, Auth.js v5, T
 componentenbibliotheek (de tokens volgen het shadcn/ui-contract), deploy op Vercel.
 
 - Mutaties via server actions. Route handlers alleen voor cron en webhooks.
+- De CSP komt uit `proxy.ts`, met een nonce per verzoek; de andere headers uit
+  `lib/config/next-base.ts`. Nooit een tweede CSP-header. Een eigen `<script>` of `next/script`
+  krijgt de nonce uit `(await headers()).get("x-nonce")`, anders weigert de browser hem.
 - Migraties met `drizzle-kit`. Elke migratie heeft een geteste terugweg.
 - Achtergrondwerk met Vercel Cron, elke cron ook als `pnpm task:<naam>`.
 - Scripts in `package.json` roepen `node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs
@@ -107,6 +123,9 @@ Vuistregels: één bestand, één onderwerp; datatabellen apart van logica; sche
   de samenvatting komt in de rubriek Bewijs.
 - **Fasegrens.** Bouw niets uit een latere fase, ook niet "even snel". Bij twijfel over scope:
   vraag, bouw niet.
+- **Handwerk, één stap per bericht.** Leidt Claude iemand door een console (Neon, Vercel, Entra),
+  dan per bericht één stap: met waarom, de knoppen letterlijk zoals ze heten, wat je daarna moet
+  zien, en wat je terugmeldt.
 - **Git doet de mens.** Geen commits, branches of pushes vanuit Claude. Lever de werkkopie op met
   wat erin zit en wat er met de hand moet gebeuren.
 - **Opleveren via `release/next`.** Bij elke oplevering stelt Claude voor om de ronde op de vaste
@@ -135,6 +154,10 @@ Vuistregels: één bestand, één onderwerp; datatabellen apart van logica; sche
 - Dev-login achter `AUTH_DEV_LOGIN=1` en `APP_ENV=local`, met een harde guard die gooit in elke andere
   omgeving (`lib/domain/deploy-environment.ts`). `vercel env pull` overschrijft `.env.local`: zet
   `APP_ENV=local` er daarna weer in.
+- De app werkt lokaal en in de e2e als de rol van de app, net als productie: `pnpm db:app-login`
+  maakt de inlogrol op de dev-branch en zet `DATABASE_URL_APP` in `.env.local`; na elke
+  `vercel env pull` opnieuw. Scripts en checks blijven als eigenaar werken. Een recht dat de rol
+  mist, vind je zo lokaal en niet op productie.
 - Een route handler die schrijft en op de sessiecookie leunt, begint met `requestOriginVerdict`
   (`lib/domain/request-origin.ts`), vóór de sessie. Server actions krijgen die controle van Next.
 - Een id tegen `actor.id` vergelijk je met `sameId` (`lib/domain/ids.ts`): Postgres let niet op

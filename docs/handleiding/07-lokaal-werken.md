@@ -21,8 +21,9 @@ half uur de eerste keer.
 1. Kloon de repo en open de map. Draai `pnpm install`.
    **Controle:** geen fouten; `node_modules` bestaat.
 2. `vercel env pull .env.local`. Voeg met de hand drie regels toe: `APP_ENV=local`, `AUTH_DEV_LOGIN=1`
-   en `SEED_TARGET=<endpoint-id van de dev-branch>`. Elke `vercel env pull` overschrijft het bestand:
-   zet ze er daarna weer in.
+   en `SEED_TARGET=<endpoint-id van de dev-branch>`. Staat `PRODUCTION_DB_ENDPOINT` er niet in (06
+   zet hem ook voor Development), zet hem er dan bij. Elke `vercel env pull` overschrijft het bestand:
+   zet ze er daarna weer in, en draai stap 4b opnieuw.
    **Controle:** `git status` toont `.env.local` **niet**; hij staat in `.gitignore`.
 3. `pnpm template:apply` als je dat nog niet deed na de startprompt, en volg de slottekst.
    **Controle:** "template.lock.json geschreven" en een lijst met wat je nu doet. Daarna
@@ -33,13 +34,20 @@ half uur de eerste keer.
    organisatie) en `pnpm db:seed` (de dev-accounts).
    **Controle:** `pnpm db:status` noemt alle migraties; de seed zegt wat hij aanmaakte en is
    idempotent (een tweede keer verandert niets).
+4b. `pnpm db:app-login`. Dat maakt op `dev` de inlogrol `<slug>_app` (lid van `app_rw`, de rol van
+   de app) met een nieuw wachtwoord en zet `DATABASE_URL_APP` in `.env.local`. Vanaf dan werken
+   `pnpm dev` en de e2e als die rol, net als productie: een recht dat de rol mist, vind je zo hier
+   en niet op productie. De scripts en de checks blijven als eigenaar werken. Het script weigert op
+   het productie-endpoint en zonder `PRODUCTION_DB_ENDPOINT`.
+   **Controle:** `pnpm doctor` zegt "De app werkt lokaal als de rol van de app", en
+   `pnpm check:grants` is groen.
 5. `pnpm setup:hooks` voor de commit-hook die een em-dash weigert, en `pnpm dev`. Open
    http://localhost:3000. Onderaan het inlogscherm staat de dev-login: kies een dev-account en
    eventueel andere rollen.
    **Controle:** na inloggen zie je de rail met de versie linksonder en, als beheerder, Beheer.
 6. De batterij: `pnpm typecheck && pnpm lint && pnpm test && pnpm check:contrast && pnpm template:verify`,
-   dan `pnpm db:roundtrip` (migraties heen en terug), de checks `pnpm check:core` (en per module),
-   en de e2e `pnpm e2e:all` (bouwt en test tegen `next start` op poort 3100).
+   dan `pnpm db:roundtrip` (migraties heen en terug), de checks `pnpm check:core`, `pnpm check:grants`
+   (en per module), en de e2e `pnpm e2e:all` (bouwt en test tegen `next start` op poort 3100).
    **Controle:** alles groen. Dit is wat Claude ook draait; wat een database nodig heeft draai jij
    als Claude dat vraagt.
 
@@ -78,6 +86,9 @@ De dev-branch van Neon heeft een eigen compute die wakker is terwijl je werkt en
 | De dev-login staat er niet | `AUTH_DEV_LOGIN=1` ontbreekt in `.env.local`, of je kijkt naar een deploy |
 | De app start niet: "AUTH_DEV_LOGIN staat aan, maar APP_ENV is niet local" | `APP_ENV=local` ontbreekt, meestal na `vercel env pull`; zet hem terug in `.env.local` |
 | `pnpm db:seed` weigert | `SEED_TARGET` ontbreekt of wijst naar een andere branch dan `DATABASE_URL`; dat is de bedoeling |
+| `pnpm db:app-login` weigert | `PRODUCTION_DB_ENDPOINT` ontbreekt in `.env.local`, of `DATABASE_URL` wijst naar productie; allebei met opzet |
+| "permission denied" in `pnpm dev` of de e2e, terwijl de scripts werken | De app werkt als de rol van de app en die mist een recht of een regel: `pnpm check:grants` wijst de tabel aan. Een eigen tabel zonder `appRowAccess()` is de gebruikelijke oorzaak |
+| `pnpm doctor` zegt LATER over `DATABASE_URL_APP` | De app werkt nog als eigenaar; draai stap 4b |
 | Een pnpm-script faalt met "is not recognized" en een half pad | Een `&` in de gebruikersnaam van Windows breekt geneste `pnpm`; de scripts van het template roepen daarom `node` rechtstreeks aan. Schrijf eigen scripts net zo |
 | `next build` faalt op een ontbrekende BUILD_ID | `next build` is gestart met een `--env-file`-vlag; de scripts doen dat bewust niet |
 

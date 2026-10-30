@@ -16,6 +16,7 @@
 
 import { char, pgTable, text } from "drizzle-orm/pg-core";
 import { primaryKeyColumn, timestamps } from "./columns";
+import { appRowAccess } from "./rls";
 
 export const organisations = pgTable("organisations", {
   id: primaryKeyColumn(),
@@ -31,6 +32,6 @@ export const organisations = pgTable("organisations", {
   timezone: text("timezone").notNull().default("Europe/Amsterdam"),
 
   ...timestamps,
-});
+}, () => [appRowAccess()]);
 
 export type Organisation = typeof organisations.$inferSelect;

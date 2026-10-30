@@ -4,6 +4,7 @@
  * in `./index.ts`, dat dit bestand opnieuw exporteert.
  */
 export * from "./columns";
+export * from "./rls";
 export * from "./organisations";
 export * from "./users";
 export * from "./audit-log";

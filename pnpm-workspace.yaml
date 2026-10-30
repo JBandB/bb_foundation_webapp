@@ -7,6 +7,13 @@ allowBuilds:
   esbuild: true
   unrs-resolver: true
 
+# Een nieuwe versie van een pakket pas na een week (in minuten), ook voor wat indirect binnenkomt.
+# De npm-wormen van 2025 en 2026 kaapten honderden pakketten via gestolen maintainer-accounts; de
+# gekaapte versies waren meestal binnen een dag teruggetrokken. Wie meteen installeert, haalt ze
+# precies in die dag binnen. Dezelfde week als de cooldown van Dependabot (.github/dependabot.yml).
+# Een security-update van een pakket dat je nu nodig hebt: tijdelijk in minimumReleaseAgeExclude.
+minimumReleaseAge: 10080
+
 # Waarom TypeScript en ESLint vastgepind staan (zie ook docs/lessen/toolchain-windows.md):
 # typescript-eslint, dat via eslint-config-next binnenkomt, ondersteunt TypeScript 7 niet
 # (peer range tot 6.1), en ESLint 10 breekt eslint-plugin-react ("getFilename is not a

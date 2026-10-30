@@ -8,12 +8,14 @@ import type { NextConfig } from "next";
  *
  * ---
  *
- * **De security headers, pragmatisch en niet maximaal.** De CSP staat op 'self' met `unsafe-inline`
- * voor scripts en styles, want Next hydrateert met inline scripts en Tailwind zet inline styles; een
- * nonce-CSP kan dat dichtzetten maar vraagt middleware per request en een testronde over elk scherm.
- * De echte risico's die hier dichtgaan: clickjacking (frame-ancestors), MIME-sniffing, een referrer die
- * interne URL's lekt, en browserfeatures die niemand gebruikt. XSS wordt niet door de CSP gedragen maar
- * door de code zelf: geen `dangerouslySetInnerHTML`, tekst wordt nooit als HTML gelezen.
+ * **De vaste security headers.** De Content-Security-Policy staat hier niet: die komt uit `proxy.ts`,
+ * met een nonce per verzoek (`lib/security/csp.ts`, besluit D14). Een header uit deze configuratie
+ * kan geen nonce dragen, en twee CSP-headers naast elkaar zou de browser allebei afdwingen. Wat hier
+ * staat, is vast en geldt voor elk antwoord, ook voor `/api` en de statische bestanden: clickjacking
+ * (`X-Frame-Options`, naast `frame-ancestors` in de CSP), MIME-sniffing, een referrer die interne
+ * URL's lekt, en browserfeatures die niemand gebruikt. XSS wordt door twee dingen gedragen: de code
+ * (geen `dangerouslySetInnerHTML`, tekst wordt nooit als HTML gelezen) en de nonce, die een
+ * ontsnapt script alsnog tegenhoudt.
  *
  * **HSTS en COOP staan in de code**, niet alleen bij de host. Vercel zet HSTS zelf, maar zonder
  * `includeSubDomains`, en transportbeveiliging hoort niet te hangen aan een platforminstelling die
@@ -22,9 +24,6 @@ import type { NextConfig } from "next";
  * dus `next start` op localhost merkt er niets van. `Cross-Origin-Opener-Policy: same-origin` knipt de
  * lijn met een venster dat ons opende of dat wij openen; de inlog bij Microsoft is een redirect en geen
  * popup, dus daar breekt niets. En `X-Powered-By: Next.js` gaat uit: dat zegt alleen een aanvaller iets.
- *
- * **In ontwikkeling staat `unsafe-eval` erbij**, want de dev-server van Next draait HMR op eval. De
- * e2e-suite draait tegen `next start` en test dus de echte productieheaders.
  *
  * **Server actions nemen standaard één megabyte aan**, en Vercel hoogstens 4,5 MB per verzoek. De
  * grens staat hier op twaalf, ruim boven de eigen grens van vier megabyte in de bestandenmodule, zodat
@@ -35,22 +34,8 @@ import type { NextConfig } from "next";
  * hij in de code ziet staan, en `readDoc` stelt zijn pad pas tijdens het draaien samen. Zonder deze regel
  * werkt het lokaal en is het op Vercel leeg.
  */
-const CSP = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'"}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self'",
-  "connect-src 'self'",
-  "worker-src 'self'",
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-].join("; ");
-
 export const TEMPLATE_HEADERS = [
-  { key: "Content-Security-Policy", value: CSP },
-  /* Voor browsers van voor frame-ancestors. Zegt hetzelfde. */
+  /* Voor browsers van voor frame-ancestors. Zegt hetzelfde als de CSP uit proxy.ts. */
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

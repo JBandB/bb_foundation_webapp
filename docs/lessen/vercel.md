@@ -100,7 +100,11 @@ als optimalisatie per warme instantie, zoals tokens. Werk na het antwoord met `a
 `next/server`, met de wachtrijrij in dezelfde transactie en een cron als vangnet; de module met
 `after()` apart houden zodat scripts de wachtrijcode zonder `next/server` laden. Async werk in
 `onRequestError` afwachten. Het adres van de aanroeper is de eerste waarde van `x-forwarded-for`;
-zonder header één gedeelde sleutel.
+zonder header één gedeelde sleutel. Dat is alleen veilig omdat Vercel die header zelf zet en
+overschrijft; achter een eigen proxy of CDN is die eerste waarde wat de client stuurde, en dan
+draait een aanvaller de sleutel per verzoek. Op een andere host neem je de header die het platform
+garandeert. De teller telt vóór het werk en ongeacht de uitkomst, en per account zodra iemand is
+ingelogd (CLAUDE.md regel 17).
 
 **Afgedwongen door.** `lib/domain/rate-limit.ts` (tabel `rate_limits`, `pnpm task:prune` ruimt op),
 `lib/jobs/kick.ts` in module jobs (alleen daar staat `after()`), `instrumentation.ts`.

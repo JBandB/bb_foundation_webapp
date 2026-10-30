@@ -19,7 +19,8 @@ en een wegwerpbranch per pull request. **Tijd:** een half uur.
 |---|---|---|
 | Een database (project) in Frankfurt | de slug van je project | `DATABASE_URL` en `DATABASE_URL_UNPOOLED` in Vercel, per omgeving (06) |
 | Een branch `dev` | `dev` | de Development-waarden in Vercel, dus `.env.local` |
-| Het endpoint-id van productie | ziet eruit als `ep-woord-woord-a1b2c3d4` | `PRODUCTION_DB_ENDPOINT` in Vercel; `SEED_TARGET` lokaal krijgt het id van `dev` |
+| Het endpoint-id van productie | ziet eruit als `ep-woord-woord-a1b2c3d4` | `PRODUCTION_DB_ENDPOINT` in Vercel en in `.env.local`; `SEED_TARGET` lokaal krijgt het id van `dev` |
+| De inlogrol van de app op productie (na de eerste deploy) | `<slug>_app` | `DATABASE_URL_APP` in Vercel, alleen Production (zie onderaan) |
 
 ## Stappen
 
@@ -37,16 +38,57 @@ en een wegwerpbranch per pull request. **Tijd:** een half uur.
    werkwijze uit 09 is dat `preview/release/next`, elke ronde vers gekopieerd van productie.
 4. Zet op het project **autosuspend** op de kortste tijd die het plan toestaat, het **minimum
    compute** op de laagste stand, en **history retention** op een dag (of wat je echt nodig hebt).
-   **Controle:** de compute van `dev` slaapt een paar minuten na je laatste query.
+   Zet de **Data API** niet aan, op geen enkele branch: die zet Row Level Security op elke tabel
+   zonder één regel, en de rol van de app ziet dan nul rijen (de eigenaar merkt er niets van). Staat
+   hij al aan en gebruik je hem niet: uitzetten, en de rollen `authenticator`, `anonymous` en
+   `authenticated` en de schema's `auth` en `pgrst` opruimen. Zet bij **Branches** de productiebranch
+   op **Set as protected**, tegen per ongeluk verwijderen of resetten. Geen IP Allow List: Vercel
+   heeft geen vast adres, dus die sluit de app zelf buiten.
+   **Controle:** de compute van `dev` slaapt een paar minuten na je laatste query, en de Data API
+   staat op uit.
 5. Kopieer van `dev` (**Connect**) de **pooled** verbindingsstring (hostnaam met `-pooler`) en de
    **direct** string (zonder). Die gaan in 06 naar de Development-omgeving van Vercel. Noteer van de
    productiebranch het **endpoint-id** (geen wachtwoord, geen string): dat wordt
-   `PRODUCTION_DB_ENDPOINT` in Vercel voor Production en Preview.
+   `PRODUCTION_DB_ENDPOINT` in Vercel voor alle drie de omgevingen.
    **Controle:** beide strings eindigen op `?sslmode=require`; het endpoint-id begint met `ep-`.
 6. Voer op `dev` in de SQL Editor uit: `select version();`. De eerste migraties (de baseline van het
-   template) draaien bij de eerste deploy en lokaal met `pnpm db:migrate`.
-   **Controle:** `pnpm db:status` (na 07) zegt dat de twee baseline-migraties staan en noemt `dev`
-   als wegwerpbranch.
+   template, met de rol van de app en het slot op elke tabel) draaien bij de eerste deploy en lokaal
+   met `pnpm db:migrate`.
+   **Controle:** `pnpm db:status` (na 07) zegt dat de baseline-migraties staan en noemt `dev` als
+   wegwerpbranch.
+
+## De rol van de app op productie
+
+Na de eerste deploy (08). De migraties maken de rol `app_rw` aan: lezen en schrijven in `public`,
+de migratiestand lezen, de audit log alleen aanvullen, geen DDL, en op elke tabel de regel die de
+rol alle rijen geeft. De app verbindt ermee via een eigen variabele, omdat `DATABASE_URL` door de
+Neon-integratie wordt beheerd. Zonder die variabele werkt de app als eigenaar, zoals voorheen; dat
+is geen storing, maar wel een gat dat je dicht wilt. Lokaal doet `pnpm db:app-login` dit voor je (07).
+
+1. Controleer in de SQL Editor op de productiebranch dat de migraties er staan:
+   `select count(*) from pg_policies where policyname = 'app_rw_all';` geeft het aantal tabellen.
+2. Maak de inlogrol, in de **SQL Editor** op de productiebranch, als eigenaar (niet via **Roles** in
+   de console: een rol van daar wordt lid van `neon_superuser` en mag dan weer alles):
+   ```sql
+   CREATE ROLE <slug>_app WITH LOGIN PASSWORD '<een lang willekeurig wachtwoord>' IN ROLE app_rw;
+   ```
+   Het wachtwoord maak je met `node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"`
+   en bewaar je nergens anders dan in de volgende stap.
+   **Controle:** `select rolname from pg_roles where rolname like '%_app';` toont de rol.
+3. Vercel, Settings, Environment Variables, **alleen Production**, Sensitive: `DATABASE_URL_APP` =
+   de **pooled** verbindingsstring van productie (host met `-pooler`) met `<slug>_app` en dat
+   wachtwoord in plaats van `neondb_owner`. Laat `DATABASE_URL` en `DATABASE_URL_UNPOOLED` staan: die
+   blijven van de eigenaar, voor de migraties bij de deploy.
+4. **Deployments, Redeploy** van productie.
+   **Controle:** inloggen werkt, Beheer, Systeem is groen, en in de SQL Editor geeft
+   `select usename, count(*) from pg_stat_activity where usename is not null group by usename;`
+   een regel met `<slug>_app`. "Het werkt" alleen bewijst niets: een terugval op de eigenaar werkt
+   ook. Faalt er iets met "permission denied" of met "er is nog geen organisatie": haal
+   `DATABASE_URL_APP` weg en redeploy, dan valt de app terug op de eigenaar. Meld de melding, dan komt
+   het recht of de regel in een migratie.
+
+Previews houden de eigenaar: hun verbinding maakt de integratie per branch, en daar past geen vaste
+waarde in. `pnpm check:grants` bewaakt de rechten en het slot op elke branch.
 
 ## Waarom zo
 
@@ -63,7 +105,13 @@ gebruiken, en een lokale installatie zonder die extensies laat constraints stil 
 - De verbindingsstrings zijn geheimen: alleen in Vercel (Sensitive) en in `.env.local`.
 - `pnpm db:seed` schrijft alleen op de branch uit `SEED_TARGET` en weigert op Vercel en op het
   productie-endpoint.
-- Point-in-time restore: weet hoe lang je terug kunt (history retention) en waar de knop zit.
+- Point-in-time restore: weet hoe lang je terug kunt (history retention) en waar de knop zit. Op het
+  plan Free is dat hoogstens **zes uur** (stand oktober 2026): een fout die later wordt ontdekt, is
+  niet terug te zetten. Een wekelijkse `pg_dump` naar een plek buiten Neon werkt ook op Free en kost
+  bij Neon niets extra; dat is het goedkoopste gat om te dichten, zie 30.
+- De app verbindt op productie als de rol van de app, niet als eigenaar, en elke tabel heeft het slot
+  met één regel. Elke andere rol ziet niets, ook een Data API die iemand later aanzet.
+- Het wachtwoord van de eigenaar draai je zonder de knoppen van de integratie: zie 30.
 
 ## Kosten
 
@@ -84,8 +132,11 @@ of als je meer branches wilt. Stand van oktober 2026.
 | Wat je ziet | Wat er aan de hand is |
 |---|---|
 | `pnpm db:migrate` faalt op SSL of een time-out | De direct string ontbreekt of is de pooled string; migraties gaan over `DATABASE_URL_UNPOOLED` |
-| Een preview-deploy faalt met een melding over `PRODUCTION_DB_ENDPOINT` | Met opzet: zet het id in Vercel voor Production en Preview, zie 06 |
+| Een preview-deploy faalt met een melding over `PRODUCTION_DB_ENDPOINT` | Met opzet: zet het id in Vercel voor alle drie de omgevingen, zie 06 |
+| Een productiedeploy faalt met "wijst naar ..., maar productie is ..." | Met opzet: `DATABASE_URL_OWNER` (of de string van de integratie) wijst naar een andere branch dan `PRODUCTION_DB_ENDPOINT`; kijk welke van de twee fout is, zie 30 |
 | "relation does not exist" na een deploy | De migratie is niet gedraaid: kijk in de build-log naar `pnpm db:deploy` |
+| Na het zetten van `DATABASE_URL_APP`: "permission denied" of "er is nog geen organisatie" | Een recht of de regel van het slot ontbreekt op een tabel, of de migraties staan nog niet op productie; haal de variabele weg, redeploy, en draai `pnpm check:grants` op dev |
+| Inloggen valt om nadat iemand de Data API aanzette | Het slot staat op tabellen zonder regel; `pnpm check:grants` wijst ze aan. Zet de Data API uit en zet de regel terug met `pnpm db:migrate` op een verse branch, of met de SQL uit `lib/db/migrations/` |
 | De rekening loopt op | Compute slaapt niet: autosuspend korter, crons minder vaak, branches opruimen |
 
 ## Vul in
@@ -95,5 +146,6 @@ of als je meer branches wilt. Stand van oktober 2026.
 | Neon-project | |
 | Productiebranch en endpoint-id | |
 | Dev-branch en endpoint-id | |
-| Plan, autosuspend, retention | |
+| Plan, autosuspend, retention, herstelvenster | |
+| Inlogrol van de app op productie, en de datum van `DATABASE_URL_APP` | |
 | Datum aangemaakt | |

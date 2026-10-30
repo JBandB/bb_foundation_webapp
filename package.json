@@ -47,7 +47,9 @@
     "entra:status": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/entra-status.ts",
     "doctor": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/doctor.ts",
     "check:secrets": "node node_modules/secretlint/bin/secretlint.js \"**/*\"",
-    "check:all": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/check-all.ts"
+    "check:all": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/check-all.ts",
+    "check:grants": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/check-grants.ts",
+    "db:app-login": "node --env-file-if-exists=.env.local node_modules/tsx/dist/cli.mjs scripts/db-app-login.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.131.0",

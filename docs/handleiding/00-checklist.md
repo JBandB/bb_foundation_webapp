@@ -71,9 +71,15 @@ Dan deze acht stappen.
 
 - [ ] Een project in Frankfurt, gratis plan tot het niet meer past.
 - [ ] Een dev-branch naast de productiebranch; preview-branches per pull request aan.
-- [ ] `PRODUCTION_DB_ENDPOINT` in Vercel, zodat een preview nooit op productie migreert.
+- [ ] `PRODUCTION_DB_ENDPOINT` in Vercel voor alle drie de omgevingen, zodat een preview nooit op
+      productie migreert en een productiedeploy nergens anders.
 - [ ] Scale to zero en autosuspend op de kortste tijd; history retention op wat je nodig hebt.
-- [ ] Je weet waar het herstelpunt (PITR) staat en hoe lang het terugkijkt.
+- [ ] Je weet waar het herstelpunt (PITR) staat en hoe lang het terugkijkt (op Free hoogstens zes uur).
+- [ ] De Data API staat uit op elke branch; de productiebranch staat op Set as protected.
+- [ ] Na de eerste deploy: de inlogrol van de app op productie en `DATABASE_URL_APP` op Production,
+      met de controle in `pg_stat_activity` (handleiding 04).
+- [ ] Het wachtwoord van de eigenaar draai je via `DATABASE_URL_OWNER`, nooit met Rotate secrets
+      (handleiding 30).
 
 ### Inloggen
 

@@ -22,7 +22,7 @@
 
 import { Pool } from "@neondatabase/serverless";
 import { deployEnvironment } from "../lib/domain/deploy-environment";
-import { describeTarget, directUrl } from "./lib/connection";
+import { assertProductionTarget, describeTarget, directUrl } from "./lib/connection";
 import { applyMigrations } from "./lib/migrate";
 import { runScript } from "./lib/run";
 
@@ -34,14 +34,19 @@ const LOCK_TIMEOUT_MS = 120_000;
 const LOCK_RETRY_MS = 2_000;
 
 /**
- * Weigert te migreren als een deploy buiten productie op de productiebranch uitkomt. Alleen in
- * productie (`APP_ENV` of `VERCEL_ENV` is `production`) slaat hij de controle over.
+ * Weigert te migreren als een deploy buiten productie op de productiebranch uitkomt, en als een
+ * productiedeploy er juist niet op uitkomt. Dat laatste bestaat sinds de eigenaar een eigen variabele
+ * kan hebben (`DATABASE_URL_OWNER`, zie lib/db/owner-url.ts): een met de hand geplakte waarde die naar
+ * een andere branch wijst, zou anders stil die branch migreren.
  *
- * Fail closed: staat `PRODUCTION_DB_ENDPOINT` niet ingesteld, dan kunnen we het niet controleren en
- * gaan we er niet vanuit dat het wel goed zit.
+ * Fail closed: staat `PRODUCTION_DB_ENDPOINT` niet ingesteld, dan kunnen we het buiten productie
+ * niet controleren en gaan we er niet vanuit dat het wel goed zit.
  */
-function assertSafeTarget(endpoint: string): void {
-  if (deployEnvironment() === "production") return;
+function assertSafeTarget(url: string, endpoint: string): void {
+  if (deployEnvironment() === "production") {
+    assertProductionTarget(url);
+    return;
+  }
 
   const production = process.env.PRODUCTION_DB_ENDPOINT;
   if (production === undefined || production === "") {
@@ -114,7 +119,7 @@ runScript(async () => {
   const where = deployEnvironment();
 
   console.log(`Migreren vanuit omgeving ${where} naar endpoint ${endpoint}`);
-  assertSafeTarget(endpoint);
+  assertSafeTarget(url, endpoint);
 
   const pool = new Pool({ connectionString: url });
   try {

@@ -17,6 +17,7 @@
 
 import { bigserial, index, inet, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 
 export const auditLog = pgTable(
   "audit_log",
@@ -59,6 +60,7 @@ export const auditLog = pgTable(
     /** "Wat is er met deze rij gebeurd", de meest gestelde vraag. */
     index("audit_log_entity_idx").on(t.entityTable, t.entityId, t.changedAt),
     index("audit_log_actor_idx").on(t.actorUserId, t.changedAt),
+    appRowAccess(),
   ],
 );
 

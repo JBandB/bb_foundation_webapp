@@ -23,6 +23,7 @@ import { sql } from "drizzle-orm";
 import { check, pgTable, text, uuid } from "drizzle-orm/pg-core";
 import { timestamps } from "./columns";
 import { organisations } from "./organisations";
+import { appRowAccess } from "./rls";
 import { users } from "./users";
 
 export const userPreferences = pgTable(
@@ -50,6 +51,7 @@ export const userPreferences = pgTable(
   (t) => [
     /* De toegestane waarden staan in de database en niet alleen in de code, want deze kolom wordt uit een formulierwaarde gevuld. */
     check("theme_known", sql`${t.theme} in ('light', 'dark')`),
+    appRowAccess(),
   ],
 );
 

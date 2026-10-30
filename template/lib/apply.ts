@@ -161,6 +161,29 @@ export function applyTemplate(root: string, sourceRoot: string, options: ApplyOp
   const files: Record<string, LockedFile> = {};
   const adopted = previousLock?.adopted ?? [];
 
+  /*
+   * Modules met een nieuwe schemaversie: eerst bewijzen dat het project zelf geen drift heeft, met de
+   * schemabestanden en de index zoals ze nu staan, dus vóórdat apply de bestanden van het template
+   * overschrijft. Een module die al een schema had en een nieuwe versie krijgt (zoals core met de
+   * regel van de app op elke tabel), brengt die wijziging zelf mee in haar owned bestanden, en die
+   * hoort straks in haar migratie en niet in deze controle. Een module die nieuw is, staat nog niet
+   * in de index. Daarna schrijft de lus de index per module en genereert de staart van apply de
+   * migraties.
+   */
+  const schemaPending = activeModules.filter((name) => {
+    const moduleManifest = manifest.modules[name];
+    return moduleManifest !== undefined && moduleManifest.schemaFiles.length > 0 && pendingSchemaSteps(moduleManifest, previousLock?.modules[name]?.schemaVersion ?? 0).length > 0;
+  });
+  const canGenerate = schemaPending.length > 0 && !options.dryRun && hasDrizzleKit(root);
+  if (canGenerate) {
+    try {
+      assertNoDrift(root);
+    } catch (error) {
+      if (error instanceof DrizzleError) throw new ApplyError(error.message);
+      throw error;
+    }
+  }
+
   const defaultConfig = readDefaultConfig(sourceRoot, manifest);
   /* Op de standaardconfiguratie blijven de seeds de neutrale versie: er is nog niets om voor te renderen. */
   const onDefaultConfig = configsEqual(config, defaultConfig);
@@ -235,8 +258,7 @@ export function applyTemplate(root: string, sourceRoot: string, options: ApplyOp
     }
 
     const shipped = shippedGenerated.get(path);
-    const untouched =
-      ownHashes.get(path) === currentHash || (previous !== undefined ? previous.hash === currentHash : shipped !== undefined && hashText(shipped) === currentHash);
+    const untouched = previous !== undefined ? previous.hash === currentHash : shipped !== undefined && hashText(shipped) === currentHash;
     if (untouched || options.force) {
       if (!untouched) backup(path);
       writeFile(path, content);
@@ -318,30 +340,6 @@ export function applyTemplate(root: string, sourceRoot: string, options: ApplyOp
     files[path] = { module, class: "seed", hash: currentHash, seeded: true, seededIn: previous?.seededIn ?? manifest.version, sourceHash, shippedHash: null };
     outcomes.push({ path, module, class: "seed", status: "seed-kept" });
   };
-
-  /*
-   * Modules met een nieuwe schemaversie: eerst bewijzen dat het project zelf geen drift heeft, met een
-   * schema-index zonder die modules. Daarna schrijft de lus de volledige index en genereert de staart
-   * van apply de migraties. Wat apply hier zelf schrijft, telt straks als "niet aangeraakt".
-   */
-  const ownHashes = new Map<string, string>();
-  const schemaPending = activeModules.filter((name) => {
-    const moduleManifest = manifest.modules[name];
-    return moduleManifest !== undefined && moduleManifest.schemaFiles.length > 0 && pendingSchemaSteps(moduleManifest, previousLock?.modules[name]?.schemaVersion ?? 0).length > 0;
-  });
-  const canGenerate = schemaPending.length > 0 && !options.dryRun && hasDrizzleKit(root);
-  if (canGenerate) {
-    const indexPath = "lib/db/schema/template-index.ts";
-    const settled = generateSchemaIndex(manifest, applied.filter((name) => !schemaPending.includes(name)));
-    writeText(join(root, indexPath), settled);
-    ownHashes.set(indexPath, hashText(settled));
-    try {
-      assertNoDrift(root);
-    } catch (error) {
-      if (error instanceof DrizzleError) throw new ApplyError(error.message);
-      throw error;
-    }
-  }
 
   for (const name of activeModules) {
     const moduleManifest = manifest.modules[name];

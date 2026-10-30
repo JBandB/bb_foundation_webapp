@@ -122,3 +122,20 @@ e-mailclaim is geen betrouwbare sleutel, het object-id wel.
 `lib/auth/display-name.ts`, `lib/domain/initials.ts`, `lib/auth/email-fallback.ts`; de koppeling in
 `lib/auth/user-sync.ts`, die bij een andere identiteit weigert met een melding in plaats van te botsen
 op de unieke index.
+
+## L-AUTH-07 Een server action kijkt eerst naar de sessie en dan naar de invoer
+
+**Symptoom.** Het aanvalsscript vond een nieuwe action die zonder sessie, en als gast, een gewoon
+antwoord gaf ("de tekst is te lang") in plaats van een weigering. Er lekte niets.
+
+**Oorzaak.** De action keek eerst of de invoer tekst was en pas daarna naar de sessie. Precies het
+patroon dat bij een volgende action wel lekt: een antwoord dat iets over de staat zegt, aan iemand
+die er niet hoort te zijn.
+
+**Regel.** De eerste regel van elke geëxporteerde functie in een `"use server"`-bestand is `await
+requireActor()` of `await requireSession()`, vóór elke blik op de invoer. Een bewust anonieme
+action (inloggen, uitloggen, een hulpformulier op het inlogscherm) krijgt er een commentaar boven
+met `session-first:` en de reden.
+
+**Afgedwongen door.** De huisregel `session-first` (`scripts/house-rules/session-first.mjs`),
+meeliftend op `pnpm lint`.

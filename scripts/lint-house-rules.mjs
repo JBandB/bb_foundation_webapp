@@ -12,6 +12,7 @@
  *   no-hardcoded-colour   kleuren komen uit de tokens, plus driftcontrole
  *   env-template          geen echte waarde in .env.example
  *   server-actions        een "use server"-bestand exporteert alleen functies
+ *   session-first         elke server action begint met de sessie, vóór de invoer
  *   client-imports        een clientcomponent haalt geen databasecode binnen
  *   client-graph          ook niet via een omweg: de hele importboom tot een "use server"-grens
  *   subquery-columns      een kolom in een subquery staat uitgeschreven met tabelnaam
@@ -32,6 +33,7 @@ import { checkNoEmDash } from "./house-rules/no-em-dash.mjs";
 import { checkNoHardcodedColour, checkTokenDrift } from "./house-rules/no-hardcoded-colour.mjs";
 import { checkEnvTemplate } from "./house-rules/env-template.mjs";
 import { checkServerActions } from "./house-rules/server-actions.mjs";
+import { checkSessionFirst } from "./house-rules/session-first.mjs";
 import { checkClientImports } from "./house-rules/client-imports.mjs";
 import { checkSubqueryColumns } from "./house-rules/subquery-columns.mjs";
 import { checkLabelsSize } from "./house-rules/labels-size.mjs";
@@ -47,6 +49,7 @@ const PER_FILE_RULES = [
   checkNoEmDash,
   checkNoHardcodedColour,
   checkServerActions,
+  checkSessionFirst,
   checkClientImports,
   checkSubqueryColumns,
   checkLabelsSize,

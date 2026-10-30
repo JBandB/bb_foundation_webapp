@@ -48,8 +48,8 @@ export interface DoctorFacts {
   readonly env: Readonly<Record<string, string | undefined>>;
   /** De variabelen van de toegepaste modules, uit het manifest. */
   readonly envVars: readonly ModuleEnv[];
-  /** De endpoint-id's uit DATABASE_URL en DATABASE_URL_UNPOOLED; "invalid" als de string niet te lezen is. */
-  readonly endpoints: { readonly pooled: string | undefined; readonly direct: string | undefined };
+  /** De endpoint-id's uit DATABASE_URL, DATABASE_URL_UNPOOLED en DATABASE_URL_APP; "invalid" als de string niet te lezen is. */
+  readonly endpoints: { readonly pooled: string | undefined; readonly direct: string | undefined; readonly app: string | undefined };
   readonly vercelLinked: boolean;
   /** undefined: geen git, of geen git-werkmap. */
   readonly git: GitFacts | undefined;
@@ -143,11 +143,33 @@ function database(facts: DoctorFacts): Finding[] {
     return [{ level: "action", text: `De database in .env.local is productie (${endpoint})`, fix: "Lokaal werk je tegen de branch dev: zet de verbindingsstrings van dev in .env.local (handleiding 07)." }];
   }
   const seedTarget = facts.env.SEED_TARGET;
-  if (seedTarget === undefined || seedTarget === "") return [{ level: "ok", text: `Database: endpoint ${endpoint}` }];
+  if (seedTarget === undefined || seedTarget === "") return [{ level: "ok", text: `Database: endpoint ${endpoint}` }, ...appRole(facts, endpoint)];
   if (seedTarget !== endpoint) {
     return [{ level: "action", text: `SEED_TARGET (${seedTarget}) is niet het endpoint uit DATABASE_URL (${endpoint})`, fix: "Controleer met pnpm db:status welke branch dit is, en zet SEED_TARGET op het endpoint van dev." }];
   }
-  return [{ level: "ok", text: `Database: endpoint ${endpoint}, gelijk aan SEED_TARGET` }];
+  return [{ level: "ok", text: `Database: endpoint ${endpoint}, gelijk aan SEED_TARGET` }, ...appRole(facts, endpoint)];
+}
+
+/**
+ * De rol van de app lokaal (`DATABASE_URL_APP`, geschreven door `pnpm db:app-login`), en de eigen
+ * variabele van de eigenaar, die buiten productie niet telt en lokaal dus alleen verwart.
+ */
+function appRole(facts: DoctorFacts, endpoint: string): Finding[] {
+  const found: Finding[] = [];
+  const app = facts.endpoints.app;
+  if (app === undefined) {
+    found.push({ level: "later", text: "De app werkt lokaal als eigenaar van de database (geen DATABASE_URL_APP)", fix: "pnpm db:app-login, dan werken next dev en de e2e als de rol van de app, net als productie (handleiding 07)." });
+  } else if (app === INVALID_ENDPOINT) {
+    found.push({ level: "action", text: "DATABASE_URL_APP is geen geldige verbindingsstring", fix: "pnpm db:app-login schrijft hem opnieuw." });
+  } else if (app !== endpoint) {
+    found.push({ level: "action", text: `DATABASE_URL_APP (${app}) wijst naar een andere branch dan DATABASE_URL (${endpoint})`, fix: "pnpm db:app-login schrijft hem opnieuw voor de branch uit DATABASE_URL." });
+  } else {
+    found.push({ level: "ok", text: "De app werkt lokaal als de rol van de app (DATABASE_URL_APP)" });
+  }
+  if (has(facts.env, "DATABASE_URL_OWNER")) {
+    found.push({ level: "later", text: "DATABASE_URL_OWNER staat in .env.local, maar telt alleen in productie", fix: "Haal hem lokaal weg; hij hoort alleen in Vercel, scope Production (handleiding 30)." });
+  }
+  return found;
 }
 
 function vercel(facts: DoctorFacts): Finding {

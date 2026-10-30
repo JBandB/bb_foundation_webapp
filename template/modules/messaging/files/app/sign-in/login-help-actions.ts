@@ -9,7 +9,11 @@ import { labels } from "@/lib/i18n/labels";
 import { kickOutbox } from "@/lib/messaging/kick";
 import { submitLoginHelp } from "@/lib/messaging/login-help";
 
-/** Het hulpformulier op het inlogscherm: zonder sessie, met de remmen uit lib/messaging/login-help.ts. */
+/**
+ * Het hulpformulier op het inlogscherm: zonder sessie, met de remmen uit lib/messaging/login-help.ts.
+ *
+ * session-first: wie niet kan inloggen heeft geen sessie; de rem per adres en het plafond vangen misbruik.
+ */
 export async function submitLoginHelpAction(_previous: FormState, form: FormData): Promise<FormState> {
   const requestHeaders = await headers();
   const result = await submitLoginHelp(getDb(), {

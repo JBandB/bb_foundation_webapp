@@ -104,3 +104,21 @@ als `.test.mjs`. Een variabele mag niet `module` heten (ESLint).
 
 **Afgedwongen door.** `tsconfig.json`, `eslint.config.mjs` (`no-explicit-any` en
 `no-non-null-assertion` op error), `pnpm typecheck` in CI.
+
+## L-WIN-07 Een test die een em-dash zoekt, een script met top-level `await`, en een gestopte batterij
+
+**Symptoom.** De huisregel `no-em-dash` viel over zijn eigen test. Een `.ts`-script met top-level
+`await` faalde onder tsx. Na het halverwege stoppen van een batterij bleven Semgrep-processen
+doorlopen en liet een afgebroken e2e proefdata en een server achter.
+
+**Oorzaak.** Het teken zelf of de escape ervan in een testbestand is een em-dash in de repo. tsx
+compileert `.ts` naar CommonJS, en daar bestaat top-level `await` niet. Op Windows stoppen de
+kinderen van een gestopt proces niet mee.
+
+**Regel.** Een em-dash in een test schrijf je als `String.fromCodePoint(0x2014)`, nooit als teken en
+nooit als escape. Een script met top-level `await` heet `.mts`, of woont in een functie (zoals
+`runScript`). Een batterij stop je alleen vóór de databasechecks en de e2e, en je ruimt de
+achtergebleven processen op.
+
+**Afgedwongen door.** `scripts/house-rules/rules.test.mjs` doet het zo; `scripts/lib/run.ts` geeft
+elk script een functie; verder afspraak.

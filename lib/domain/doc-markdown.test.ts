@@ -10,6 +10,19 @@ describe("doc-markdown", () => {
     expect(parseDocSpans("a `b` **c**")).toEqual([{ text: "a " }, { text: "b", code: true }, { text: " " }, { text: "c", bold: true }]);
   });
 
+  it("laat een punt doorlopen op een ingesprongen regel, en sluit de lijst op een regel zonder inspringing", () => {
+    const blocks = parseDoc(["- een punt dat", "  doorloopt met **vet**", "- twee", "", "Een alinea.", "1. drie", "   loopt ook door"].join("\n"));
+    expect(blocks.map((block) => block.kind)).toEqual(["list", "paragraph", "list"]);
+    const first = blocks[0];
+    if (first?.kind === "list") {
+      expect(first.items).toHaveLength(2);
+      expect(first.items[0]?.map((span) => span.text).join("")).toBe("een punt dat doorloopt met vet");
+      expect(first.items[0]?.some((span) => span.bold === true)).toBe(true);
+    }
+    const third = blocks[2];
+    if (third?.kind === "list") expect(third.items[0]?.map((span) => span.text).join("")).toBe("drie loopt ook door");
+  });
+
   it("laat een tabel doorlopen over een lege regel, en slaat een HTML-commentaar over", () => {
     const blocks = parseDoc(["<!-- kop -->", "| # | Besluit | Waarom |", "|---|---|---|", "| D1 | Een | Omdat |", "", "| D2 | Twee | Daarom |"].join("\n"));
     expect(blocks).toHaveLength(1);
